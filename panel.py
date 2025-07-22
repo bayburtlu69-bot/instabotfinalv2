@@ -3,7 +3,7 @@ from flask import Flask, session, request, redirect, render_template_string
 from instagrapi import Client
 
 app = Flask(__name__)
-app.secret_key = "çok-gizli-bir-anahtar"   # Kendin bir tane üretip gizli tut
+app.secret_key = "çok-gizli-bir-anahtar"  # Bunu kendi gizli anahtarınızla değiştirin
 
 PASSWORD = "admin"
 
@@ -47,9 +47,11 @@ def get_clients():
         sf = f"settings_{u}.json"
         if os.path.exists(sf):
             cl.load_settings(sf)
+            print(f"{u}: cache'den yüklendi")
         else:
             cl.login(u, p)
             cl.dump_settings(sf)
+            print(f"{u}: ilk giriş yapıldı ve cache kaydedildi")
         clients.append(cl)
     return clients
 
@@ -57,15 +59,15 @@ def follow_user(client, target):
     uid = client.user_id_from_username(target)
     client.user_follow(uid)
 
-# Botları hazırla
+# Bot client'larını hazırla
 BOT_CLIENTS = get_clients()
 
-# --- Flask route’ları ---
+# --- Flask route'ları ---
 @app.route("/", methods=["GET","POST"])
 def index():
     if session.get("logged_in"):
         return redirect("/panel")
-    if request.method=="POST" and request.form.get("password")==PASSWORD:
+    if request.method == "POST" and request.form.get("password") == PASSWORD:
         session["logged_in"] = True
         return redirect("/panel")
     return render_template_string(HTML_FORM)
@@ -78,13 +80,14 @@ def panel():
     if request.method == "POST":
         username = request.form.get("username")
         if username:
-            # orders.json’a kaydet
+            # orders.json'a kaydet
             try:
                 orders = json.load(open("orders.json", encoding="utf-8"))
             except:
                 orders = []
             orders.append(username)
             json.dump(orders, open("orders.json","w", encoding="utf-8"))
+            print(f"DEBUG: orders.json’a yazıldı → {orders}")  # Debug satırı
 
             # hemen botlarla takip et
             for client in BOT_CLIENTS:
@@ -103,6 +106,7 @@ def logout():
     session.clear()
     return redirect("/")
 
-if __name__=="__main__":
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
+    print(f"Sunucu {port} portunda başlatıldı")
     app.run(host="0.0.0.0", port=port)
