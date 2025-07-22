@@ -7,7 +7,7 @@ app.secret_key = "çok-gizli-bir-anahtar"
 
 PASSWORD = "admin"
 
-HTML_FORM = """
+HTML_FORM = """ 
 <!DOCTYPE html>
 <html><head><title>Insta Bot Panel</title></head>
 <body>
@@ -36,9 +36,9 @@ HTML_ORDER = """
   {% if orders %}
     <table border="1" cellpadding="4" cellspacing="0">
       <tr><th>#</th><th>Kullanıcı Adı</th></tr>
-      {% for idx, o in enumerate(orders, start=1) %}
+      {% for o in orders %}
         <tr>
-          <td>{{ idx }}</td>
+          <td>{{ loop.index }}</td>
           <td>{{ o }}</td>
         </tr>
       {% endfor %}
@@ -108,11 +108,11 @@ def panel():
                     follow_user(client, username)
                     print(f"{client.username} → {username} takibe başladı")
                 except Exception as e:
-                    print(f"⚠️ {client.username} ile hata: {e}")
+                    print(f⚠️ {client.username} ile hata: {e}")
 
         return redirect("/panel")
 
-    # GET: var olan siparişleri oku ve gönder
+    # GET: var olan siparişleri oku ve şablona aktar
     try:
         orders = json.load(open("orders.json", encoding="utf-8"))
     except:
