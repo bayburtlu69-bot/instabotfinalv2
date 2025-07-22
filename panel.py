@@ -11,6 +11,9 @@ from instagrapi.exceptions import LoginRequired
 
 # ————— Uygulama & DB ayarları —————
 app = Flask(__name__)
+# Aşağıdaki satır ile hem "/panel" hem de "/panel/" gibi URL’ler çalışır:
+app.url_map.strict_slashes = False
+
 app.secret_key = os.getenv("SECRET_KEY", "çok-gizli-bir-anahtar")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
