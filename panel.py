@@ -6,11 +6,11 @@ from instagrapi import Client
 from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
-app.secret_key = "çok-gizli-bir-anahtar"   # Bunu kendin rastgele üretip gizli tut
+app.secret_key = "çok-gizli-bir-anahtar"  # Bunu kendin güvenli bir değerle değiştir
 PASSWORD = "admin"
 
-# Şifre girişi için HTML
-HTML_FORM = """ 
+# --- HTML Şablonları ---
+HTML_FORM = """
 <!DOCTYPE html>
 <html><head><title>Insta Bot Panel</title></head>
 <body>
@@ -23,7 +23,6 @@ HTML_FORM = """
 </html>
 """
 
-# Sipariş formu ve geçmiş sipariş tablosu için HTML (Jinja2 şablonu)
 HTML_ORDER = """
 <!DOCTYPE html>
 <html><head><title>Sipariş Paneli</title></head>
@@ -54,49 +53,48 @@ HTML_ORDER = """
 </html>
 """
 
-# --- İnstabot fonksiyonları ---
+# --- İnstabot yardımcı fonksiyonları ---
 def load_bots(path="bots.txt"):
-    """bots.txt'ten 'username:password' satırlarını oku."""
+    """Bots.txt'ten 'username:password' çiftlerini oku."""
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip().split(":", 1) for line in f if ":" in line]
 
 def get_clients():
-    """Her bot için Client oluştur ve cache (settings) yükle veya login ol."""
+    """Her bot için Client oluştur, settings cache yükle veya login ol."""
     clients = []
-    for u, p in load_bots():
+    for username, password in load_bots():
         cl = Client()
         cl.private.timeout = 10
-        sf = f"settings_{u}.json"
-        if os.path.exists(sf):
-            cl.load_settings(sf)
+        settings_file = f"settings_{username}.json"
+        if os.path.exists(settings_file):
+            cl.load_settings(settings_file)
         else:
-            cl.login(u, p)
-            cl.dump_settings(sf)
+            cl.login(username, password)
+            cl.dump_settings(settings_file)
         clients.append(cl)
     return clients
 
-def follow_user(client, target):
-    """Tek bir Client ile target kullanıcıyı takip et."""
-    uid = client.user_id_from_username(target)
+def follow_user(client, target_username):
+    """Belirtilen client ile hedef kullanıcıyı takip et."""
+    uid = client.user_id_from_username(target_username)
     client.user_follow(uid)
 
-# --- Bot client'larını ve executor'u hazırla ---
+# --- Botları ve executor'ı başlat ---
 BOT_CLIENTS = get_clients()
+print("Yüklü bot hesapları:", [c.username for c in BOT_CLIENTS])
 FOLLOW_EXECUTOR = ThreadPoolExecutor(max_workers=len(BOT_CLIENTS))
 
-# --- Flask route'ları ---
-@app.route("/", methods=["GET","POST"])
+# --- Flask rotaları ---
+@app.route("/", methods=["GET", "POST"])
 def index():
-    # Eğer zaten giriş yaptıysa doğrudan /panel'e yönlendir
     if session.get("logged_in"):
         return redirect("/panel")
-    # POST ile şifre gönderildiyse kontrol et
     if request.method == "POST" and request.form.get("password") == PASSWORD:
         session["logged_in"] = True
         return redirect("/panel")
     return render_template_string(HTML_FORM)
 
-@app.route("/panel", methods=["GET","POST"])
+@app.route("/panel", methods=["GET", "POST"])
 def panel():
     if not session.get("logged_in"):
         return redirect("/")
@@ -104,29 +102,44 @@ def panel():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         if username:
-            # 1) orders.json'a kaydet (isteğe bağlı arşiv)
+            # 1) orders.json'a kaydet
             try:
-                orders = json.load(open("orders.json", encoding="utf-8"))
+                with open("orders.json", "r", encoding="utf-8") as f:
+                    orders = json.load(f)
             except:
                 orders = []
             orders.append(username)
-            json.dump(orders, open("orders.json", "w", encoding="utf-8"))
+            with open("orders.json", "w", encoding="utf-8") as f:
+                json.dump(orders, f)
 
-            # 2) Paralel takip isteği
+            # 2) Paralel takip denemesi
             def task(client):
+                print(f"[PARALLEL] Deniyor → {client.username}")
+                follow_user(client, username)
+                print(f"[PARALLEL] Başarılı → {client.username}")
+
+            futures = [FOLLOW_EXECUTOR.submit(task, client) for client in BOT_CLIENTS]
+            for future in futures:
+                try:
+                    future.result(timeout=30)
+                except Exception as e:
+                    print(f">>> Parallel task hatası: {e}")
+
+            # 3) Sıralı retry denemesi
+            for client in BOT_CLIENTS:
+                print(f"[RETRY] Sıralı deneme → {client.username}")
                 try:
                     follow_user(client, username)
-                    print(f"{client.username} → {username} takibe başladı")
+                    print(f"[RETRY] Başarılı → {client.username}")
                 except Exception as e:
-                    print(f"⚠️ {client.username} ile hata: {e}")
-
-            FOLLOW_EXECUTOR.map(task, BOT_CLIENTS)
+                    print(f"[RETRY] Hala hata → {client.username}: {e}")
 
         return redirect("/panel")
 
-    # GET isteğinde geçmiş siparişleri yükle ve şablona ver
+    # GET: Geçmiş siparişleri yükle ve şablona aktar
     try:
-        orders = json.load(open("orders.json", encoding="utf-8"))
+        with open("orders.json", "r", encoding="utf-8") as f:
+            orders = json.load(f)
     except:
         orders = []
     return render_template_string(HTML_ORDER, orders=orders)
