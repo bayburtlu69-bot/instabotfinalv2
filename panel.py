@@ -1,9 +1,17 @@
+<<<<<<< HEAD
 import os, json, time
 from flask import Flask, session, request, redirect, render_template_string
 from instagrapi import Client
 
 app = Flask(__name__)
 app.secret_key = "çok-gizli-bir-anahtar"   # Bunu kendin rastgele üretip koru
+=======
+from flask import Flask, session, request, redirect, render_template_string
+import json, os
+
+app = Flask(__name__)
+app.secret_key = "çok-gizli-bir-anahtar"  # Bunu rastgele bir değere çevirin
+>>>>>>> 75b59e803ba3441acc512c61df1677bdbe1e2cff
 
 PASSWORD = "admin"
 
@@ -34,6 +42,7 @@ HTML_ORDER = """
 </html>
 """
 
+<<<<<<< HEAD
 # --- 1) Botları okuyup Client hazırlayan fonksiyonlar ---
 def load_bots(path="bots.txt"):
     with open(path, "r", encoding="utf-8") as f:
@@ -70,16 +79,31 @@ def index():
         return redirect("/panel")
     return render_template_string(HTML_FORM)
 
+=======
+@app.route("/", methods=["GET","POST"])
+def index():
+    if session.get("logged_in"):
+        return redirect("/panel")
+    if request.method=="POST" and request.form.get("password")==PASSWORD:
+        session["logged_in"] = True
+        return redirect("/panel")
+    return render_template_string(HTML_FORM)
+
+>>>>>>> 75b59e803ba3441acc512c61df1677bdbe1e2cff
 @app.route("/panel", methods=["GET","POST"])
 def panel():
     if not session.get("logged_in"):
         return redirect("/")
+<<<<<<< HEAD
 
+=======
+>>>>>>> 75b59e803ba3441acc512c61df1677bdbe1e2cff
     if request.method=="POST":
         username = request.form.get("username")
         if username:
             # a) orders.json’a kaydet (opsiyonel)
             try:
+<<<<<<< HEAD
                 orders = json.load(open("orders.json", encoding="utf-8"))
             except:
                 orders = []
@@ -98,6 +122,18 @@ def panel():
 
     return render_template_string(HTML_ORDER)
 
+=======
+                with open("orders.json","r") as f:
+                    orders = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                orders = []
+            orders.append(username)
+            with open("orders.json","w") as f:
+                json.dump(orders, f)
+        return redirect("/panel")
+    return render_template_string(HTML_ORDER)
+
+>>>>>>> 75b59e803ba3441acc512c61df1677bdbe1e2cff
 @app.route("/logout")
 def logout():
     session.clear()
