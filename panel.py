@@ -1,12 +1,15 @@
-import os, json, time
+import os
+import json
+import time
 from flask import Flask, session, request, redirect, render_template_string
 from instagrapi import Client
+from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
-app.secret_key = "çok-gizli-bir-anahtar"
-
+app.secret_key = "çok-gizli-bir-anahtar"   # Bunu kendin rastgele üretip gizli tut
 PASSWORD = "admin"
 
+# Şifre girişi için HTML
 HTML_FORM = """ 
 <!DOCTYPE html>
 <html><head><title>Insta Bot Panel</title></head>
@@ -20,6 +23,7 @@ HTML_FORM = """
 </html>
 """
 
+# Sipariş formu ve geçmiş sipariş tablosu için HTML (Jinja2 şablonu)
 HTML_ORDER = """
 <!DOCTYPE html>
 <html><head><title>Sipariş Paneli</title></head>
@@ -52,10 +56,12 @@ HTML_ORDER = """
 
 # --- İnstabot fonksiyonları ---
 def load_bots(path="bots.txt"):
+    """bots.txt'ten 'username:password' satırlarını oku."""
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip().split(":", 1) for line in f if ":" in line]
 
 def get_clients():
+    """Her bot için Client oluştur ve cache (settings) yükle veya login ol."""
     clients = []
     for u, p in load_bots():
         cl = Client()
@@ -70,18 +76,22 @@ def get_clients():
     return clients
 
 def follow_user(client, target):
+    """Tek bir Client ile target kullanıcıyı takip et."""
     uid = client.user_id_from_username(target)
     client.user_follow(uid)
 
-# Bot client'larını hazırla
+# --- Bot client'larını ve executor'u hazırla ---
 BOT_CLIENTS = get_clients()
+FOLLOW_EXECUTOR = ThreadPoolExecutor(max_workers=len(BOT_CLIENTS))
 
 # --- Flask route'ları ---
 @app.route("/", methods=["GET","POST"])
 def index():
+    # Eğer zaten giriş yaptıysa doğrudan /panel'e yönlendir
     if session.get("logged_in"):
         return redirect("/panel")
-    if request.method=="POST" and request.form.get("password")==PASSWORD:
+    # POST ile şifre gönderildiyse kontrol et
+    if request.method == "POST" and request.form.get("password") == PASSWORD:
         session["logged_in"] = True
         return redirect("/panel")
     return render_template_string(HTML_FORM)
@@ -92,28 +102,29 @@ def panel():
         return redirect("/")
 
     if request.method == "POST":
-        username = request.form.get("username")
+        username = request.form.get("username", "").strip()
         if username:
-            # orders.json'a kaydet
+            # 1) orders.json'a kaydet (isteğe bağlı arşiv)
             try:
                 orders = json.load(open("orders.json", encoding="utf-8"))
             except:
                 orders = []
             orders.append(username)
-            json.dump(orders, open("orders.json","w", encoding="utf-8"))
+            json.dump(orders, open("orders.json", "w", encoding="utf-8"))
 
-            # hemen botlarla takip et
-            for client in BOT_CLIENTS:
+            # 2) Paralel takip isteği
+            def task(client):
                 try:
                     follow_user(client, username)
                     print(f"{client.username} → {username} takibe başladı")
                 except Exception as e:
-                    # Buradaki satır düzeltilmiştir:
                     print(f"⚠️ {client.username} ile hata: {e}")
+
+            FOLLOW_EXECUTOR.map(task, BOT_CLIENTS)
 
         return redirect("/panel")
 
-    # GET: var olan siparişleri oku ve şablona aktar
+    # GET isteğinde geçmiş siparişleri yükle ve şablona ver
     try:
         orders = json.load(open("orders.json", encoding="utf-8"))
     except:
@@ -125,6 +136,6 @@ def logout():
     session.clear()
     return redirect("/")
 
-if __name__=="__main__":
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
