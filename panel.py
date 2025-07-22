@@ -29,7 +29,6 @@ class User(db.Model):
 # ————— DB dosyasını ve seed admin’i oluştur —————
 with app.app_context():
     db.create_all()
-    # Eğer yoksa otomatik admin oluştur
     if not User.query.filter_by(username="admin").first():
         db.session.add(User(
             username="admin",
@@ -97,10 +96,10 @@ HTML_PANEL = """
   {% endif %}
   <h2>Yeni Sipariş</h2>
   {% if role=='admin' %}
-  <form method="post">
-    <input name="username" placeholder="Takip edilecek hesap">
-    <button type="submit">Sipariş Ver</button>
-  </form>
+    <form method="post">
+      <input name="username" placeholder="Takip edilecek hesap">
+      <button type="submit">Sipariş Ver</button>
+    </form>
   {% else %}
     <p>Bu işlemi yapmaya yetkiniz yok.</p>
   {% endif %}
@@ -108,13 +107,24 @@ HTML_PANEL = """
   <h3>Geçmiş Siparişler</h3>
   {% if orders %}
     <table border=1 cellpadding=4>
-      <tr><th>#</th><th>Kullanıcı</th><th>Durum</th><th>Hata</th></tr>
+      <tr>
+        <th>#</th><th>Kullanıcı</th><th>Durum</th><th>Hata</th><th>İşlem</th>
+      </tr>
       {% for o in orders %}
       <tr>
         <td>{{ loop.index }}</td>
         <td>{{ o.username }}</td>
         <td>{{ o.status }}</td>
         <td>{{ o.error }}</td>
+        <td>
+          {% if o.status not in ['complete','cancelled'] and role=='admin' %}
+            <form method="post" action="{{ url_for('cancel_order', order_idx=loop.index0) }}" style="display:inline">
+              <button type="submit">İptal Et</button>
+            </form>
+          {% else %}
+            —
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </table>
@@ -217,6 +227,23 @@ def delete_user(user_id):
         db.session.commit()
     return redirect("/users")
 
+# ————— Sipariş iptal rotası —————
+@app.route("/cancel/<int:order_idx>", methods=["POST"])
+@login_required
+def cancel_order(order_idx):
+    if session.get("role")!="admin":
+        abort(403)
+    try:
+        orders = json.load(open(ORDERS_FILE, encoding="utf-8"))
+    except:
+        orders = []
+    if 0 <= order_idx < len(orders):
+        orders[order_idx]["status"] = "cancelled"
+        orders[order_idx]["error"] = ""
+        with open(ORDERS_FILE, "w", encoding="utf-8") as f:
+            json.dump(orders, f, ensure_ascii=False, indent=2)
+    return redirect("/panel")
+
 # ————— Sipariş Paneli —————
 @app.route("/panel", methods=["GET","POST"])
 @login_required
@@ -252,8 +279,8 @@ def panel():
     for o in raw:
         obj=O()
         obj.username=o.get("username")
-        obj.status=o.get("status")
-        obj.error=o.get("error")
+        obj.status  =o.get("status")
+        obj.error   =o.get("error")
         orders.append(obj)
 
     return render_template_string(
