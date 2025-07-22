@@ -1,30 +1,9 @@
-from flask import Flask, request, redirect, render_template_string, session
-app = Flask(__name__)
-app.secret_key = "çok-gizli-bir-anahtar"  # Bunu rastgele bir değerle değiştir ve kimseyle paylaşma
-
-@app.route("/", methods=["GET","POST"])
-def index():
-    if request.method=="POST" and request.form.get("password")==PASSWORD:
-        session["logged_in"] = True
-        return redirect("/panel")
-    return HTML_FORM
-
-@app.route("/panel", methods=["GET","POST"])
-def panel():
-    if not session.get("logged_in"):
-        return redirect("/")
-    # mevcut sipariş ekleme kodun...
-    return HTML_ORDER
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/")
-
-from flask import Flask, request, redirect, render_template_string
+from flask import Flask, session, request, redirect, render_template_string
 import json
+import os
 
 app = Flask(__name__)
+app.secret_key = "çok-gizli-bir-anahtar"  # Burayı rastgele bir değere çevirip gizli tut
 
 PASSWORD = "admin"
 
@@ -52,31 +31,51 @@ HTML_ORDER = """
     <input type="text" name="username" placeholder="Takip edilecek hesap">
     <input type="submit" value="Sipariş Ver">
   </form>
+  <p><a href="/logout">Çıkış Yap</a></p>
 </body>
 </html>
 """
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    if request.method == "POST" and request.form.get("password") == PASSWORD:
+    # Zaten giriş yapılmışsa doğrudan panel'e yönlendir
+    if session.get("logged_in"):
         return redirect("/panel")
-    return HTML_FORM
+
+    # Giriş formu POST edildiyse kontrol et
+    if request.method == "POST" and request.form.get("password") == PASSWORD:
+        session["logged_in"] = True
+        return redirect("/panel")
+    return render_template_string(HTML_FORM)
 
 @app.route("/panel", methods=["GET", "POST"])
 def panel():
+    # Giriş yapılmadıysa login sayfasına dön
+    if not session.get("logged_in"):
+        return redirect("/")
+
+    # Yeni sipariş geldi mi?
     if request.method == "POST":
         username = request.form.get("username")
         if username:
             try:
                 with open("orders.json", "r") as f:
                     orders = json.load(f)
-            except:
+            except (FileNotFoundError, json.JSONDecodeError):
                 orders = []
             orders.append(username)
             with open("orders.json", "w") as f:
                 json.dump(orders, f)
         return redirect("/panel")
-    return HTML_ORDER
+
+    return render_template_string(HTML_ORDER)
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
