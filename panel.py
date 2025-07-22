@@ -1,81 +1,148 @@
 import os
 import json
-from flask import Flask, session, request, redirect, render_template_string
+from flask import (
+    Flask, session, request, redirect,
+    render_template_string, abort, url_for
+)
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
 
+# ————— Uygulama & DB ayarları —————
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "çok-gizli-bir-anahtar")
-PASSWORD = "admin"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
 
-# —————————— GİRİŞ SAYFASI ŞABLONU ——————————
-HTML_FORM = """
+# ————— User modeli —————
+class User(db.Model):
+    id            = db.Column(db.Integer, primary_key=True)
+    username      = db.Column(db.String(64), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    role          = db.Column(db.String(16), nullable=False)  # "admin" veya "viewer"
+
+    def check_password(self, pw):
+        return check_password_hash(self.password_hash, pw)
+
+# ————— DB dosyasını ve seed admin’i oluştur —————
+with app.app_context():
+    db.create_all()
+    # Eğer yoksa otomatik admin oluştur
+    if not User.query.filter_by(username="admin").first():
+        db.session.add(User(
+            username="admin",
+            password_hash=generate_password_hash("admin"),
+            role="admin"
+        ))
+        db.session.commit()
+
+# ————— HTML Şablonları —————
+HTML_LOGIN = """
 <!DOCTYPE html>
-<html>
-  <head><title>Insta Bot Panel – Giriş</title></head>
-  <body>
-    <h2>Giriş Yap</h2>
-    <form method="post">
-      <label>Kullanıcı Adı:</label><br>
-      <input type="text" name="username" placeholder="Kullanıcı Adı"><br><br>
-      <label>Şifre:</label><br>
-      <input type="password" name="password" placeholder="Şifre"><br><br>
-      <input type="submit" value="Giriş">
-    </form>
-  </body>
+<html><head><title>Giriş</title></head>
+<body>
+  <h2>Giriş Yap</h2>
+  <form method="post">
+    <input name="username" placeholder="Kullanıcı Adı"><br><br>
+    <input name="password" type="password" placeholder="Şifre"><br><br>
+    <input type="submit" value="Giriş">
+  </form>
+</body>
 </html>
 """
 
-# ———————— SİPARİŞ PANELİ ŞABLONU ————————
-HTML_ORDER = """
+HTML_USERS = """
 <!DOCTYPE html>
-<html>
-  <head><title>Insta Bot Panel – Siparişler</title></head>
-  <body>
-    <h2>Yeni Sipariş</h2>
-    <form method="post">
-      <input type="text" name="username" placeholder="Takip edilecek hesap">
-      <input type="submit" value="Sipariş Ver">
-    </form>
-    <p><a href="/logout">Çıkış Yap</a></p>
-    <hr>
-    <h3>Geçmiş Siparişler</h3>
-    {% if orders %}
-      <table border="1" cellpadding="4" cellspacing="0">
-        <tr>
-          <th>#</th><th>Kullanıcı Adı</th><th>Durum</th><th>Hata</th>
-        </tr>
-        {% for o in orders %}
-        <tr>
-          <td>{{ loop.index }}</td>
-          <td>{{ o.username }}</td>
-          <td>{{ o.status }}</td>
-          <td>{{ o.error or "" }}</td>
-        </tr>
-        {% endfor %}
-      </table>
-    {% else %}
-      <p>Henüz sipariş yok.</p>
-    {% endif %}
-  </body>
+<html><head><title>Kullanıcı Yönetimi</title></head>
+<body>
+  <h2>Kullanıcılar</h2>
+  <form method="post">
+    <input name="u" placeholder="Yeni kullanıcı adı">
+    <input name="pw" placeholder="Şifre">
+    <select name="role">
+      <option value="admin">admin</option>
+      <option value="viewer">viewer</option>
+    </select>
+    <button type="submit">Ekle</button>
+  </form>
+  <table border=1 cellpadding=4>
+    <tr><th>#</th><th>Kullanıcı</th><th>Rol</th><th>İşlem</th></tr>
+    {% for usr in users %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ usr.username }}</td>
+      <td>{{ usr.role }}</td>
+      <td>
+        {% if usr.username != current_user %}
+          <a href="{{ url_for('delete_user', user_id=usr.id) }}">Sil</a>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p><a href="{{ url_for('panel') }}">Panel’e Dön</a></p>
+</body>
 </html>
 """
 
-# ——————— BOT HAZIRLIK & TRACKING FONKSİYONLARI ———————
+HTML_PANEL = """
+<!DOCTYPE html>
+<html><head><title>Sipariş Paneli</title></head>
+<body>
+  <p>Hoşgeldin <b>{{ current_user }}</b> ({{ role }})</p>
+  {% if role=='admin' %}
+    <p><a href="{{ url_for('manage_users') }}">Kullanıcı Yönetimi</a></p>
+  {% endif %}
+  <h2>Yeni Sipariş</h2>
+  {% if role=='admin' %}
+  <form method="post">
+    <input name="username" placeholder="Takip edilecek hesap">
+    <button type="submit">Sipariş Ver</button>
+  </form>
+  {% else %}
+    <p>Bu işlemi yapmaya yetkiniz yok.</p>
+  {% endif %}
+  <hr>
+  <h3>Geçmiş Siparişler</h3>
+  {% if orders %}
+    <table border=1 cellpadding=4>
+      <tr><th>#</th><th>Kullanıcı</th><th>Durum</th><th>Hata</th></tr>
+      {% for o in orders %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ o.username }}</td>
+        <td>{{ o.status }}</td>
+        <td>{{ o.error }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>Henüz sipariş yok.</p>
+  {% endif %}
+  <p><a href="{{ url_for('logout') }}">Çıkış Yap</a></p>
+</body>
+</html>
+"""
+
+# ————— Sipariş kaydı için JSON yolu —————
+ORDERS_FILE = "orders.json"
+
+# ————— Bot hazırlığı —————
 def load_bots(path="bots.txt"):
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip().split(":",1) for line in f if ":" in line]
 
 BOT_CLIENTS = []
 for u,p in load_bots():
-    cl = Client()
-    cl.private.timeout = 10
+    cl = Client(); cl.private.timeout = 10
     try:
         cl.login(u,p)
         cl.dump_settings(f"settings_{u}.json")
         cl._password = p
         BOT_CLIENTS.append(cl)
-        print(f"{u}: login ve cache OK")
+        print(f"{u}: login OK")
     except Exception as e:
         print(f"{u}: login başarısız → {e}")
 
@@ -87,63 +154,114 @@ def follow_user(client, target):
         client.login(client.username, client._password)
         client.user_follow(client.user_id_from_username(target))
 
-# —————————————— ROUTE’LAR ——————————————
+# ————— Yardımcı decorator —————
+def login_required(f):
+    def wrapper(*args, **kwargs):
+        if not session.get("user"):
+            return redirect("/")
+        return f(*args, **kwargs)
+    wrapper.__name__ = f.__name__
+    return wrapper
+
+# ————— Auth Routes —————
 @app.route("/", methods=["GET","POST"])
-def index():
-    if session.get("logged_in"):
-        return redirect("/panel")
+def login():
     if request.method=="POST":
         u = request.form.get("username","")
         p = request.form.get("password","")
-        if u=="admin" and p==PASSWORD:
-            session["logged_in"] = True
+        usr = User.query.filter_by(username=u).first()
+        if usr and usr.check_password(p):
+            session["user"] = usr.username
+            session["role"] = usr.role
             return redirect("/panel")
-    return render_template_string(HTML_FORM)
-
-@app.route("/panel", methods=["GET","POST"])
-def panel():
-    if not session.get("logged_in"):
-        return redirect("/")
-    if request.method=="POST":
-        target = request.form.get("username","").strip()
-        if target:
-            try:
-                orders_raw = json.load(open("orders.json", encoding="utf-8"))
-            except:
-                orders_raw = []
-            status, error_msg = "complete", ""
-            for cl in BOT_CLIENTS:
-                try:
-                    follow_user(cl, target)
-                except Exception as e:
-                    status, error_msg = "error", str(e)
-                    break
-            orders_raw.append({
-                "username": target,
-                "status": status,
-                "error": error_msg
-            })
-            with open("orders.json","w",encoding="utf-8") as f:
-                json.dump(orders_raw, f, ensure_ascii=False, indent=2)
-        return redirect("/panel")
-    try:
-        orders_raw = json.load(open("orders.json", encoding="utf-8"))
-    except:
-        orders_raw = []
-    class O: pass
-    orders = []
-    for o in orders_raw:
-        obj = O()
-        obj.username = o.get("username")
-        obj.status   = o.get("status")
-        obj.error    = o.get("error")
-        orders.append(obj)
-    return render_template_string(HTML_ORDER, orders=orders)
+    return render_template_string(HTML_LOGIN)
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
+
+# ————— Kullanıcı Yönetimi —————
+@app.route("/users", methods=["GET","POST"])
+@login_required
+def manage_users():
+    if session.get("role")!="admin":
+        abort(403)
+    if request.method=="POST":
+        u = request.form.get("u","").strip()
+        p = request.form.get("pw","")
+        r = request.form.get("role","viewer")
+        if u and p and not User.query.filter_by(username=u).first():
+            new = User(
+                username=u,
+                password_hash=generate_password_hash(p),
+                role=r
+            )
+            db.session.add(new)
+            db.session.commit()
+    users = User.query.order_by(User.username).all()
+    return render_template_string(
+        HTML_USERS,
+        users=users,
+        current_user=session.get("user")
+    )
+
+@app.route("/users/delete/<int:user_id>")
+@login_required
+def delete_user(user_id):
+    if session.get("role")!="admin":
+        abort(403)
+    usr = User.query.get_or_404(user_id)
+    if usr.username!= session.get("user"):
+        db.session.delete(usr)
+        db.session.commit()
+    return redirect("/users")
+
+# ————— Sipariş Paneli —————
+@app.route("/panel", methods=["GET","POST"])
+@login_required
+def panel():
+    role = session.get("role")
+    if request.method=="POST":
+        if role!="admin":
+            abort(403)
+        target = request.form.get("username","").strip()
+        if target:
+            try:
+                raw = json.load(open(ORDERS_FILE, encoding="utf-8"))
+            except:
+                raw = []
+            status, error = "complete", ""
+            for cl in BOT_CLIENTS:
+                try:
+                    follow_user(cl, target)
+                except Exception as e:
+                    status, error = "error", str(e)
+                    break
+            raw.append({"username":target,"status":status,"error":error})
+            with open(ORDERS_FILE,"w",encoding="utf-8") as f:
+                json.dump(raw,f,ensure_ascii=False,indent=2)
+        return redirect("/panel")
+
+    try:
+        raw = json.load(open(ORDERS_FILE, encoding="utf-8"))
+    except:
+        raw = []
+    class O: pass
+    orders=[]
+    for o in raw:
+        obj=O()
+        obj.username=o.get("username")
+        obj.status=o.get("status")
+        obj.error=o.get("error")
+        orders.append(obj)
+
+    return render_template_string(
+        HTML_PANEL,
+        orders=orders,
+        role=role,
+        current_user=session.get("user")
+    )
 
 if __name__=="__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT",10000)))
