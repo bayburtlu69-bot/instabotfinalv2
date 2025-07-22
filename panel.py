@@ -108,7 +108,8 @@ def panel():
                     follow_user(client, username)
                     print(f"{client.username} → {username} takibe başladı")
                 except Exception as e:
-                    print(f⚠️ {client.username} ile hata: {e}")
+                    # Buradaki satır düzeltilmiştir:
+                    print(f"⚠️ {client.username} ile hata: {e}")
 
         return redirect("/panel")
 
