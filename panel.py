@@ -3,7 +3,7 @@ from flask import Flask, session, request, redirect, render_template_string
 from instagrapi import Client
 
 app = Flask(__name__)
-app.secret_key = "çok-gizli-bir-anahtar"  # Bunu kendi gizli anahtarınızla değiştirin
+app.secret_key = "çok-gizli-bir-anahtar"
 
 PASSWORD = "admin"
 
@@ -30,6 +30,22 @@ HTML_ORDER = """
     <input type="submit" value="Sipariş Ver">
   </form>
   <p><a href="/logout">Çıkış Yap</a></p>
+
+  <hr>
+  <h3>Geçmiş Siparişler</h3>
+  {% if orders %}
+    <table border="1" cellpadding="4" cellspacing="0">
+      <tr><th>#</th><th>Kullanıcı Adı</th></tr>
+      {% for idx, o in enumerate(orders, start=1) %}
+        <tr>
+          <td>{{ idx }}</td>
+          <td>{{ o }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>Henüz sipariş yok.</p>
+  {% endif %}
 </body>
 </html>
 """
@@ -47,11 +63,9 @@ def get_clients():
         sf = f"settings_{u}.json"
         if os.path.exists(sf):
             cl.load_settings(sf)
-            print(f"{u}: cache'den yüklendi")
         else:
             cl.login(u, p)
             cl.dump_settings(sf)
-            print(f"{u}: ilk giriş yapıldı ve cache kaydedildi")
         clients.append(cl)
     return clients
 
@@ -67,7 +81,7 @@ BOT_CLIENTS = get_clients()
 def index():
     if session.get("logged_in"):
         return redirect("/panel")
-    if request.method == "POST" and request.form.get("password") == PASSWORD:
+    if request.method=="POST" and request.form.get("password")==PASSWORD:
         session["logged_in"] = True
         return redirect("/panel")
     return render_template_string(HTML_FORM)
@@ -87,7 +101,6 @@ def panel():
                 orders = []
             orders.append(username)
             json.dump(orders, open("orders.json","w", encoding="utf-8"))
-            print(f"DEBUG: orders.json’a yazıldı → {orders}")  # Debug satırı
 
             # hemen botlarla takip et
             for client in BOT_CLIENTS:
@@ -99,14 +112,18 @@ def panel():
 
         return redirect("/panel")
 
-    return render_template_string(HTML_ORDER)
+    # GET: var olan siparişleri oku ve gönder
+    try:
+        orders = json.load(open("orders.json", encoding="utf-8"))
+    except:
+        orders = []
+    return render_template_string(HTML_ORDER, orders=orders)
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
 
-if __name__ == "__main__":
+if __name__=="__main__":
     port = int(os.environ.get("PORT", 10000))
-    print(f"Sunucu {port} portunda başlatıldı")
     app.run(host="0.0.0.0", port=port)
