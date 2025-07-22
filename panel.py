@@ -1,3 +1,25 @@
+from flask import Flask, request, redirect, render_template_string, session
+app = Flask(__name__)
+app.secret_key = "çok-gizli-bir-anahtar"  # Bunu rastgele bir değerle değiştir ve kimseyle paylaşma
+
+@app.route("/", methods=["GET","POST"])
+def index():
+    if request.method=="POST" and request.form.get("password")==PASSWORD:
+        session["logged_in"] = True
+        return redirect("/panel")
+    return HTML_FORM
+
+@app.route("/panel", methods=["GET","POST"])
+def panel():
+    if not session.get("logged_in"):
+        return redirect("/")
+    # mevcut sipariş ekleme kodun...
+    return HTML_ORDER
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
 
 from flask import Flask, request, redirect, render_template_string
 import json
