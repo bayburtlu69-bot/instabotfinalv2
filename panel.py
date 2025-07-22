@@ -56,16 +56,16 @@ for u, p in load_bots():
     cl.private.timeout = 10
     sf = f"settings_{u}.json"
     if os.path.exists(sf):
-        # daha önce localde oluşturduğunuz cache dosyasını yükleyin
+        # Localde önceden dump_settings ile oluşturduğun cache dosyasını yükle
         cl.load_settings(sf)
+        cl._password = p        # gerekirse retry için parola tut
+        BOT_CLIENTS.append(cl)
         print(f"✅ {u}: cache'dan yüklendi ({sf})")
     else:
-        # login gerektiren botları atlayın, eksik cache dosyasını uyarın
-        print(f"⚠️ {u}: '{sf}' bulunamadı; lütfen önce localde oturum açıp oluşturun")
-        continue
-    BOT_CLIENTS.append(cl)
+        # Eğer cache yoksa, interaktif login mümkün değil; atla
+        print(f"⚠️ {u}: '{sf}' bulunamadı; lütfen önce localde oturum açıp dump_settings() ile oluşturun")
 
-# **Kaç bot yüklendiğini kontrol edelim**
+# **Kaç bot yüklendiğini konsola bas**
 print("📦 Yüklü bot sayısı:", len(BOT_CLIENTS), "→", [c.username for c in BOT_CLIENTS])
 
 def follow_user(client, target):
@@ -86,7 +86,7 @@ def login_required(f):
     wrapper.__name__ = f.__name__
     return wrapper
 
-# ————— Auth & diğer rotalar (aynı) —————
+# ————— Auth & diğer rotalar (aynı kalacak) —————
 @app.route("/", methods=["GET","POST"])
 def login():
     # … login kodu …
@@ -119,10 +119,10 @@ def cancel_order(order_idx):
 @login_required
 def panel():
     role = session.get("role")
-    if request.method=="POST":
-        if role!="admin":
+    if request.method == "POST":
+        if role != "admin":
             abort(403)
-        target = request.form.get("username","").strip()
+        target = request.form.get("username", "").strip()
         if target:
             try:
                 raw = json.load(open(ORDERS_FILE, encoding="utf-8"))
@@ -139,16 +139,18 @@ def panel():
                     print(f"[{idx}/{len(BOT_CLIENTS)}] ⚠️ {cl.username} ile hata: {e}")
                     status, error = "error", str(e)
                     break
-            raw.append({"username":target,"status":status,"error":error})
-            with open(ORDERS_FILE,"w",encoding="utf-8") as f:
+            raw.append({"username": target, "status": status, "error": error})
+            with open(ORDERS_FILE, "w", encoding="utf-8") as f:
                 json.dump(raw, f, ensure_ascii=False, indent=2)
         return redirect("/panel")
 
-    # … GET işlemleri ve render_template_string(HTML_PANEL) …
-    return render_template_string(HTML_PANEL,
-                                  orders=orders,
-                                  role=role,
-                                  current_user=session.get("user"))
+    # … GET işlemleri ve orders objesi hazırlanması …
+    return render_template_string(
+        HTML_PANEL,
+        orders=orders,
+        role=role,
+        current_user=session.get("user")
+    )
 
-if __name__=="__main__":
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT",10000)))
