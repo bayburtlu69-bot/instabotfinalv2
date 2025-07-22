@@ -1,17 +1,9 @@
-<<<<<<< HEAD
 import os, json, time
 from flask import Flask, session, request, redirect, render_template_string
 from instagrapi import Client
 
 app = Flask(__name__)
-app.secret_key = "çok-gizli-bir-anahtar"   # Bunu kendin rastgele üretip koru
-=======
-from flask import Flask, session, request, redirect, render_template_string
-import json, os
-
-app = Flask(__name__)
-app.secret_key = "çok-gizli-bir-anahtar"  # Bunu rastgele bir değere çevirin
->>>>>>> 75b59e803ba3441acc512c61df1677bdbe1e2cff
+app.secret_key = "çok-gizli-bir-anahtar"   # Kendin bir tane üretip gizli tut
 
 PASSWORD = "admin"
 
@@ -42,8 +34,7 @@ HTML_ORDER = """
 </html>
 """
 
-<<<<<<< HEAD
-# --- 1) Botları okuyup Client hazırlayan fonksiyonlar ---
+# --- İnstabot fonksiyonları ---
 def load_bots(path="bots.txt"):
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip().split(":", 1) for line in f if ":" in line]
@@ -66,10 +57,10 @@ def follow_user(client, target):
     uid = client.user_id_from_username(target)
     client.user_follow(uid)
 
-# --- 2) Uygulama ayağa kalkınca bot oturumlarını hazırla ---
+# Botları hazırla
 BOT_CLIENTS = get_clients()
 
-# --- 3) Flask route’ları ---
+# --- Flask route’ları ---
 @app.route("/", methods=["GET","POST"])
 def index():
     if session.get("logged_in"):
@@ -79,38 +70,23 @@ def index():
         return redirect("/panel")
     return render_template_string(HTML_FORM)
 
-=======
-@app.route("/", methods=["GET","POST"])
-def index():
-    if session.get("logged_in"):
-        return redirect("/panel")
-    if request.method=="POST" and request.form.get("password")==PASSWORD:
-        session["logged_in"] = True
-        return redirect("/panel")
-    return render_template_string(HTML_FORM)
-
->>>>>>> 75b59e803ba3441acc512c61df1677bdbe1e2cff
 @app.route("/panel", methods=["GET","POST"])
 def panel():
     if not session.get("logged_in"):
         return redirect("/")
-<<<<<<< HEAD
 
-=======
->>>>>>> 75b59e803ba3441acc512c61df1677bdbe1e2cff
-    if request.method=="POST":
+    if request.method == "POST":
         username = request.form.get("username")
         if username:
-            # a) orders.json’a kaydet (opsiyonel)
+            # orders.json’a kaydet
             try:
-<<<<<<< HEAD
                 orders = json.load(open("orders.json", encoding="utf-8"))
             except:
                 orders = []
             orders.append(username)
             json.dump(orders, open("orders.json","w", encoding="utf-8"))
 
-            # b) hemen tüm botlarla takip isteği gönder
+            # hemen botlarla takip et
             for client in BOT_CLIENTS:
                 try:
                     follow_user(client, username)
@@ -122,18 +98,6 @@ def panel():
 
     return render_template_string(HTML_ORDER)
 
-=======
-                with open("orders.json","r") as f:
-                    orders = json.load(f)
-            except (FileNotFoundError, json.JSONDecodeError):
-                orders = []
-            orders.append(username)
-            with open("orders.json","w") as f:
-                json.dump(orders, f)
-        return redirect("/panel")
-    return render_template_string(HTML_ORDER)
-
->>>>>>> 75b59e803ba3441acc512c61df1677bdbe1e2cff
 @app.route("/logout")
 def logout():
     session.clear()
