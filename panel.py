@@ -21,12 +21,12 @@ class User(db.Model):
     id            = db.Column(db.Integer, primary_key=True)
     username      = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    role          = db.Column(db.String(16), nullable=False)  # "admin" veya "viewer"
+    role          = db.Column(db.String(16), nullable=False)  # admin veya viewer
 
     def check_password(self, pw):
         return check_password_hash(self.password_hash, pw)
 
-# ————— DB & seed admin —————
+# ————— DB oluştur & seed admin —————
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username="admin").first():
@@ -38,7 +38,6 @@ with app.app_context():
         db.session.commit()
 
 # ————— HTML Şablonları —————
-
 HTML_LOGIN = """
 <!DOCTYPE html>
 <html>
@@ -64,7 +63,7 @@ HTML_USERS = """
     <h2>Kullanıcı Yönetimi</h2>
     <form method="post">
       <input name="u" placeholder="Yeni kullanıcı"><br><br>
-      <input name="pw" placeholder="Parola"><br><br>
+      <input name="pw" type="password" placeholder="Parola"><br><br>
       <select name="role">
         <option value="admin">admin</option>
         <option value="viewer">viewer</option>
@@ -146,26 +145,26 @@ HTML_PANEL = """
 </html>
 """
 
-# ————— Sipariş kaydı için JSON yolu —————
+# ————— Sipariş verilerini saklayacağımız dosya —————
 ORDERS_FILE = "orders.json"
 
 # ————— Bot hazırlığı & cache yükleme —————
 def load_bots(path="bots.txt"):
     with open(path, "r", encoding="utf-8") as f:
-        return [ line.strip().split(":",1) for line in f if ":" in line ]
+        return [line.strip().split(":", 1) for line in f if ":" in line]
 
 BOT_CLIENTS = []
 for u, p in load_bots():
+    sf = f"settings_{u}.json"
     cl = Client()
     cl.private.timeout = 10
-    sf = f"settings_{u}.json"
     if os.path.exists(sf):
         cl.load_settings(sf)
         cl._password = p
         BOT_CLIENTS.append(cl)
         print(f"✅ {u}: cache'dan yüklendi ({sf})")
     else:
-        print(f"⚠️ {u}: '{sf}' bulunamadı; önce yerelde oturum açıp dump_settings() ile oluşturun")
+        print(f"⚠️ {u}: '{sf}' bulunamadı; önce localde dump_settings() ile oluşturun")
 
 print("📦 Yüklü bot sayısı:", len(BOT_CLIENTS), "→", [c.username for c in BOT_CLIENTS])
 
@@ -174,6 +173,7 @@ def follow_user(client, target):
         uid = client.user_id_from_username(target)
         client.user_follow(uid)
     except LoginRequired:
+        # eğer cache eskidiyse yeniden login denenebilir
         client.login(client.username, client._password)
         client.user_follow(client.user_id_from_username(target))
 
@@ -187,11 +187,11 @@ def login_required(f):
     return wrapper
 
 # ————— Auth Routes —————
-@app.route("/", methods=["GET","POST"])
+@app.route("/", methods=["GET", "POST"])
 def login():
-    if request.method=="POST":
-        u = request.form.get("username","")
-        p = request.form.get("password","")
+    if request.method == "POST":
+        u = request.form.get("username", "")
+        p = request.form.get("password", "")
         usr = User.query.filter_by(username=u).first()
         if usr and usr.check_password(p):
             session["user"] = usr.username
@@ -205,15 +205,15 @@ def logout():
     return redirect("/")
 
 # ————— Kullanıcı Yönetimi —————
-@app.route("/users", methods=["GET","POST"])
+@app.route("/users", methods=["GET", "POST"])
 @login_required
 def manage_users():
-    if session.get("role")!="admin":
+    if session.get("role") != "admin":
         abort(403)
-    if request.method=="POST":
-        u = request.form.get("u","").strip()
-        p = request.form.get("pw","")
-        r = request.form.get("role","viewer")
+    if request.method == "POST":
+        u = request.form.get("u", "").strip()
+        p = request.form.get("pw", "")
+        r = request.form.get("role", "viewer")
         if u and p and not User.query.filter_by(username=u).first():
             db.session.add(User(
                 username=u,
@@ -231,7 +231,7 @@ def manage_users():
 @app.route("/users/delete/<int:user_id>")
 @login_required
 def delete_user(user_id):
-    if session.get("role")!="admin":
+    if session.get("role") != "admin":
         abort(403)
     usr = User.query.get_or_404(user_id)
     if usr.username != session.get("user"):
@@ -239,11 +239,11 @@ def delete_user(user_id):
         db.session.commit()
     return redirect("/users")
 
-# ————— İptal rotası —————
+# ————— Sipariş iptal rotası —————
 @app.route("/cancel/<int:order_idx>", methods=["POST"])
 @login_required
 def cancel_order(order_idx):
-    if session.get("role")!="admin":
+    if session.get("role") != "admin":
         abort(403)
     try:
         orders = json.load(open(ORDERS_FILE, encoding="utf-8"))
@@ -251,20 +251,20 @@ def cancel_order(order_idx):
         orders = []
     if 0 <= order_idx < len(orders):
         orders[order_idx]["status"] = "cancelled"
-        orders[order_idx]["error"]  = ""
-        with open(ORDERS_FILE,"w",encoding="utf-8") as f:
+        orders[order_idx]["error"] = ""
+        with open(ORDERS_FILE, "w", encoding="utf-8") as f:
             json.dump(orders, f, ensure_ascii=False, indent=2)
     return redirect("/panel")
 
 # ————— Sipariş Paneli —————
-@app.route("/panel", methods=["GET","POST"])
+@app.route("/panel", methods=["GET", "POST"])
 @login_required
 def panel():
     role = session.get("role")
-    if request.method=="POST":
-        if role!="admin":
+    if request.method == "POST":
+        if role != "admin":
             abort(403)
-        target = request.form.get("username","").strip()
+        target = request.form.get("username", "").strip()
         if target:
             try:
                 raw = json.load(open(ORDERS_FILE, encoding="utf-8"))
@@ -280,8 +280,8 @@ def panel():
                     print(f"[{idx}/{len(BOT_CLIENTS)}] ⚠️ {cl.username} ile hata: {e}")
                     status, error = "error", str(e)
                     break
-            raw.append({"username":target,"status":status,"error":error})
-            with open(ORDERS_FILE,"w",encoding="utf-8") as f:
+            raw.append({"username": target, "status": status, "error": error})
+            with open(ORDERS_FILE, "w", encoding="utf-8") as f:
                 json.dump(raw, f, ensure_ascii=False, indent=2)
         return redirect("/panel")
 
@@ -294,8 +294,8 @@ def panel():
     for o in raw:
         obj = O()
         obj.username = o.get("username")
-        obj.status   = o.get("status")
-        obj.error    = o.get("error")
+        obj.status = o.get("status")
+        obj.error = o.get("error")
         orders.append(obj)
 
     return render_template_string(
@@ -305,5 +305,5 @@ def panel():
         current_user=session.get("user")
     )
 
-if __name__=="__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT",10000)))
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
