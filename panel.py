@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from flask import (
     Flask, session, request, redirect,
     render_template_string, abort, url_for
@@ -9,7 +10,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
 
-# ————— Uygulama & DB ayarları —————
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.secret_key = os.getenv("SECRET_KEY", "çok-gizli-bir-anahtar")
@@ -17,17 +17,15 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-# ————— User modeli —————
 class User(db.Model):
-    id            = db.Column(db.Integer, primary_key=True)
-    username      = db.Column(db.String(64), unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    role          = db.Column(db.String(16), nullable=False)  # "admin" veya "viewer"
+    role = db.Column(db.String(16), nullable=False)  # "admin" veya "viewer"
 
     def check_password(self, pw):
         return check_password_hash(self.password_hash, pw)
 
-# ————— DB & seed admin —————
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username="admin").first():
@@ -42,17 +40,20 @@ with app.app_context():
 HTML_LOGIN = """
 <!DOCTYPE html>
 <html>
-  <head><meta charset="utf-8"><title>Giriş</title></head>
-  <body>
+<head>
+    <meta charset="utf-8">
+    <title>Giriş</title>
+</head>
+<body>
     <h2>Insta Bot Panel – Giriş</h2>
     <form method="post">
-      <label>Kullanıcı Adı:</label><br>
-      <input name="username" placeholder="Kullanıcı Adı"><br><br>
-      <label>Şifre:</label><br>
-      <input name="password" type="password" placeholder="Şifre"><br><br>
-      <input type="submit" value="Giriş">
+        <label>Kullanıcı Adı:</label><br>
+        <input name="username" placeholder="Kullanıcı Adı"><br><br>
+        <label>Şifre:</label><br>
+        <input name="password" type="password" placeholder="Şifre"><br><br>
+        <input type="submit" value="Giriş">
     </form>
-  </body>
+</body>
 </html>
 """
 
@@ -145,10 +146,8 @@ HTML_PANEL = """
 </html>
 """
 
-# ————— Sipariş kaydı için JSON yolu —————
 ORDERS_FILE = "orders.json"
 
-# ————— Bot hazırlığı & otomatik cache oluşturma —————
 def load_bots(path="bots.txt"):
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip().split(":",1) for line in f if ":" in line]
@@ -156,14 +155,23 @@ def load_bots(path="bots.txt"):
 BOT_CLIENTS = []
 for u, p in load_bots():
     sf = f"settings_{u}.json"
-    cl = Client(); cl.private.timeout = 10
+    cl = Client()
+    cl.private.timeout = 10
 
     if os.path.exists(sf):
-        # Var olan cache'i yükle
-        cl.load_settings(sf)
-        print(f"✅ {u}: cache'dan yüklendi ({sf})")
+        try:
+            cl.load_settings(sf)
+            print(f"✅ {u}: cache'dan yüklendi ({sf})")
+        except Exception as e:
+            print(f"⚠️ {u}: cache yüklenemedi, login denenecek. Hata: {e}")
+            try:
+                cl.login(u, p)
+                cl.dump_settings(sf)
+                print(f"✅ {u}: cache sıfırdan oluşturuldu.")
+            except Exception as e2:
+                print(f"⚠️ {u}: login/dump sırasında hata → {e2}")
+                continue
     else:
-        # Cache yok → login yap ve cache oluştur
         try:
             print(f"🔑 {u}: cache yok, giriş yapılıyor…")
             cl.login(u, p)
@@ -173,11 +181,11 @@ for u, p in load_bots():
             print(f"⚠️ {u}: login/dump sırasında hata → {e}")
             continue
 
-    # retry için parola sakla
     cl._password = p
     BOT_CLIENTS.append(cl)
+    time.sleep(15)  # Her bot arasında 15 sn bekle
 
-print("📦 Yüklü bot sayısı:", len(BOT_CLIENTS), "→", [c.username for c in BOT_CLIENTS])
+print("📦 Yüklü bot sayısı:", len(BOT_CLIENTS), "→", [getattr(c, 'username', '?') for c in BOT_CLIENTS])
 
 def follow_user(client, target):
     try:
@@ -187,7 +195,6 @@ def follow_user(client, target):
         client.login(client.username, client._password)
         client.user_follow(client.user_id_from_username(target))
 
-# ————— Yardımcı decorator —————
 def login_required(f):
     def wrapper(*args, **kwargs):
         if not session.get("user"):
@@ -196,7 +203,6 @@ def login_required(f):
     wrapper.__name__ = f.__name__
     return wrapper
 
-# ————— Auth Routes —————
 @app.route("/", methods=["GET","POST"])
 def login():
     if request.method=="POST":
@@ -279,12 +285,12 @@ def panel():
                 raw = []
             status, error = "complete",""
             for idx, cl in enumerate(BOT_CLIENTS[:amount if amount > 0 else len(BOT_CLIENTS)], start=1):
-                print(f"[{idx}/{len(BOT_CLIENTS)}] Deneme → {cl.username}")
+                print(f"[{idx}/{len(BOT_CLIENTS)}] Deneme → {getattr(cl, 'username', '?')}")
                 try:
                     follow_user(cl, target)
-                    print(f"[{idx}/{len(BOT_CLIENTS)}] ✅ {cl.username} takibe başladı")
+                    print(f"[{idx}/{len(BOT_CLIENTS)}] ✅ {getattr(cl, 'username', '?')} takibe başladı")
                 except Exception as e:
-                    print(f"[{idx}/{len(BOT_CLIENTS)}] ⚠️ {cl.username} ile hata: {e}")
+                    print(f"[{idx}/{len(BOT_CLIENTS)}] ⚠️ {getattr(cl, 'username', '?')} ile hata: {e}")
                     status,error="error",str(e)
                     break
             raw.append({"username":target,"status":status,"error":error})
