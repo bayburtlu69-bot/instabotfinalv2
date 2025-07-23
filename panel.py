@@ -19,7 +19,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-SABIT_FIYAT = 0.5  # Takipçi başı sabit fiyat
+SABIT_FIYAT = 0.5
 
 # --- MODELLER ---
 class User(db.Model):
@@ -30,7 +30,6 @@ class User(db.Model):
     role = db.Column(db.String(16), nullable=False)
     balance = db.Column(db.Float, default=10.0)
     is_verified = db.Column(db.Boolean, default=False)
-
     def check_password(self, pw):
         return check_password_hash(self.password_hash, pw)
 
@@ -49,9 +48,28 @@ class BalanceRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     amount = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(16), default="pending")  # pending, approved, rejected
+    status = db.Column(db.String(16), default="pending")
     explanation = db.Column(db.String(256), default="")
     reject_reason = db.Column(db.String(256), default="")
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    user = db.relationship("User")
+
+class Service(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True, nullable=False)
+    description = db.Column(db.String(256))
+    price = db.Column(db.Float, nullable=False)
+    min_amount = db.Column(db.Integer, default=1)
+    max_amount = db.Column(db.Integer, default=1000)
+    active = db.Column(db.Boolean, default=True)
+
+class Ticket(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    subject = db.Column(db.String(128), nullable=False)
+    message = db.Column(db.String(512), nullable=False)
+    status = db.Column(db.String(16), default="open")  # open, closed
+    response = db.Column(db.String(1024), default="")
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     user = db.relationship("User")
 
@@ -67,13 +85,22 @@ with app.app_context():
             is_verified=True
         ))
         db.session.commit()
+    if not Service.query.first():
+        db.session.add(Service(
+            name="Instagram Takipçi",
+            description="Gerçek ve Türk takipçi gönderimi.",
+            price=SABIT_FIYAT,
+            min_amount=1,
+            max_amount=1000,
+            active=True
+        ))
+        db.session.commit()
 
-# --- SMTP GMAIL AYARLARI ---
+# --- SMTP AYARLARI ---
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
 SMTP_ADDR = "kuzenlertv6996@gmail.com"
-SMTP_PASS = "nurkqldoqcaefqwk"  # Gmail uygulama şifresi
-
+SMTP_PASS = "nurkqldoqcaefqwk"
 def send_verification_mail(email, code):
     subject = "insprov.uk Kayıt Doğrulama Kodunuz"
     body = f"Merhaba,\n\nKayıt işlemini tamamlamak için doğrulama kodunuz: {code}\n\nİnsprov.uk Ekibi"
@@ -93,15 +120,11 @@ def send_verification_mail(email, code):
 def rolu_turkce(rol):
     return "Yönetici" if rol == "admin" else ("Kullanıcı" if rol == "viewer" else rol)
 
-# --- HTML ŞABLONLARI ---
+# --- HTML ŞABLONLAR ---
 HTML_LOGIN = """
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8">
-  <title>insprov.uk</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<html lang="tr"><head><meta charset="utf-8"><title>insprov.uk</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark d-flex justify-content-center align-items-center" style="height:100vh;">
   <div class="card shadow p-4" style="min-width:340px;">
     <h3 class="mb-3 text-center">insprov.uk</h3>
@@ -115,12 +138,10 @@ HTML_LOGIN = """
       {% endif %}
     {% endwith %}
     <form method="post">
-      <div class="mb-2">
-        <label class="form-label">Kullanıcı Adı:</label>
+      <div class="mb-2"><label class="form-label">Kullanıcı Adı:</label>
         <input name="username" class="form-control" placeholder="Kullanıcı Adı">
       </div>
-      <div class="mb-3">
-        <label class="form-label">Şifre:</label>
+      <div class="mb-3"><label class="form-label">Şifre:</label>
         <input name="password" type="password" class="form-control" placeholder="Şifre">
       </div>
       <button class="btn btn-primary w-100">Giriş</button>
@@ -135,12 +156,8 @@ HTML_LOGIN = """
 
 HTML_REGISTER = """
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8">
-  <title>Kayıt Ol</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<html lang="tr"><head><meta charset="utf-8"><title>Kayıt Ol</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark d-flex justify-content-center align-items-center" style="height:100vh;">
   <div class="card shadow p-4" style="min-width:370px;">
     <h3 class="mb-3 text-center">insprov.uk <span class="text-primary">Kayıt</span></h3>
@@ -155,16 +172,13 @@ HTML_REGISTER = """
     {% endwith %}
     {% if not sent %}
       <form method="post">
-        <div class="mb-2">
-          <label class="form-label">Kullanıcı Adı:</label>
+        <div class="mb-2"><label class="form-label">Kullanıcı Adı:</label>
           <input name="username" class="form-control" placeholder="Kullanıcı Adı" required>
         </div>
-        <div class="mb-2">
-          <label class="form-label">Şifre:</label>
+        <div class="mb-2"><label class="form-label">Şifre:</label>
           <input name="password" type="password" class="form-control" placeholder="Şifre" required>
         </div>
-        <div class="mb-3">
-          <label class="form-label">E-Posta:</label>
+        <div class="mb-3"><label class="form-label">E-Posta:</label>
           <input name="email" type="email" class="form-control" placeholder="E-Posta" required>
         </div>
         <button class="btn btn-success w-100">Kayıt Ol</button>
@@ -188,42 +202,26 @@ HTML_REGISTER = """
 
 HTML_USERS = """
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8">
-  <title>Kullanıcı Yönetimi</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<html lang="tr"><head><meta charset="utf-8"><title>Kullanıcı Yönetimi</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:700px;">
       <h3>Kullanıcı Yönetimi</h3>
       <form method="post" class="row g-2 align-items-end mb-4">
-        <div class="col">
-          <input name="u" class="form-control" placeholder="Yeni kullanıcı">
-        </div>
-        <div class="col">
-          <input name="pw" type="password" class="form-control" placeholder="Parola">
-        </div>
-        <div class="col">
-          <select name="role" class="form-select">
+        <div class="col"><input name="u" class="form-control" placeholder="Yeni kullanıcı"></div>
+        <div class="col"><input name="pw" type="password" class="form-control" placeholder="Parola"></div>
+        <div class="col"><select name="role" class="form-select">
             <option value="admin">Yönetici</option>
             <option value="viewer">Kullanıcı</option>
-          </select>
-        </div>
-        <div class="col">
-          <button class="btn btn-success">Ekle</button>
-        </div>
+          </select></div>
+        <div class="col"><button class="btn btn-success">Ekle</button></div>
       </form>
-      <hr>
-      <h5>Mevcut Kullanıcılar</h5>
-      <div class="table-responsive">
-        <table class="table table-dark table-striped table-bordered align-middle mb-4">
-          <thead>
-            <tr>
-              <th>#</th><th>Kullanıcı</th><th>Rol</th><th>Bakiye</th><th>İşlem</th>
-            </tr>
-          </thead>
+      <hr><h5>Mevcut Kullanıcılar</h5>
+      <div class="table-responsive"><table class="table table-dark table-striped table-bordered align-middle mb-4">
+          <thead><tr>
+            <th>#</th><th>Kullanıcı</th><th>Rol</th><th>Bakiye</th><th>İşlem</th>
+          </tr></thead>
           <tbody>
           {% for usr in users %}
             <tr>
@@ -245,119 +243,11 @@ HTML_USERS = """
       </div>
       <h5>Bakiye Ekle</h5>
       <form method="post" action="/admin/add-balance" class="row g-2">
-        <div class="col">
-          <input name="username" class="form-control" placeholder="Kullanıcı adı">
-        </div>
-        <div class="col">
-          <input name="amount" type="number" step="0.01" class="form-control" placeholder="Tutar">
-        </div>
-        <div class="col">
-          <button class="btn btn-primary">Bakiye Ekle</button>
-        </div>
+        <div class="col"><input name="username" class="form-control" placeholder="Kullanıcı adı"></div>
+        <div class="col"><input name="amount" type="number" step="0.01" class="form-control" placeholder="Tutar"></div>
+        <div class="col"><button class="btn btn-primary">Bakiye Ekle</button></div>
       </form>
-      <div class="mt-3">
-        <a href="{{ url_for('panel') }}" class="btn btn-secondary btn-sm">Panel’e Dön</a>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
-"""
-
-HTML_PANEL = """
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8">
-  <title>Sipariş Paneli</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-dark text-light">
-  <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:800px;">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <b>{{ current_user }}</b> <span class="badge bg-info text-dark">{{ rolu_turkce(role) }}</span>
-        </div>
-        <div>Bakiye: <b>{{ balance }} TL</b></div>
-      </div>
-      {% if role=='admin' %}
-        <a href="{{ url_for('manage_users') }}" class="btn btn-secondary btn-sm mb-3">Kullanıcı Yönetimi</a>
-        <a href="/balance/requests" class="btn btn-warning btn-sm mb-3">Bakiye Talepleri</a>
-      {% else %}
-        <a href="/balance" class="btn btn-warning btn-sm mb-3">Bakiye Yükle</a>
-      {% endif %}
-      <h4 class="mb-3">Yeni Sipariş</h4>
-      <form method="post" class="row g-2 align-items-end mb-2">
-        <div class="col">
-          <input name="username" class="form-control" placeholder="Takip edilecek hesap" required>
-        </div>
-        <div class="col">
-          <input name="amount" type="number" min="1" class="form-control" placeholder="Takipçi adedi" required>
-        </div>
-        <div class="col">
-          <button class="btn btn-success w-100">Sipariş Ver</button>
-        </div>
-      </form>
-      <div class="mb-2"><b>Her takipçi adedi için fiyat: 0.50 TL’dir.</b></div>
-      {% if error %}
-        <div class="alert alert-danger py-2 small mb-2">{{ error }}</div>
-      {% endif %}
-      {% if msg %}
-        <div class="alert alert-success py-2 small mb-2">{{ msg }}</div>
-      {% endif %}
-      <hr>
-      <h5>Geçmiş Siparişler</h5>
-      {% if orders %}
-        <div class="table-responsive">
-        <table class="table table-dark table-striped table-bordered align-middle">
-          <thead>
-            <tr>
-              <th>#</th><th>Hedef Kullanıcı</th><th>Adet</th><th>Fiyat</th><th>Durum</th><th>Hata</th>
-              {% if role == 'admin' %}<th>İptal</th>{% endif %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for o in orders %}
-            <tr>
-              <td>{{ loop.index }}</td>
-              <td>{{ o.username }}</td>
-              <td>{{ o.amount }}</td>
-              <td>{{ o.total_price }}</td>
-              <td>
-                {% if o.status == 'complete' %}
-                  <span class="badge bg-success">{{ o.status }}</span>
-                {% elif o.status == 'cancelled' %}
-                  <span class="badge bg-secondary">{{ o.status }}</span>
-                {% elif o.status == 'error' %}
-                  <span class="badge bg-danger">{{ o.status }}</span>
-                {% else %}
-                  <span class="badge bg-warning text-dark">{{ o.status }}</span>
-                {% endif %}
-              </td>
-              <td>{{ o.error }}</td>
-              {% if role == 'admin' %}
-              <td>
-                {% if o.status not in ['complete','cancelled'] %}
-                  <form method="post" action="{{ url_for('cancel_order', order_id=o.id) }}" style="display:inline">
-                    <button class="btn btn-sm btn-outline-danger">İptal Et</button>
-                  </form>
-                {% else %}
-                  <span class="text-muted">–</span>
-                {% endif %}
-              </td>
-              {% endif %}
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        </div>
-      {% else %}
-        <div class="alert alert-secondary mt-2">Henüz sipariş yok.</div>
-      {% endif %}
-      <div class="mt-3 text-end">
-        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Çıkış Yap</a>
-      </div>
+      <div class="mt-3"><a href="{{ url_for('panel') }}" class="btn btn-secondary btn-sm">Panel’e Dön</a></div>
     </div>
   </div>
 </body>
@@ -366,12 +256,8 @@ HTML_PANEL = """
 
 HTML_BALANCE = """
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8">
-  <title>Bakiye Yükle</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<html lang="tr"><head><meta charset="utf-8"><title>Bakiye Yükle</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:500px;">
@@ -426,12 +312,8 @@ HTML_BALANCE = """
 
 HTML_BALANCE_REQUESTS = """
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8">
-  <title>Bakiye Talepleri</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<html lang="tr"><head><meta charset="utf-8"><title>Bakiye Talepleri</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
@@ -500,12 +382,234 @@ HTML_BALANCE_REQUESTS = """
 </html>
 """
 
+HTML_SERVICES = """
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8"><title>Servisler ve Fiyat Listesi</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<body class="bg-dark text-light">
+  <div class="container py-4">
+    <div class="card p-4 mx-auto" style="max-width:700px;">
+      <h3>Aktif Servisler & Fiyat Listesi</h3>
+      <table class="table table-dark table-bordered mt-3">
+        <thead>
+          <tr>
+            <th>Servis</th>
+            <th>Açıklama</th>
+            <th>Fiyat (1 Adet)</th>
+            <th>Min/Max</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for s in servisler %}
+          <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ s.description }}</td>
+            <td>{{ s.price }} TL</td>
+            <td>{{ s.min_amount }} / {{ s.max_amount }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <a href="/panel" class="btn btn-secondary btn-sm mt-3">Panele Dön</a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+HTML_TICKETS = """
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8"><title>Destek & Ticket Sistemi</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<body class="bg-dark text-light">
+  <div class="container py-4">
+    <div class="card p-4 mx-auto" style="max-width:650px;">
+      <h2 class="mb-3">Destek & Ticket Sistemi</h2>
+      <form method="post">
+        <label class="form-label">Konu</label>
+        <input name="subject" class="form-control mb-2" placeholder="Konu başlığı">
+        <label class="form-label">Mesaj</label>
+        <textarea name="message" class="form-control mb-3" placeholder="Destek talebiniz..." rows="3"></textarea>
+        <button class="btn btn-danger w-100 mb-3">Gönder</button>
+      </form>
+      <h5 class="mt-4 mb-2">Geçmiş Destek Talepleriniz</h5>
+      <table class="table table-dark table-bordered text-center">
+        <thead>
+          <tr>
+            <th>Tarih</th><th>Konu</th><th>Mesaj</th><th>Durum</th><th>Yanıt</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for t in tickets %}
+          <tr>
+            <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>{{ t.subject }}</td>
+            <td>{{ t.message }}</td>
+            <td>
+              {% if t.status == "open" %}<span class="badge bg-warning text-dark">Açık</span>
+              {% else %}<span class="badge bg-success">Yanıtlandı</span>{% endif %}
+            </td>
+            <td>{{ t.response or "" }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+HTML_ADMIN_TICKETS = """
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8"><title>Ticket Yönetimi (Admin)</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<body class="bg-dark text-light">
+  <div class="container py-4">
+    <div class="card p-4 mx-auto" style="max-width:900px;">
+      <h2 class="mb-4">Tüm Destek Talepleri</h2>
+      <table class="table table-dark table-bordered text-center align-middle">
+        <thead>
+          <tr>
+            <th>ID</th><th>Kullanıcı</th><th>Tarih</th><th>Konu</th><th>Mesaj</th><th>Durum</th><th>Yanıt</th><th>İşlem</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for t in tickets %}
+          <tr>
+            <td>{{ t.id }}</td>
+            <td>{{ t.user.username }}</td>
+            <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>{{ t.subject }}</td>
+            <td>{{ t.message }}</td>
+            <td>
+              {% if t.status == "open" %}<span class="badge bg-warning text-dark">Açık</span>
+              {% else %}<span class="badge bg-success">Yanıtlandı</span>{% endif %}
+            </td>
+            <td>{{ t.response or "" }}</td>
+            <td>
+              {% if t.status == "open" %}
+                <form method="post" class="d-flex flex-column gap-1">
+                  <input type="hidden" name="ticket_id" value="{{ t.id }}">
+                  <input type="text" name="response" class="form-control mb-1" placeholder="Yanıt">
+                  <button class="btn btn-success btn-sm w-100">Yanıtla & Kapat</button>
+                </form>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+HTML_PANEL = """
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8"><title>Sipariş Paneli</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<body class="bg-dark text-light">
+  <div class="container py-4">
+    <div class="card p-4 mx-auto" style="max-width:800px;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <b>{{ current_user }}</b> <span class="badge bg-info text-dark">{{ rolu_turkce(role) }}</span>
+        </div>
+        <div>Bakiye: <b>{{ balance }} TL</b></div>
+      </div>
+      <div class="d-grid gap-3 mb-3">
+        {% if role=='admin' %}
+          <a href="{{ url_for('manage_users') }}" class="btn btn-secondary btn-block py-2">Kullanıcı Yönetimi</a>
+          <a href="/balance/requests" class="btn btn-warning btn-block py-2">Bakiye Talepleri</a>
+          <a href="/admin/tickets" class="btn btn-danger btn-block py-2">Tüm Destek Talepleri</a>
+        {% else %}
+          <a href="/balance" class="btn btn-warning btn-block py-2">Bakiye Yükle</a>
+        {% endif %}
+        <a href="/services" class="btn btn-info btn-block py-2">Servisler & Fiyat Listesi</a>
+        <a href="/tickets" class="btn btn-danger btn-block py-2">Destek & Canlı Yardım</a>
+      </div>
+      <h4 class="mb-3 mt-4">Yeni Sipariş</h4>
+      <form method="post" class="row g-2 align-items-end mb-2">
+        <div class="col"><input name="username" class="form-control" placeholder="Takip edilecek hesap" required></div>
+        <div class="col"><input name="amount" type="number" min="1" class="form-control" placeholder="Takipçi adedi" required></div>
+        <div class="col"><button class="btn btn-success w-100">Sipariş Ver</button></div>
+      </form>
+      <div class="mb-2"><b>Her takipçi adedi için fiyat: 0.50 TL’dir.</b></div>
+      {% if error %}
+        <div class="alert alert-danger py-2 small mb-2">{{ error }}</div>
+      {% endif %}
+      {% if msg %}
+        <div class="alert alert-success py-2 small mb-2">{{ msg }}</div>
+      {% endif %}
+      <hr>
+      <h5>Geçmiş Siparişler</h5>
+      {% if orders %}
+        <div class="table-responsive">
+        <table class="table table-dark table-striped table-bordered align-middle">
+          <thead>
+            <tr>
+              <th>#</th><th>Hedef Kullanıcı</th><th>Adet</th><th>Fiyat</th><th>Durum</th><th>Hata</th>
+              {% if role == 'admin' %}<th>İptal</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in orders %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ o.username }}</td>
+              <td>{{ o.amount }}</td>
+              <td>{{ o.total_price }}</td>
+              <td>
+                {% if o.status == 'complete' %}
+                  <span class="badge bg-success">{{ o.status }}</span>
+                {% elif o.status == 'cancelled' %}
+                  <span class="badge bg-secondary">{{ o.status }}</span>
+                {% elif o.status == 'error' %}
+                  <span class="badge bg-danger">{{ o.status }}</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark">{{ o.status }}</span>
+                {% endif %}
+              </td>
+              <td>{{ o.error }}</td>
+              {% if role == 'admin' %}
+              <td>
+                {% if o.status not in ['complete','cancelled'] %}
+                  <form method="post" action="{{ url_for('cancel_order', order_id=o.id) }}" style="display:inline">
+                    <button class="btn btn-sm btn-outline-danger">İptal Et</button>
+                  </form>
+                {% else %}
+                  <span class="text-muted">–</span>
+                {% endif %}
+              </td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </div>
+      {% else %}
+        <div class="alert alert-secondary mt-2">Henüz sipariş yok.</div>
+      {% endif %}
+      <div class="mt-3 text-end">
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Çıkış Yap</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
 # --- BOT SETUP ---
 def load_bots(path="bots.txt"):
     if not os.path.exists(path): return []
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip().split(":", 1) for line in f if ":" in line]
-
 BOT_CLIENTS = []
 for u, p in load_bots():
     sf = f"settings_{u}.json"
@@ -546,6 +650,7 @@ def follow_user(client, target):
         client.login(client.username, client._password)
         client.user_follow(client.user_id_from_username(target))
 
+# --- DECORATORS ---
 def login_required(f):
     def wrapper(*args, **kwargs):
         if not session.get("user_id"):
@@ -563,6 +668,7 @@ def admin_required(f):
     wrapper.__name__ = f.__name__
     return wrapper
 
+# --- ROUTELAR ---
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -810,6 +916,41 @@ def balance_requests():
             flash("Bakiye talebi reddedildi.")
     reqs = BalanceRequest.query.order_by(BalanceRequest.created_at.desc()).all()
     return render_template_string(HTML_BALANCE_REQUESTS, reqs=reqs)
+
+@app.route("/services")
+@login_required
+def services():
+    servisler = Service.query.filter_by(active=True).all()
+    return render_template_string(HTML_SERVICES, servisler=servisler)
+
+@app.route("/tickets", methods=["GET", "POST"])
+@login_required
+def tickets():
+    user = User.query.get(session.get("user_id"))
+    if request.method == "POST":
+        subject = request.form.get("subject", "").strip()
+        message = request.form.get("message", "").strip()
+        if subject and message:
+            ticket = Ticket(user_id=user.id, subject=subject, message=message)
+            db.session.add(ticket)
+            db.session.commit()
+    tickets = Ticket.query.filter_by(user_id=user.id).order_by(Ticket.created_at.desc()).all()
+    return render_template_string(HTML_TICKETS, tickets=tickets)
+
+@app.route("/admin/tickets", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_tickets():
+    if request.method == "POST":
+        ticket_id = int(request.form.get("ticket_id"))
+        response = request.form.get("response", "").strip()
+        ticket = Ticket.query.get(ticket_id)
+        if ticket and ticket.status == "open" and response:
+            ticket.response = response
+            ticket.status = "closed"
+            db.session.commit()
+    tickets = Ticket.query.order_by(Ticket.created_at.desc()).all()
+    return render_template_string(HTML_ADMIN_TICKETS, tickets=tickets)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
