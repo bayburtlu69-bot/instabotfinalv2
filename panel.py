@@ -39,9 +39,110 @@ with app.app_context():
         db.session.commit()
 
 # ————— HTML Şablonları —————
-HTML_LOGIN = """..."""   # aynı önceki tam içerikleriniz
-HTML_USERS = """..."""
-HTML_PANEL = """..."""
+HTML_LOGIN = """
+<!DOCTYPE html>
+<html>
+  <head><meta charset="utf-8"><title>Giriş</title></head>
+  <body>
+    <h2>Insta Bot Panel – Giriş</h2>
+    <form method="post">
+      <label>Kullanıcı Adı:</label><br>
+      <input name="username" placeholder="Kullanıcı Adı"><br><br>
+      <label>Şifre:</label><br>
+      <input name="password" type="password" placeholder="Şifre"><br><br>
+      <input type="submit" value="Giriş">
+    </form>
+  </body>
+</html>
+"""
+
+HTML_USERS = """
+<!DOCTYPE html>
+<html>
+  <head><meta charset="utf-8"><title>Kullanıcı Yönetimi</title></head>
+  <body>
+    <h2>Kullanıcı Yönetimi</h2>
+    <form method="post">
+      <input name="u" placeholder="Yeni kullanıcı"><br><br>
+      <input name="pw" type="password" placeholder="Parola"><br><br>
+      <select name="role">
+        <option value="admin">admin</option>
+        <option value="viewer">viewer</option>
+      </select>
+      <button type="submit">Ekle</button>
+    </form>
+    <hr>
+    <h3>Mevcut Kullanıcılar</h3>
+    <table border="1" cellpadding="4">
+      <tr><th>#</th><th>Kullanıcı</th><th>Rol</th><th>İşlem</th></tr>
+      {% for usr in users %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ usr.username }}</td>
+        <td>{{ usr.role }}</td>
+        <td>
+          {% if usr.username != current_user %}
+            <a href="{{ url_for('delete_user', user_id=usr.id) }}">Sil</a>
+          {% else %}
+            –
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p><a href="{{ url_for('panel') }}">Panel’e Dön</a></p>
+  </body>
+</html>
+"""
+
+HTML_PANEL = """
+<!DOCTYPE html>
+<html>
+  <head><meta charset="utf-8"><title>Sipariş Paneli</title></head>
+  <body>
+    <p>Hoşgeldin <b>{{ current_user }}</b> ({{ role }})</p>
+    {% if role=='admin' %}
+      <p><a href="{{ url_for('manage_users') }}">Kullanıcı Yönetimi</a></p>
+    {% endif %}
+    <h2>Yeni Sipariş</h2>
+    {% if role=='admin' %}
+      <form method="post">
+        <input name="username" placeholder="Takip edilecek hesap" required>
+        <button type="submit">Sipariş Ver</button>
+      </form>
+    {% else %}
+      <p>Sipariş vermeye yetkiniz yok.</p>
+    {% endif %}
+    <hr>
+    <h3>Geçmiş Siparişler</h3>
+    {% if orders %}
+      <table border="1" cellpadding="4">
+        <tr><th>#</th><th>Kullanıcı</th><th>Durum</th><th>Hata</th><th>İşlem</th></tr>
+        {% for o in orders %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ o.username }}</td>
+          <td>{{ o.status }}</td>
+          <td>{{ o.error }}</td>
+          <td>
+            {% if o.status not in ['complete','cancelled'] and role=='admin' %}
+              <form method="post" action="{{ url_for('cancel_order', order_idx=loop.index0) }}" style="display:inline">
+                <button type="submit">İptal Et</button>
+              </form>
+            {% else %}
+              –
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>Henüz sipariş yok.</p>
+    {% endif %}
+    <p><a href="{{ url_for('logout') }}">Çıkış Yap</a></p>
+  </body>
+</html>
+"""
 
 # ————— Sipariş kaydı için JSON yolu —————
 ORDERS_FILE = "orders.json"
@@ -62,7 +163,6 @@ for u, p in load_bots():
         BOT_CLIENTS.append(cl)
         print(f"✅ {u}: cache'dan yüklendi ({sf})")
     else:
-        # cache yoksa, create_cache.py ile oluşturulmalı
         print(f"⚠️ {u}: '{sf}' bulunamadı; önce create_cache.py ile oluşturun")
 
 print("📦 Yüklü bot sayısı:", len(BOT_CLIENTS), "→", [c.username for c in BOT_CLIENTS])
@@ -84,7 +184,7 @@ def login_required(f):
     wrapper.__name__ = f.__name__
     return wrapper
 
-# ————— Auth / Users / Cancel / Panel rotaları —————
+# ————— Auth Routes —————
 @app.route("/", methods=["GET","POST"])
 def login():
     if request.method=="POST":
@@ -102,10 +202,12 @@ def logout():
     session.clear()
     return redirect("/")
 
+# ————— Kullanıcı Yönetimi —————
 @app.route("/users", methods=["GET","POST"])
 @login_required
 def manage_users():
-    if session.get("role")!="admin": abort(403)
+    if session.get("role")!="admin":
+        abort(403)
     if request.method=="POST":
         u = request.form.get("u","").strip()
         p = request.form.get("pw","")
@@ -123,7 +225,8 @@ def manage_users():
 @app.route("/users/delete/<int:user_id>")
 @login_required
 def delete_user(user_id):
-    if session.get("role")!="admin": abort(403)
+    if session.get("role")!="admin":
+        abort(403)
     usr = User.query.get_or_404(user_id)
     if usr.username!=session.get("user"):
         db.session.delete(usr)
@@ -133,7 +236,8 @@ def delete_user(user_id):
 @app.route("/cancel/<int:order_idx>", methods=["POST"])
 @login_required
 def cancel_order(order_idx):
-    if session.get("role")!="admin": abort(403)
+    if session.get("role")!="admin":
+        abort(403)
     try:
         orders = json.load(open(ORDERS_FILE, encoding="utf-8"))
     except:
@@ -150,7 +254,8 @@ def cancel_order(order_idx):
 def panel():
     role = session.get("role")
     if request.method=="POST":
-        if role!="admin": abort(403)
+        if role!="admin":
+            abort(403)
         target = request.form.get("username","").strip()
         if target:
             try:
@@ -180,7 +285,9 @@ def panel():
     orders=[]
     for o in raw:
         obj=O()
-        obj.username=o.get("username"); obj.status=o.get("status"); obj.error=o.get("error")
+        obj.username=o.get("username")
+        obj.status  =o.get("status")
+        obj.error   =o.get("error")
         orders.append(obj)
 
     return render_template_string(HTML_PANEL, orders=orders, role=role, current_user=session.get("user"))
