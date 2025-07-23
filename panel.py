@@ -147,33 +147,40 @@ HTML_PANEL = """
 # ————— Sipariş kaydı için JSON yolu —————
 ORDERS_FILE = "orders.json"
 
-# ————— Bot hazırlığı & otomatik cache oluşturma —————
+# ————— Bot hazırlığı & otomatik cache oluşturma (proxy destekli) —————
 def load_bots(path="bots.txt"):
     with open(path, "r", encoding="utf-8") as f:
-        return [line.strip().split(":",1) for line in f if ":" in line]
+        lines = [l.strip().split(":", 2) for l in f if l.strip()]
+        return [
+            (parts[0], parts[1], parts[2] if len(parts) == 3 else None)
+            for parts in lines
+        ]
 
 BOT_CLIENTS = []
-for u, p in load_bots():
-    sf = f"settings_{u}.json"
-    cl = Client(); cl.private.timeout = 10
+for username, password, proxy_url in load_bots():
+    sf = f"settings_{username}.json"
+    cl = Client()
+    cl.private.timeout = 10
+
+    # Proxy ayarlandıysa
+    if proxy_url:
+        cl.private.proxies = {"http": proxy_url, "https": proxy_url}
+        print(f"🛡️ {username}: proxy atanıyor → {proxy_url}")
 
     if os.path.exists(sf):
-        # Var olan cache'i yükle
         cl.load_settings(sf)
-        print(f"✅ {u}: cache'dan yüklendi ({sf})")
+        print(f"✅ {username}: cache'dan yüklendi ({sf})")
     else:
-        # Cache yok → login yap ve cache oluştur
         try:
-            print(f"🔑 {u}: cache yok, giriş yapılıyor…")
-            cl.login(u, p)
+            print(f"🔑 {username}: cache yok, giriş yapılıyor…")
+            cl.login(username, password)
             cl.dump_settings(sf)
-            print(f"✅ {u}: ilk oturum tamamlandı ve cache oluşturuldu ({sf})")
+            print(f"✅ {username}: ilk oturum tamamlandı ve cache oluşturuldu ({sf})")
         except Exception as e:
-            print(f"⚠️ {u}: login/dump sırasında hata → {e}")
+            print(f"⚠️ {username}: login/dump sırasında hata → {e}")
             continue
 
-    # retry için parola sakla
-    cl._password = p
+    cl._password = password
     BOT_CLIENTS.append(cl)
 
 print("📦 Yüklü bot sayısı:", len(BOT_CLIENTS), "→", [c.username for c in BOT_CLIENTS])
@@ -198,7 +205,7 @@ def login_required(f):
 # ————— Auth Routes —————
 @app.route("/", methods=["GET","POST"])
 def login():
-    if request.method=="POST":
+    if request.method == "POST":
         u = request.form.get("username","")
         p = request.form.get("password","")
         usr = User.query.filter_by(username=u).first()
@@ -216,11 +223,11 @@ def logout():
 @app.route("/users", methods=["GET","POST"])
 @login_required
 def manage_users():
-    if session.get("role")!="admin":
+    if session.get("role") != "admin":
         abort(403)
-    if request.method=="POST":
+    if request.method == "POST":
         u = request.form.get("u","").strip()
-        p = request.form.get("pw","") 
+        p = request.form.get("pw","")
         r = request.form.get("role","viewer")
         if u and p and not User.query.filter_by(username=u).first():
             db.session.add(User(
@@ -230,15 +237,19 @@ def manage_users():
             ))
             db.session.commit()
     users = User.query.order_by(User.username).all()
-    return render_template_string(HTML_USERS, users=users, current_user=session.get("user"))
+    return render_template_string(
+        HTML_USERS,
+        users=users,
+        current_user=session.get("user")
+    )
 
 @app.route("/users/delete/<int:user_id>")
 @login_required
 def delete_user(user_id):
-    if session.get("role")!="admin":
+    if session.get("role") != "admin":
         abort(403)
     usr = User.query.get_or_404(user_id)
-    if usr.username!=session.get("user"):
+    if usr.username != session.get("user"):
         db.session.delete(usr)
         db.session.commit()
     return redirect("/users")
@@ -246,7 +257,7 @@ def delete_user(user_id):
 @app.route("/cancel/<int:order_idx>", methods=["POST"])
 @login_required
 def cancel_order(order_idx):
-    if session.get("role")!="admin":
+    if session.get("role") != "admin":
         abort(403)
     try:
         orders = json.load(open(ORDERS_FILE, encoding="utf-8"))
@@ -263,8 +274,8 @@ def cancel_order(order_idx):
 @login_required
 def panel():
     role = session.get("role")
-    if request.method=="POST":
-        if role!="admin":
+    if request.method == "POST":
+        if role != "admin":
             abort(403)
         target = request.form.get("username","").strip()
         if target:
@@ -280,7 +291,7 @@ def panel():
                     print(f"[{idx}/{len(BOT_CLIENTS)}] ✅ {cl.username} takibe başladı")
                 except Exception as e:
                     print(f"[{idx}/{len(BOT_CLIENTS)}] ⚠️ {cl.username} ile hata: {e}")
-                    status,error="error",str(e)
+                    status, error = "error", str(e)
                     break
             raw.append({"username":target,"status":status,"error":error})
             with open(ORDERS_FILE,"w",encoding="utf-8") as f:
@@ -292,15 +303,20 @@ def panel():
     except:
         raw = []
     class O: pass
-    orders=[]
+    orders = []
     for o in raw:
-        obj=O()
-        obj.username=o.get("username")
-        obj.status  =o.get("status")
-        obj.error   =o.get("error")
+        obj = O()
+        obj.username = o.get("username")
+        obj.status   = o.get("status")
+        obj.error    = o.get("error")
         orders.append(obj)
 
-    return render_template_string(HTML_PANEL, orders=orders, role=role, current_user=session.get("user"))
+    return render_template_string(
+        HTML_PANEL,
+        orders=orders,
+        role=role,
+        current_user=session.get("user")
+    )
 
-if __name__=="__main__":
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT",10000)))
