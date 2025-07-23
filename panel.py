@@ -147,23 +147,34 @@ HTML_PANEL = """
 # ————— Sipariş kaydı için JSON yolu —————
 ORDERS_FILE = "orders.json"
 
-# ————— Bot hazırlığı & cache yükleme —————
+# ————— Bot hazırlığı & otomatik cache oluşturma —————
 def load_bots(path="bots.txt"):
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip().split(":",1) for line in f if ":" in line]
 
 BOT_CLIENTS = []
 for u, p in load_bots():
-    cl = Client()
-    cl.private.timeout = 10
     sf = f"settings_{u}.json"
+    cl = Client(); cl.private.timeout = 10
+
     if os.path.exists(sf):
+        # Var olan cache'i yükle
         cl.load_settings(sf)
-        cl._password = p
-        BOT_CLIENTS.append(cl)
         print(f"✅ {u}: cache'dan yüklendi ({sf})")
     else:
-        print(f"⚠️ {u}: '{sf}' bulunamadı; önce create_cache.py ile oluşturun")
+        # Cache yok → login yap ve cache oluştur
+        try:
+            print(f"🔑 {u}: cache yok, giriş yapılıyor…")
+            cl.login(u, p)
+            cl.dump_settings(sf)
+            print(f"✅ {u}: ilk oturum tamamlandı ve cache oluşturuldu ({sf})")
+        except Exception as e:
+            print(f"⚠️ {u}: login/dump sırasında hata → {e}")
+            continue
+
+    # retry için parola sakla
+    cl._password = p
+    BOT_CLIENTS.append(cl)
 
 print("📦 Yüklü bot sayısı:", len(BOT_CLIENTS), "→", [c.username for c in BOT_CLIENTS])
 
@@ -202,7 +213,6 @@ def logout():
     session.clear()
     return redirect("/")
 
-# ————— Kullanıcı Yönetimi —————
 @app.route("/users", methods=["GET","POST"])
 @login_required
 def manage_users():
@@ -210,7 +220,7 @@ def manage_users():
         abort(403)
     if request.method=="POST":
         u = request.form.get("u","").strip()
-        p = request.form.get("pw","")
+        p = request.form.get("pw","") 
         r = request.form.get("role","viewer")
         if u and p and not User.query.filter_by(username=u).first():
             db.session.add(User(
