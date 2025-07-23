@@ -45,13 +45,13 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     user = db.relationship("User")
 
-# --- BAKİYE YÜKLEME BAŞVURU TABLOSU ---
 class BalanceRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     amount = db.Column(db.Float, nullable=False)
-    description = db.Column(db.String(256))
     status = db.Column(db.String(16), default="pending")  # pending, approved, rejected
+    explanation = db.Column(db.String(256), default="")
+    reject_reason = db.Column(db.String(256), default="")
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     user = db.relationship("User")
 
@@ -283,6 +283,9 @@ HTML_PANEL = """
       </div>
       {% if role=='admin' %}
         <a href="{{ url_for('manage_users') }}" class="btn btn-secondary btn-sm mb-3">Kullanıcı Yönetimi</a>
+        <a href="/balance/requests" class="btn btn-warning btn-sm mb-3">Bakiye Talepleri</a>
+      {% else %}
+        <a href="/balance" class="btn btn-warning btn-sm mb-3">Bakiye Yükle</a>
       {% endif %}
       <h4 class="mb-3">Yeni Sipariş</h4>
       <form method="post" class="row g-2 align-items-end mb-2">
@@ -365,98 +368,134 @@ HTML_BALANCE = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="utf-8">
-    <title>Bakiye Yükle</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="utf-8">
+  <title>Bakiye Yükle</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-dark text-light">
-<div class='container my-4'>
+  <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:500px;">
-        <h4 class="mb-3">Bakiye Yükle (Havale/EFT Bildir)</h4>
-        {% if msg %}
-          <div class='alert alert-info'>{{ msg }}</div>
-        {% endif %}
-        <form method='post'>
-            <div class='mb-2'><input name='amount' class='form-control' type='number' step='0.01' placeholder='Yüklenecek tutar (TL)' required></div>
-            <div class='mb-3'><input name='desc' class='form-control' placeholder='Açıklama (örn: Havale dekont no)'></div>
-            <button class='btn btn-success w-100'>Bildirim Gönder</button>
-        </form>
-        <div class='mt-3 alert alert-secondary'>
-          <b>Banka:</b> QNB Finansbank<br>
-          <b>IBAN:</b> TR70 0004 6008 7088 8000 1117 44<br>
-          <b>Hesap Sahibi:</b> Mükail Aktaş<br>
-          <b>Açıklama:</b> Lütfen kullanıcı adınızı açıklamaya yazın!<br>
-          <small>Havale/EFT sonrası bu formu doldurun, admin onaylayınca bakiyeniz yüklenecek.</small>
-        </div>
-        <a href='/panel' class='btn btn-link mt-2'>Panele Dön</a>
+      <h3>Bakiye Yükle</h3>
+      <div class="alert alert-info">
+        <b>Bakiye yükleme için banka bilgileri:</b><br>
+        IBAN: <b>TR70 0004 6008 7088 8000 1117 44</b><br>
+        Ad Soyad: <b>Mükail Aktaş</b><br>
+        <small>Açıklamaya <b>kullanıcı adınızı</b> yazmayı unutmayın!</small>
+      </div>
+      {% if msg %}<div class="alert alert-success">{{ msg }}</div>{% endif %}
+      {% if err %}<div class="alert alert-danger">{{ err }}</div>{% endif %}
+      <form method="post" class="mb-4">
+        <label class="form-label">Tutar (TL):</label>
+        <input name="amount" type="number" step="0.01" min="1" class="form-control mb-2" required>
+        <button class="btn btn-primary w-100">Başvuru Yap</button>
+      </form>
+      <h5>Geçmiş Bakiye Talepleriniz</h5>
+      <table class="table table-dark table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>Tarih</th>
+            <th>Tutar</th>
+            <th>Durum</th>
+            <th>Açıklama</th>
+            <th>Ret Sebebi</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for req in requests %}
+          <tr>
+            <td>{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>{{ req.amount }}</td>
+            <td>
+              {% if req.status == "pending" %}<span class="badge bg-warning text-dark">Bekliyor</span>
+              {% elif req.status == "approved" %}<span class="badge bg-success">Onaylandı</span>
+              {% elif req.status == "rejected" %}<span class="badge bg-danger">Reddedildi</span>
+              {% endif %}
+            </td>
+            <td>{{ req.explanation or "" }}</td>
+            <td>{{ req.reject_reason or "" }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <a href="/panel" class="btn btn-secondary btn-sm">Panele Dön</a>
     </div>
-</div>
+  </div>
 </body>
 </html>
 """
 
-HTML_BALANCE_REQS = """
+HTML_BALANCE_REQUESTS = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="utf-8">
-    <title>Bakiye Talepleri</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="utf-8">
+  <title>Bakiye Talepleri</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-dark text-light">
-<div class='container my-4'>
+  <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
-        <h4 class="mb-3">Bakiye Yükleme Başvuruları</h4>
-        {% if msg %}
-          <div class='alert alert-success'>{{ msg }}</div>
+      <h3>Bakiye Talepleri</h3>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="alert alert-info p-2 small mb-2" role="alert">
+            {% for message in messages %}
+              {{ message }}<br>
+            {% endfor %}
+          </div>
         {% endif %}
-        <table class="table table-dark table-striped table-bordered align-middle">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Kullanıcı</th>
-              <th>Tutar (TL)</th>
-              <th>Açıklama</th>
-              <th>Tarih</th>
-              <th>Durum</th>
-              <th>İşlem</th>
-            </tr>
-          </thead>
-          <tbody>
-          {% for r in requests %}
-            <tr>
-              <td>{{ loop.index }}</td>
-              <td>{{ r.user.username }}</td>
-              <td>{{ r.amount }}</td>
-              <td>{{ r.description }}</td>
-              <td>{{ r.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-              <td>
-                {% if r.status=='approved' %}
-                  <span class='badge bg-success'>Onaylandı</span>
-                {% elif r.status=='rejected' %}
-                  <span class='badge bg-danger'>Reddedildi</span>
-                {% else %}
-                  <span class='badge bg-warning text-dark'>Bekliyor</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if r.status=='pending' %}
-                  <form method='post' style='display:inline-block'>
-                    <input type='hidden' name='req_id' value='{{ r.id }}'>
-                    <button name='action' value='approve' class='btn btn-success btn-sm'>Onayla</button>
-                    <button name='action' value='reject' class='btn btn-danger btn-sm ms-2'>Reddet</button>
-                  </form>
-                {% else %}
-                  <span class="text-muted">–</span>
-                {% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-        <a href='/panel' class='btn btn-link mt-2'>Panele Dön</a>
+      {% endwith %}
+      <table class="table table-dark table-bordered">
+        <thead>
+          <tr>
+            <th>#</th><th>Kullanıcı</th><th>Tutar</th><th>Tarih</th><th>Durum</th><th>Açıklama</th><th>Ret Sebebi</th><th>İşlem</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for req in reqs %}
+          <tr>
+            <td>{{ req.id }}</td>
+            <td>{{ req.user.username }}</td>
+            <td>{{ req.amount }}</td>
+            <td>{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>
+              {% if req.status == "pending" %}<span class="badge bg-warning text-dark">Bekliyor</span>
+              {% elif req.status == "approved" %}<span class="badge bg-success">Onaylandı</span>
+              {% elif req.status == "rejected" %}<span class="badge bg-danger">Reddedildi</span>
+              {% endif %}
+            </td>
+            <td>{{ req.explanation or "" }}</td>
+            <td>{{ req.reject_reason or "" }}</td>
+            <td>
+              {% if req.status == "pending" %}
+              <form method="post" style="display:inline-block">
+                <input type="hidden" name="req_id" value="{{ req.id }}">
+                <input type="text" name="explanation" class="form-control form-control-sm mb-1" placeholder="Onay açıklama">
+                <button class="btn btn-success btn-sm" name="action" value="approve">Onayla</button>
+              </form>
+              <form method="post" style="display:inline-block">
+                <input type="hidden" name="req_id" value="{{ req.id }}">
+                <input type="text" name="explanation" class="form-control form-control-sm mb-1" placeholder="Ret açıklama (isteğe bağlı)">
+                <select name="reject_reason" class="form-select form-select-sm mb-1">
+                  <option value="">Ret sebebi seç</option>
+                  <option>BANKA HESABINA PARA AKTARILMAMIŞ</option>
+                  <option>HATALI İSİM SOYİSİM</option>
+                  <option>BAŞKA BİR KULLANICIDAN GELEN BİLDİRİM</option>
+                  <option>MANUEL RED (Açıklamada belirt)</option>
+                </select>
+                <button class="btn btn-danger btn-sm" name="action" value="reject">Reddet</button>
+              </form>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <a href="/panel" class="btn btn-secondary btn-sm">Panele Dön</a>
     </div>
-</div>
+  </div>
 </body>
 </html>
 """
@@ -713,15 +752,8 @@ def panel():
         orders = Order.query.order_by(Order.created_at.desc()).all()
     else:
         orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
-    # Panelde link gösterimi:
-    panel_html = HTML_PANEL.replace(
-        "<div class=\"mb-2\"><b>Her takipçi adedi için fiyat: 0.50 TL’dir.</b></div>",
-        "<div class=\"mb-2\"><b>Her takipçi adedi için fiyat: 0.50 TL’dir.</b></div>"
-        "<a href='/balance' class='btn btn-warning btn-sm my-2'>Bakiye Yükle (Havale/EFT)</a>"
-        "{% if role=='admin' %}<a href='/balance/requests' class='btn btn-info btn-sm my-2 ms-2'>Bakiye Talepleri</a>{% endif %}"
-    )
     return render_template_string(
-        panel_html,
+        HTML_PANEL,
         orders=orders,
         role=user.role,
         current_user=user.username,
@@ -733,44 +765,51 @@ def panel():
 
 @app.route("/balance", methods=["GET", "POST"])
 @login_required
-def balance():
+def user_balance():
     user = User.query.get(session.get("user_id"))
-    msg = ""
+    msg, err = "", ""
     if request.method == "POST":
         try:
-            amount = float(request.form.get("amount", "0"))
+            amount = float(request.form.get("amount", 0))
         except:
             amount = 0
-        desc = request.form.get("desc", "")
         if amount <= 0:
-            msg = "Lütfen geçerli bir tutar girin."
+            err = "Tutar geçersiz."
         else:
-            req = BalanceRequest(user_id=user.id, amount=amount, description=desc, status="pending")
-            db.session.add(req)
+            r = BalanceRequest(user_id=user.id, amount=amount)
+            db.session.add(r)
             db.session.commit()
-            msg = "Başvurunuz alındı, admin onaylayınca bakiye hesabınıza geçecek!"
-    return render_template_string(HTML_BALANCE, msg=msg)
+            msg = "Başvuru başarıyla iletildi. Admin onayını bekleyiniz."
+    requests = BalanceRequest.query.filter_by(user_id=user.id).order_by(BalanceRequest.created_at.desc()).all()
+    return render_template_string(HTML_BALANCE, msg=msg, err=err, requests=requests)
 
 @app.route("/balance/requests", methods=["GET", "POST"])
 @login_required
 @admin_required
 def balance_requests():
-    msg = ""
     if request.method == "POST":
-        req_id = int(request.form.get("req_id", 0))
+        req_id = int(request.form.get("req_id"))
         action = request.form.get("action")
+        explanation = request.form.get("explanation", "")
+        reject_reason = request.form.get("reject_reason", "")
         req = BalanceRequest.query.get(req_id)
-        if req and req.status == "pending":
-            if action == "approve":
-                req.status = "approved"
-                req.user.balance += req.amount
-                msg = f"{req.user.username} kullanıcısına {req.amount} TL yüklendi!"
-            elif action == "reject":
-                req.status = "rejected"
-                msg = "Başvuru reddedildi."
+        if not req or req.status != "pending":
+            flash("İşlem yapılamadı.")
+            return redirect("/balance/requests")
+        if action == "approve":
+            req.status = "approved"
+            req.user.balance += req.amount
+            req.explanation = explanation
             db.session.commit()
-    requests = BalanceRequest.query.order_by(BalanceRequest.created_at.desc()).all()
-    return render_template_string(HTML_BALANCE_REQS, requests=requests, msg=msg)
+            flash("Bakiye talebi onaylandı.")
+        elif action == "reject":
+            req.status = "rejected"
+            req.explanation = explanation
+            req.reject_reason = reject_reason
+            db.session.commit()
+            flash("Bakiye talebi reddedildi.")
+    reqs = BalanceRequest.query.order_by(BalanceRequest.created_at.desc()).all()
+    return render_template_string(HTML_BALANCE_REQUESTS, reqs=reqs)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
