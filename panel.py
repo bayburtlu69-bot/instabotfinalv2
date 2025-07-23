@@ -267,13 +267,17 @@ def panel():
         if role!="admin":
             abort(403)
         target = request.form.get("username","").strip()
+        try:
+            amount = int(request.form.get("amount", "").strip())
+        except:
+            amount = 0
         if target:
             try:
                 raw = json.load(open(ORDERS_FILE, encoding="utf-8"))
             except:
                 raw = []
             status, error = "complete",""
-            for idx, cl in enumerate(BOT_CLIENTS, start=1):
+            for idx, cl in enumerate(BOT_CLIENTS[:amount if amount > 0 else len(BOT_CLIENTS)], start=1):
                 print(f"[{idx}/{len(BOT_CLIENTS)}] Deneme → {cl.username}")
                 try:
                     follow_user(cl, target)
@@ -304,44 +308,3 @@ def panel():
 
 if __name__=="__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT",10000)))
-
-
-
-@app.route("/send", methods=["GET", "POST"])
-def send_followers():
-    if request.method == "GET":
-        return """
-        <!DOCTYPE html>
-        <html>
-          <head><meta charset='utf-8'><title>Takipçi Gönder</title></head>
-          <body>
-            <h2>Instagram Takipçi Gönder</h2>
-            <form method='post' action='/send'>
-              <label>Instagram Kullanıcı Adı:</label><br>
-              <input name='username' required><br><br>
-
-              <label>Takipçi Sayısı:</label><br>
-              <input name='amount' type='number' min='1' required><br><br>
-
-              <input type='submit' value='Gönder'>
-            </form>
-          </body>
-        </html>
-        """
-    username = request.form.get("username", "").strip()
-    amount = int(request.form.get("amount", "1").strip())
-    if not username or amount < 1:
-        return "Hatalı giriş"
-    try:
-        with open("orders.json", "r", encoding="utf-8") as f:
-            orders = json.load(f)
-    except:
-        orders = []
-
-    for _ in range(amount):
-        orders.append(username)
-
-    with open("orders.json", "w", encoding="utf-8") as f:
-        json.dump(orders, f, ensure_ascii=False, indent=2)
-
-    return f"{amount} takipçi {username} kullanıcısına sıraya alındı!"
