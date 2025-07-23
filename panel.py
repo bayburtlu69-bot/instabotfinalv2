@@ -108,6 +108,7 @@ HTML_PANEL = """
     {% if role=='admin' %}
       <form method="post">
         <input name="username" placeholder="Takip edilecek hesap" required>
+        <input name="amount" type="number" min="1" placeholder="Takipçi adedi" required>
         <button type="submit">Sipariş Ver</button>
       </form>
     {% else %}
