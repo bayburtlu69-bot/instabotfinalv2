@@ -45,6 +45,16 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     user = db.relationship("User")
 
+# --- BAKİYE YÜKLEME BAŞVURU TABLOSU ---
+class BalanceRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    amount = db.Column(db.Float, nullable=False)
+    description = db.Column(db.String(256))
+    status = db.Column(db.String(16), default="pending")  # pending, approved, rejected
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    user = db.relationship("User")
+
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username="admin").first():
@@ -351,6 +361,106 @@ HTML_PANEL = """
 </html>
 """
 
+HTML_BALANCE = """
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Bakiye Yükle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+<div class='container my-4'>
+    <div class="card p-4 mx-auto" style="max-width:500px;">
+        <h4 class="mb-3">Bakiye Yükle (Havale/EFT Bildir)</h4>
+        {% if msg %}
+          <div class='alert alert-info'>{{ msg }}</div>
+        {% endif %}
+        <form method='post'>
+            <div class='mb-2'><input name='amount' class='form-control' type='number' step='0.01' placeholder='Yüklenecek tutar (TL)' required></div>
+            <div class='mb-3'><input name='desc' class='form-control' placeholder='Açıklama (örn: Havale dekont no)'></div>
+            <button class='btn btn-success w-100'>Bildirim Gönder</button>
+        </form>
+        <div class='mt-3 alert alert-secondary'>
+          <b>Banka:</b> QNB Finansbank<br>
+          <b>IBAN:</b> TR70 0004 6008 7088 8000 1117 44<br>
+          <b>Hesap Sahibi:</b> Mükail Aktaş<br>
+          <b>Açıklama:</b> Lütfen kullanıcı adınızı açıklamaya yazın!<br>
+          <small>Havale/EFT sonrası bu formu doldurun, admin onaylayınca bakiyeniz yüklenecek.</small>
+        </div>
+        <a href='/panel' class='btn btn-link mt-2'>Panele Dön</a>
+    </div>
+</div>
+</body>
+</html>
+"""
+
+HTML_BALANCE_REQS = """
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Bakiye Talepleri</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+<div class='container my-4'>
+    <div class="card p-4 mx-auto" style="max-width:800px;">
+        <h4 class="mb-3">Bakiye Yükleme Başvuruları</h4>
+        {% if msg %}
+          <div class='alert alert-success'>{{ msg }}</div>
+        {% endif %}
+        <table class="table table-dark table-striped table-bordered align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Kullanıcı</th>
+              <th>Tutar (TL)</th>
+              <th>Açıklama</th>
+              <th>Tarih</th>
+              <th>Durum</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for r in requests %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ r.user.username }}</td>
+              <td>{{ r.amount }}</td>
+              <td>{{ r.description }}</td>
+              <td>{{ r.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+              <td>
+                {% if r.status=='approved' %}
+                  <span class='badge bg-success'>Onaylandı</span>
+                {% elif r.status=='rejected' %}
+                  <span class='badge bg-danger'>Reddedildi</span>
+                {% else %}
+                  <span class='badge bg-warning text-dark'>Bekliyor</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if r.status=='pending' %}
+                  <form method='post' style='display:inline-block'>
+                    <input type='hidden' name='req_id' value='{{ r.id }}'>
+                    <button name='action' value='approve' class='btn btn-success btn-sm'>Onayla</button>
+                    <button name='action' value='reject' class='btn btn-danger btn-sm ms-2'>Reddet</button>
+                  </form>
+                {% else %}
+                  <span class="text-muted">–</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <a href='/panel' class='btn btn-link mt-2'>Panele Dön</a>
+    </div>
+</div>
+</body>
+</html>
+"""
+
 # --- BOT SETUP ---
 def load_bots(path="bots.txt"):
     if not os.path.exists(path): return []
@@ -603,8 +713,15 @@ def panel():
         orders = Order.query.order_by(Order.created_at.desc()).all()
     else:
         orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
+    # Panelde link gösterimi:
+    panel_html = HTML_PANEL.replace(
+        "<div class=\"mb-2\"><b>Her takipçi adedi için fiyat: 0.50 TL’dir.</b></div>",
+        "<div class=\"mb-2\"><b>Her takipçi adedi için fiyat: 0.50 TL’dir.</b></div>"
+        "<a href='/balance' class='btn btn-warning btn-sm my-2'>Bakiye Yükle (Havale/EFT)</a>"
+        "{% if role=='admin' %}<a href='/balance/requests' class='btn btn-info btn-sm my-2 ms-2'>Bakiye Talepleri</a>{% endif %}"
+    )
     return render_template_string(
-        HTML_PANEL,
+        panel_html,
         orders=orders,
         role=user.role,
         current_user=user.username,
@@ -613,6 +730,47 @@ def panel():
         error=error,
         rolu_turkce=rolu_turkce
     )
+
+@app.route("/balance", methods=["GET", "POST"])
+@login_required
+def balance():
+    user = User.query.get(session.get("user_id"))
+    msg = ""
+    if request.method == "POST":
+        try:
+            amount = float(request.form.get("amount", "0"))
+        except:
+            amount = 0
+        desc = request.form.get("desc", "")
+        if amount <= 0:
+            msg = "Lütfen geçerli bir tutar girin."
+        else:
+            req = BalanceRequest(user_id=user.id, amount=amount, description=desc, status="pending")
+            db.session.add(req)
+            db.session.commit()
+            msg = "Başvurunuz alındı, admin onaylayınca bakiye hesabınıza geçecek!"
+    return render_template_string(HTML_BALANCE, msg=msg)
+
+@app.route("/balance/requests", methods=["GET", "POST"])
+@login_required
+@admin_required
+def balance_requests():
+    msg = ""
+    if request.method == "POST":
+        req_id = int(request.form.get("req_id", 0))
+        action = request.form.get("action")
+        req = BalanceRequest.query.get(req_id)
+        if req and req.status == "pending":
+            if action == "approve":
+                req.status = "approved"
+                req.user.balance += req.amount
+                msg = f"{req.user.username} kullanıcısına {req.amount} TL yüklendi!"
+            elif action == "reject":
+                req.status = "rejected"
+                msg = "Başvuru reddedildi."
+            db.session.commit()
+    requests = BalanceRequest.query.order_by(BalanceRequest.created_at.desc()).all()
+    return render_template_string(HTML_BALANCE_REQS, requests=requests, msg=msg)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
