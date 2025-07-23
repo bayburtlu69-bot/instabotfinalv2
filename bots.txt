@@ -1,5 +1,5 @@
-jessicaapareciada2525:hhjkxlumA!5217:http://user:pass@1.55.250.251:16000
-testaktas1:6906149Miko:http://user:pass@27.79.191.160:16000
-testaktas2:6906149Miko:http://user:pass@8.219.97.248:80
-testaktas3:6906149Miko:http://user:pass@37.187.74.125:80
-testter1233211:6906149Miko:http://user:pass@43.217.159.83:9080
+jessicaapareciada2525
+testaktas1:6906149Miko
+testaktas2:6906149Miko
+testaktas3:6906149Miko
+testter1233211:6906149Miko
