@@ -254,6 +254,53 @@ HTML_USERS = """
 </html>
 """
 
+# --- EKLENEN: SERVİSLERİ YÖNET (FİYAT DEĞİŞTİRME) ---
+HTML_SERVICES_MANAGE = """
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Servisleri Yönet</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-dark text-light">
+  <div class="container py-4">
+    <div class="card p-4 mx-auto" style="max-width:650px;">
+      <h3>Servisleri Yönet</h3>
+      {% if msg %}
+        <div class="alert alert-success">{{ msg }}</div>
+      {% endif %}
+      <form method="post">
+        <table class="table table-dark table-bordered mt-3">
+          <thead>
+            <tr>
+              <th>Servis</th>
+              <th>Açıklama</th>
+              <th>Fiyat (TL)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in services %}
+            <tr>
+              <td>{{ s.name }}</td>
+              <td>{{ s.description }}</td>
+              <td>
+                <input type="number" name="price_{{ s.id }}" value="{{ s.price }}" step="0.01" min="0.01" class="form-control" required>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <button class="btn btn-success w-100">Fiyatları Kaydet</button>
+      </form>
+      <a href="/panel" class="btn btn-secondary btn-sm mt-3">Panele Dön</a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
 HTML_BALANCE = """
 <!DOCTYPE html>
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bakiye Yükle</title>
@@ -587,7 +634,6 @@ HTML_PANEL = """
   <title>Sipariş Paneli</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    /* Duyuru kutusu için modern, soft bir tasarım */
     .announcement-box {
       background-color: #d1ecf1;
       color: #0c5460;
@@ -627,6 +673,8 @@ HTML_PANEL = """
           <a href="{{ url_for('manage_users') }}" class="btn btn-secondary btn-block py-2">Kullanıcı Yönetimi</a>
           <a href="{{ url_for('balance_requests') }}" class="btn btn-warning btn-block py-2">Bakiye Talepleri</a>
           <a href="{{ url_for('admin_tickets') }}" class="btn btn-danger btn-block py-2">Tüm Destek Talepleri</a>
+          <!-- EKLENEN: Servisleri Yönet butonu -->
+          <a href="{{ url_for('manage_services') }}" class="btn btn-info btn-block py-2">Servisleri Yönet</a>
         {% else %}
           <a href="{{ url_for('user_balance') }}" class="btn btn-warning btn-block py-2">Bakiye Yükle</a>
           <a href="{{ url_for('tickets') }}" class="btn btn-danger btn-block py-2">Destek & Canlı Yardım</a>
@@ -639,74 +687,16 @@ HTML_PANEL = """
         <div class="col"><input name="amount" type="number" min="1" class="form-control" placeholder="Takipçi adedi" required></div>
         <div class="col"><button class="btn btn-success w-100">Sipariş Ver</button></div>
       </form>
-      <div class="mb-2"><b>Her takipçi adedi için fiyat: 0.50 TL’dir.</b></div>
+      <div class="mb-2"><b>Her takipçi adedi için fiyat: 
+      {% for s in services %}
+        {{ s.price }} TL
+      {% endfor %}
+      </b></div>
       {% if error %}
         <div class="alert alert-danger py-2 small mb-2">{{ error }}</div>
       {% endif %}
       {% if msg %}
         <div class="alert alert-success py-2 small mb-2">{{ msg }}</div>
-      {% endif %}
-      <hr>
-      <h5>Duyurular</h5>
-      {% if role == 'admin' %}
-        <form method="post" action="{{ url_for('save_announcement') }}">
-          <label for="announcement" class="announcement-label">Duyuru Metni</label>
-          <textarea id="announcement" name="announcement" rows="4" class="form-control mb-2" placeholder="Duyuru metnini buraya yazın...">{{ announcement_text or "" }}</textarea>
-          <button class="btn btn-primary btn-sm">Duyuruyu Kaydet</button>
-        </form>
-      {% else %}
-        <div class="announcement-box">
-          {{ announcement_text or "Henüz duyuru yok." }}
-        </div>
-      {% endif %}
-      <hr>
-      <h5>Geçmiş Siparişler</h5>
-      {% if orders %}
-        <div class="table-responsive">
-          <table class="table table-dark table-striped table-bordered align-middle">
-            <thead>
-              <tr>
-                <th>#</th><th>Hedef Kullanıcı</th><th>Adet</th><th>Fiyat</th><th>Durum</th><th>Hata</th>
-                {% if role == 'admin' %}<th>İptal</th>{% endif %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for o in orders %}
-              <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ o.username }}</td>
-                <td>{{ o.amount }}</td>
-                <td>{{ o.total_price }}</td>
-                <td>
-                  {% if o.status == 'complete' %}
-                    <span class="badge bg-success">{{ o.status }}</span>
-                  {% elif o.status == 'cancelled' %}
-                    <span class="badge bg-secondary">{{ o.status }}</span>
-                  {% elif o.status == 'error' %}
-                    <span class="badge bg-danger">{{ o.status }}</span>
-                  {% else %}
-                    <span class="badge bg-warning text-dark">{{ o.status }}</span>
-                  {% endif %}
-                </td>
-                <td>{{ o.error }}</td>
-                {% if role == 'admin' %}
-                <td>
-                  {% if o.status not in ['complete','cancelled'] %}
-                    <form method="post" action="{{ url_for('cancel_order', order_id=o.id) }}" style="display:inline">
-                      <button class="btn btn-sm btn-outline-danger">İptal Et</button>
-                    </form>
-                  {% else %}
-                    <span class="text-muted">–</span>
-                  {% endif %}
-                </td>
-                {% endif %}
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div class="alert alert-secondary mt-2">Henüz sipariş yok.</div>
       {% endif %}
       <div class="mt-3 text-end">
         <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Çıkış Yap</a>
@@ -761,24 +751,6 @@ def follow_user(client, target):
     except LoginRequired:
         client.login(client.username, client._password)
         client.user_follow(client.user_id_from_username(target))
-
-# --- DECORATORS ---
-def login_required(f):
-    def wrapper(*args, **kwargs):
-        if not session.get("user_id"):
-            return redirect("/")
-        return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__
-    return wrapper
-
-def admin_required(f):
-    def wrapper(*args, **kwargs):
-        user = User.query.get(session.get("user_id"))
-        if not user or user.role != "admin":
-            abort(403)
-        return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__
-    return wrapper
 
 # --- DECORATORS ---
 def login_required(f):
@@ -944,13 +916,14 @@ def cancel_order(order_id):
 def panel():
     user = User.query.get(session.get("user_id"))
     msg, error = "", ""
+    services = Service.query.filter_by(active=True).all()
+    price = services[0].price if services else SABIT_FIYAT
     if request.method == "POST":
         target = request.form.get("username", "").strip()
         try:
             amount = int(request.form.get("amount", "").strip())
         except:
             amount = 0
-        price = SABIT_FIYAT
         total = amount * price
         if not target or amount <= 0:
             error = "Tüm alanları doğru doldurun!"
@@ -996,8 +969,29 @@ def panel():
         balance=round(user.balance, 2),
         msg=msg,
         error=error,
-        rolu_turkce=rolu_turkce
+        rolu_turkce=rolu_turkce,
+        services=Service.query.filter_by(active=True).all()
     )
+
+@app.route("/services/manage", methods=["GET", "POST"])
+@login_required
+@admin_required
+def manage_services():
+    services = Service.query.order_by(Service.id).all()
+    msg = ""
+    if request.method == "POST":
+        for s in services:
+            new_price = request.form.get(f"price_{s.id}")
+            try:
+                new_price = float(new_price)
+                if new_price > 0 and s.price != new_price:
+                    s.price = new_price
+                    msg = "Fiyatlar güncellendi."
+            except:
+                continue
+        db.session.commit()
+        services = Service.query.order_by(Service.id).all()
+    return render_template_string(HTML_SERVICES_MANAGE, services=services, msg=msg)
 
 @app.route("/balance", methods=["GET", "POST"])
 @login_required
