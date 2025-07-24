@@ -568,56 +568,60 @@ HTML_ORDERS_SIMPLE = """
 </head>
 <body class="bg-dark text-light">
   <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:650px;">
-      <h2 class="mb-3">Geçmiş Siparişleriniz</h2>
-
+    <div class="card p-4 mx-auto" style="max-width:750px;">
+      <h2 class="mb-3">Geçmiş Siparişler</h2>
       <table class="table table-dark table-bordered text-center mb-3">
         <thead>
           <tr>
             <th>#</th>
+            {% if role == 'admin' %}<th>Kullanıcı</th>{% endif %}
             <th>Hedef Kullanıcı</th>
             <th>Adet</th>
             <th>Fiyat</th>
             <th>Durum</th>
             <th>Hata</th>
-            <th>İptal</th>
+            {% if role == 'admin' %}<th>İptal</th>{% endif %}
           </tr>
         </thead>
         <tbody>
-          {% for s in orders %}
+          {% for o in orders %}
           <tr>
             <td>{{ loop.index }}</td>
-            <td>{{ s.target }}</td>
-            <td>{{ s.amount }}</td>
-            <td>{{ "%.2f"|format(s.price) }}</td>
+            {% if role == 'admin' %}<td>{{ o.user.username }}</td>{% endif %}
+            <td>{{ o.username }}</td>
+            <td>{{ o.amount }}</td>
+            <td>{{ o.total_price }}</td>
             <td>
-              {% if s.status == "cancelled" %}
-                <span class="badge bg-danger">İptal Edildi</span>
-              {% elif s.status == "completed" %}
+              {% if o.status == 'complete' %}
                 <span class="badge bg-success">Tamamlandı</span>
+              {% elif o.status == 'cancelled' %}
+                <span class="badge bg-secondary">İptal Edildi</span>
+              {% elif o.status == 'error' %}
+                <span class="badge bg-danger">Hata</span>
               {% else %}
-                <span class="badge bg-secondary">{{ s.status }}</span>
+                <span class="badge bg-warning text-dark">{{ o.status }}</span>
               {% endif %}
             </td>
-            <td>{{ s.error or "-" }}</td>
+            <td>{{ o.error or "-" }}</td>
+            {% if role == 'admin' %}
             <td>
-              {% if s.can_cancel %}
-                <form method="POST" action="/order/cancel/{{ s.id }}" style="display:inline;">
+              {% if o.status not in ['complete','cancelled'] %}
+                <form method="post" action="{{ url_for('cancel_order', order_id=o.id) }}" style="display:inline;">
                   <button type="submit" class="btn btn-sm btn-danger">İptal</button>
                 </form>
               {% else %}
-                -
+                <span class="text-muted">–</span>
               {% endif %}
             </td>
+            {% endif %}
           </tr>
           {% else %}
           <tr>
-            <td colspan="7" class="text-center text-muted">Henüz sipariş yok.</td>
+            <td colspan="{% if role == 'admin' %}8{% else %}7{% endif %}" class="text-center text-muted">Henüz sipariş yok.</td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
-
       <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
     </div>
   </div>
@@ -713,6 +717,7 @@ def load_bots(path="bots.txt"):
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip().split(":", 1) for line in f if ":" in line]
 BOT_CLIENTS = []
+
 for u, p in load_bots():
     sf = f"settings_{u}.json"
     cl = Client()
@@ -721,12 +726,14 @@ for u, p in load_bots():
         try:
             cl.load_settings(sf)
             print(f"✅ {u}: cache'dan yüklendi ({sf})")
+            # BU KISIMDA BEKLEMENE GEREK YOK!
         except Exception as e:
             print(f"⚠️ {u}: cache yüklenemedi, login denenecek. Hata: {e}")
             try:
                 cl.login(u, p)
                 cl.dump_settings(sf)
                 print(f"✅ {u}: cache sıfırdan oluşturuldu.")
+                time.sleep(1)  # Sadece login olunca bekle
             except Exception as e2:
                 print(f"⚠️ {u}: login/dump sırasında hata → {e2}")
                 continue
@@ -736,12 +743,12 @@ for u, p in load_bots():
             cl.login(u, p)
             cl.dump_settings(sf)
             print(f"✅ {u}: ilk oturum tamamlandı ve cache oluşturuldu ({sf})")
+            time.sleep(1)  # Sadece login olunca bekle
         except Exception as e:
             print(f"⚠️ {u}: login/dump sırasında hata → {e}")
             continue
     cl._password = p
     BOT_CLIENTS.append(cl)
-    time.sleep(10)
 print("📦 Yüklü bot sayısı:", len(BOT_CLIENTS), "→", [getattr(c, 'username', '?') for c in BOT_CLIENTS])
 
 def follow_user(client, target):
@@ -909,7 +916,9 @@ def cancel_order(order_id):
         if user:
             user.balance += order.total_price
         db.session.commit()
-    return redirect("/panel")
+    # GÖNDEREN SAYFAYA GERİ DÖN
+    ref = request.referrer or url_for("orders")
+    return redirect(ref)
 
 @app.route("/panel", methods=["GET", "POST"])
 @login_required
@@ -918,6 +927,7 @@ def panel():
     msg, error = "", ""
     services = Service.query.filter_by(active=True).all()
     price = services[0].price if services else SABIT_FIYAT
+
     if request.method == "POST":
         target = request.form.get("username", "").strip()
         try:
@@ -957,10 +967,13 @@ def panel():
                 msg = f"{amount} takipçi başarıyla gönderildi."
             else:
                 error = f"Bir hata oluştu: {err}"
+
+    # Geçmiş siparişleri getir
     if user.role == "admin":
         orders = Order.query.order_by(Order.created_at.desc()).all()
     else:
         orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
+
     return render_template_string(
         HTML_PANEL,
         orders=orders,
@@ -970,7 +983,7 @@ def panel():
         msg=msg,
         error=error,
         rolu_turkce=rolu_turkce,
-        services=Service.query.filter_by(active=True).all()
+        services=services
     )
 
 @app.route("/services/manage", methods=["GET", "POST"])
@@ -1077,31 +1090,14 @@ def admin_tickets():
     return render_template_string(HTML_ADMIN_TICKETS, tickets=tickets)
 
 @app.route("/orders")
+@login_required
 def orders():
-    # Test amaçlı örnek veri
-    orders = [
-        {
-            "id": 1,
-            "target": "mikailaaktas",
-            "amount": 2,
-            "price": 0.4,
-            "status": "cancelled",
-            "error": "login_required",
-            "can_cancel": False,
-        },
-        {
-            "id": 2,
-            "target": "awdwad",
-            "amount": 1000,
-            "price": 200.0,
-            "status": "completed",
-            "error": None,
-            "can_cancel": False,
-        },
-    ]
-    return render_template_string(HTML_ORDERS_SIMPLE, orders=orders)
-
-from flask import session
+    user = User.query.get(session.get("user_id"))
+    if user.role == "admin":
+        orders = Order.query.order_by(Order.created_at.desc()).all()
+    else:
+        orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
+    return render_template_string(HTML_ORDERS_SIMPLE, orders=orders, role=user.role)
 
 @app.route("/save_announcement", methods=["POST"])
 @login_required
