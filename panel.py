@@ -68,7 +68,7 @@ class Ticket(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     subject = db.Column(db.String(128), nullable=False)
     message = db.Column(db.String(512), nullable=False)
-    status = db.Column(db.String(16), default="open")  # open, closed
+    status = db.Column(db.String(16), default="open")
     response = db.Column(db.String(1024), default="")
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     user = db.relationship("User")
@@ -510,6 +510,7 @@ HTML_ADMIN_TICKETS = """
 </html>
 """
 
+# PANEL ŞABLONUNDA DİKKAT!
 HTML_PANEL = """
 <!DOCTYPE html>
 <html lang="tr"><head><meta charset="utf-8"><title>Sipariş Paneli</title>
@@ -530,9 +531,9 @@ HTML_PANEL = """
           <a href="/admin/tickets" class="btn btn-danger btn-block py-2">Tüm Destek Talepleri</a>
         {% else %}
           <a href="/balance" class="btn btn-warning btn-block py-2">Bakiye Yükle</a>
+          <a href="/tickets" class="btn btn-danger btn-block py-2">Destek & Canlı Yardım</a>
         {% endif %}
         <a href="/services" class="btn btn-info btn-block py-2">Servisler & Fiyat Listesi</a>
-        <a href="/tickets" class="btn btn-danger btn-block py-2">Destek & Canlı Yardım</a>
       </div>
       <h4 class="mb-3 mt-4">Yeni Sipariş</h4>
       <form method="post" class="row g-2 align-items-end mb-2">
