@@ -637,47 +637,79 @@ HTML_PANEL = """
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sipariş Paneli</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    .announcement-box {
-      background-color: #d1ecf1;
-      color: #0c5460;
-      border: 1px solid #bee5eb;
-      border-radius: 8px;
-      padding: 15px 20px;
-      font-weight: 500;
-      white-space: pre-wrap;
-      box-shadow: 0 2px 6px rgba(13, 110, 253, 0.15);
+    .welcome-card {
+      background: linear-gradient(90deg, #f8fafc 0%, #e0e7ef 100%);
+      border-radius: 18px;
+      padding: 20px 28px 16px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 18px 0 rgba(0,0,0,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .announcement-label {
+    .welcome-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .welcome-icon {
+      font-size: 2.3rem;
+      color: #2186eb;
+      margin-top: 2px;
+    }
+    .welcome-title {
       font-weight: 700;
-      color: #0b7285;
-      margin-bottom: 6px;
-      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 0.1rem;
+      color: #222a38;
+      letter-spacing: 0.02em;
     }
-    textarea.form-control {
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 123, 255, 0.25);
+    .welcome-desc {
+      font-size: 0.97rem;
+      color: #5c6474;
+    }
+    .welcome-balance {
+      font-size: 1.08rem;
+      color: #2b2f41;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      text-align: right;
+    }
+    @media (max-width: 575px) {
+      .welcome-card { flex-direction: column; align-items: flex-start; gap: 14px; }
+      .welcome-balance { text-align: left; }
     }
   </style>
 </head>
 <body class="bg-dark text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <b>{{ current_user }}</b> <span class="badge bg-info text-dark">{{ rolu_turkce(role) }}</span>
+      
+      <!-- HOŞGELDİN ALANI -->
+      <div class="welcome-card">
+        <div class="welcome-left">
+          <span class="welcome-icon"><i class="bi bi-person-circle"></i></span>
+          <div>
+            <div class="welcome-title">Hoşgeldin, {{ current_user }}</div>
+            <div class="welcome-desc">Keyifli ve güvenli alışverişler dileriz.</div>
+          </div>
         </div>
-        <div class="d-flex align-items-center gap-3">
-          <div>Bakiye: <b>{{ balance }} TL</b></div>
-          <a href="{{ url_for('orders') }}" class="btn btn-sm btn-primary">📦 Geçmiş Siparişler</a>
+        <div>
+          <div class="welcome-balance">Bakiye: <span style="color:#2186eb">{{ balance }} TL</span></div>
+          <a href="{{ url_for('orders') }}" class="btn btn-sm btn-primary mt-1 w-100" style="min-width:148px;">
+            <i class="bi bi-box-seam"></i> Geçmiş Siparişler
+          </a>
         </div>
       </div>
+
+      <!-- ANA BUTONLAR -->
       <div class="d-grid gap-3 mb-3">
         {% if role == 'admin' %}
           <a href="{{ url_for('manage_users') }}" class="btn btn-secondary btn-block py-2">Kullanıcı Yönetimi</a>
           <a href="{{ url_for('balance_requests') }}" class="btn btn-warning btn-block py-2">Bakiye Talepleri</a>
           <a href="{{ url_for('admin_tickets') }}" class="btn btn-danger btn-block py-2">Tüm Destek Talepleri</a>
-          <!-- EKLENEN: Servisleri Yönet butonu -->
           <a href="{{ url_for('manage_services') }}" class="btn btn-info btn-block py-2">Servisleri Yönet</a>
         {% else %}
           <a href="{{ url_for('user_balance') }}" class="btn btn-warning btn-block py-2">Bakiye Yükle</a>
@@ -685,22 +717,76 @@ HTML_PANEL = """
         {% endif %}
         <a href="{{ url_for('services') }}" class="btn btn-info btn-block py-2">Servisler & Fiyat Listesi</a>
       </div>
+
+      <!-- SİPARİŞ FORMU -->
       <h4 class="mb-3 mt-4">Yeni Sipariş</h4>
-      <form method="post" class="row g-2 align-items-end mb-2">
-        <div class="col"><input name="username" class="form-control" placeholder="Takip edilecek hesap" required></div>
-        <div class="col"><input name="amount" type="number" min="1" class="form-control" placeholder="Takipçi adedi" required></div>
-        <div class="col"><button class="btn btn-success w-100">Sipariş Ver</button></div>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
+          <select class="form-select" name="category" required>
+            <option value="instagram" selected>Instagram</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-box-seam"></i> Servis</label>
+          <select class="form-select" name="service_id" id="service_id" required>
+            {% for s in services %}
+              <option value="{{ s.id }}" data-price="{{ s.price }}">{{ s.name }} - {{ s.price }} TL</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-info-circle"></i> Açıklama</label>
+          <div class="alert alert-secondary" style="white-space: pre-line;">
+            Sistem, gönderilecek takipçi sayısına göre en uygun şekilde çalışır.
+
+            Örnek: 1000 Türk gerçek takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
+
+            DİKKAT: Takipçi gönderimi, organik hesaplardan ve gerçek Türk profillerden yapılır. 
+            Gizli (kapalı) hesaplara gönderim yapılmaz. Lütfen gönderimden önce hesabınızın herkese açık olduğundan emin olun.
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-link-45deg"></i> Takip Edilecek Hesap</label>
+          <input name="username" type="text" class="form-control" placeholder="Instagram kullanıcı adını girin" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-list-ol"></i> Adet</label>
+          <input name="amount" id="amount" type="number" min="10" max="1000" class="form-control" placeholder="Takipçi adedini giriniz" required>
+          <small class="form-text text-muted">Min: 10 - Max: 1.000</small>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-clock-history"></i> Ortalama Süre</label>
+          <input type="text" class="form-control" value="Ortalama 3-6 saat arasında tamamlanmaktadır." disabled>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-currency-dollar"></i> Tutar</label>
+          <input type="text" class="form-control" id="total" placeholder="Tutar otomatik hesaplanır" disabled>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Siparişi Gönder</button>
       </form>
-      <div class="mb-2"><b>Her takipçi adedi için fiyat: 
-      {% for s in services %}
-        {{ s.price }} TL
-      {% endfor %}
-      </b></div>
+      <script>
+        // Fiyat otomatik hesaplama
+        function updateTotal() {
+          var serviceSelect = document.getElementById('service_id');
+          var price = parseFloat(serviceSelect.options[serviceSelect.selectedIndex].getAttribute('data-price') || "0");
+          var amount = parseInt(document.getElementById('amount').value) || 0;
+          var total = price * amount;
+          var totalInput = document.getElementById('total');
+          if (total > 0) {
+            totalInput.value = amount + " x " + price.toFixed(2) + " TL = " + total.toFixed(2) + " TL";
+          } else {
+            totalInput.value = "Tutar otomatik hesaplanır";
+          }
+        }
+        document.getElementById('amount').addEventListener('input', updateTotal);
+        document.getElementById('service_id').addEventListener('change', updateTotal);
+      </script>
       {% if error %}
-        <div class="alert alert-danger py-2 small mb-2">{{ error }}</div>
+        <div class="alert alert-danger py-2 small mt-3 mb-2">{{ error }}</div>
       {% endif %}
       {% if msg %}
-        <div class="alert alert-success py-2 small mb-2">{{ msg }}</div>
+        <div class="alert alert-success py-2 small mt-3 mb-2">{{ msg }}</div>
       {% endif %}
       <div class="mt-3 text-end">
         <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Çıkış Yap</a>
