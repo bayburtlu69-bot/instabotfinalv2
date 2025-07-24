@@ -987,7 +987,7 @@ def register():
                     password_hash=temp_user["password"],
                     email=temp_user["email"],
                     role="viewer",
-                    balance=10.0,
+                    balance=0,
                     is_verified=True
                 )
                 db.session.add(user)
@@ -1018,7 +1018,7 @@ def manage_users():
                 password_hash=generate_password_hash(p),
                 email=f"{u}@mail.com",
                 role="admin" if r == "admin" else "viewer",
-                balance=10.0,
+                balance=0,
                 is_verified=True
             ))
             db.session.commit()
