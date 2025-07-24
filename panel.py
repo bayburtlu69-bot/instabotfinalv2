@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import time
 import random
@@ -159,6 +160,14 @@ def send_verification_mail(email, code):
 
 def rolu_turkce(rol):
     return "Yönetici" if rol == "admin" else ("Kullanıcı" if rol == "viewer" else rol)
+
+def status_tr(status):
+    return {
+        "pending": "Bekliyor",
+        "complete": "Tamamlandı",
+        "cancelled": "İptal Edildi",
+        "error": "Hatalı"
+    }.get(status, status)
 
 # --- THEME & TEMPLATES ---
 THEME_HEAD = """
@@ -459,6 +468,65 @@ HTML_SERVICES = wrap_theme("""
 </html>
 """)
 
+HTML_ADMIN_TICKETS = wrap_theme("""
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Admin Ticket</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<body>
+  <div class="container py-4">
+    <div class="card p-4 mx-auto" style="max-width:900px;">
+      <h2 class="mb-4">Tüm Destek Talepleri</h2>
+      <table class="table table-dark table-bordered text-center align-middle">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Kullanıcı</th>
+            <th>Tarih</th>
+            <th>Konu</th>
+            <th>Mesaj</th>
+            <th>Durum</th>
+            <th>Yanıt</th>
+            <th>İşlem</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for t in tickets %}
+          <tr>
+            <td>{{ t.id }}</td>
+            <td>{{ t.user.username if t.user else "?" }}</td>
+            <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>{{ t.subject }}</td>
+            <td>{{ t.message }}</td>
+            <td>
+              {% if t.status=="open" %}
+                <span class="badge bg-warning text-dark">Açık</span>
+              {% else %}
+                <span class="badge bg-success">Yanıtlandı</span>
+              {% endif %}
+            </td>
+            <td>{{ t.response or "" }}</td>
+            <td>
+              {% if t.status=="open" %}
+                <form method="post">
+                  <input type="hidden" name="ticket_id" value="{{ t.id }}">
+                  <input name="response" class="form-control mb-1" placeholder="Yanıt">
+                  <button class="btn btn-success btn-sm w-100">Yanıt & Kapat</button>
+                </form>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
+    </div>
+  </div>
+</body>
+</html>
+""")
+
 HTML_TICKETS = wrap_theme("""
 <!DOCTYPE html>
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Destek & Ticket</title>
@@ -490,33 +558,28 @@ HTML_TICKETS = wrap_theme("""
 </html>
 """)
 
-HTML_ADMIN_TICKETS = wrap_theme("""
-<!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Admin Ticket</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body>
-  <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:900px;">
-      <h2 class="mb-4">Tüm Destek Talepleri</h2>
-      <table class="table table-dark table-bordered text-center align-middle">
-        <thead><tr><th>ID</th><th>Kullanıcı</th><th>Tarih</th><th>Konu</th><th>Mesaj</th><th>Durum</th><th>Yanıt</th><th>İşlem</th></tr></thead>
-        <tbody>
-        {% for t in tickets %}
-          <tr><td>{{ t.id }}</td><td>{{ t.user.username }}</td><td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td><td>{{ t.subject }}</td><td>{{ t.message }}</td><td>{% if t.status=="open" %}<span class="badge bg-warning text-dark">Açık</span>{% else %}<span class="badge bg-success">Yanıtlandı</span>{% endif %}</td><td>{{ t.response or "" }}</td><td>{% if t.status=="open" %}<form method="post"><input type="hidden" name="ticket_id" value="{{ t.id }}"><input name="response" class="form-control mb-1" placeholder="Yanıt"><button class="btn btn-success btn-sm w-100">Yanıt & Kapat</button></form>{% else %}<span class="text-muted">—</span>{% endif %}</td></tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
-    </div>
-  </div>
-</body>
-</html>
-""")
-
 HTML_PANEL = wrap_theme("""
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sipariş Paneli</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sipariş Paneli</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .order-box { border:2px solid #188cff; border-radius:10px; background:rgba(15,25,35,0.17);}
+    .order-input::placeholder { color:#888 !important; opacity:1;}
+    input[type="number"]::-webkit-inner-spin-button, 
+    input[type="number"]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+    @media (max-width: 600px) {
+      .order-btn { margin-top: 8px;}
+    }
+  </style>
+</head>
 <body>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
@@ -535,25 +598,31 @@ HTML_PANEL = wrap_theme("""
         {% endif %}
         <a href="/services" class="btn btn-info py-2">Servisler & Fiyat Listesi</a>
       </div>
-      <div class="mb-3">
-        <div class="card"><div class="card-header">Duyurular</div><div class="card-body">
-          {% if announcement and announcement.content %}
-            {{ announcement.content }}
-          {% else %}
-            Henüz duyuru yok.
-          {% endif %}
-          {% if role=='admin' %}
-            <a href="{{ url_for('edit_announcement') }}" class="btn btn-warning w-100 mt-2">Duyuru Ekle/Sil</a>
-          {% endif %}
-        </div></div>
+      <h2 class="mt-4 mb-3 text-center fw-bold">Yeni Sipariş</h2>
+      <div class="order-box p-4 mb-3 shadow-sm">
+        <form method="post">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-5">
+              <input name="username" type="text" class="form-control form-control-lg order-input"
+                maxlength="32"
+                placeholder="Instagram adı (ör: kuzenlertv)" required>
+            </div>
+            <div class="col-md-3">
+              <input name="amount" type="number" min="1" max="1000"
+                class="form-control form-control-lg order-input"
+                placeholder="Adet (1-1000)" required>
+            </div>
+            <div class="col-md-4 d-grid">
+              <button class="btn btn-success btn-lg w-100 fw-bold rounded-4 order-btn" style="font-size:1.25rem;">
+                Siparişi Ver
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-      <h4 class="mb-3 mt-4">Yeni Sipariş</h4>
-      <form method="post" class="row g-2 align-items-end mb-2">
-        <div class="col"><input name="username" class="form-control" placeholder="Takip edilecek hesap" required></div>
-        <div class="col"><input name="amount" type="number" min="1" class="form-control" placeholder="Takipçi adedi" required></div>
-        <div class="col"><button class="btn btn-success w-100">Sipariş Ver</button></div>
-      </form>
-      <div class="mb-2"><b>Her takipçi adedi için fiyat : 0.2 TL’dir.</b></div>
+      <div class="mb-3 text-center">
+        <b>Her takipçi adedi için fiyat : <span class="text-warning fs-5">0.2 TL</span></b>
+      </div>
       {% if error %}<div class="alert alert-danger py-2 small mb-2">{{ error }}</div>{% endif %}
       {% if msg %}<div class="alert alert-success py-2 small mb-2">{{ msg }}</div>{% endif %}
       <hr>
@@ -565,7 +634,11 @@ HTML_PANEL = wrap_theme("""
           {% for o in orders %}
             <tr>
               <td>{{ loop.index }}</td><td>{{ o.username }}</td><td>{{ o.amount }}</td><td>{{ o.total_price }}</td>
-              <td><span class="badge {% if o.status=='complete' %}bg-success{% elif o.status=='error' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ o.status }}</span></td>
+              <td>
+                <span class="badge {% if o.status=='complete' %}bg-success{% elif o.status=='error' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                  {{ status_tr(o.status) }}
+                </span>
+              </td>
               <td>{{ o.error }}</td>
               {% if role=='admin' %}
                 <td>
@@ -590,7 +663,7 @@ HTML_PANEL = wrap_theme("""
 </html>
 """)
 
-# --- HELPERS ---
+# --- AJAX Sipariş Route'u ---
 def follow_user(client, target):
     try:
         uid = client.user_id_from_username(target)
@@ -616,7 +689,66 @@ def admin_required(f):
     wrapper.__name__ = f.__name__
     return wrapper
 
-# --- ROUTES ---
+@app.route("/order/ajax", methods=["POST"])
+@login_required
+def order_ajax():
+    user = User.query.get(session["user_id"])
+    target = request.form.get("username","").strip()
+    try:
+        amount = int(request.form.get("amount",""))
+    except:
+        amount = 0
+    total = amount * SABIT_FIYAT
+
+    if not target or amount <= 0:
+        return jsonify(success=False, error="Tüm alanları doldurun!")
+    elif user.balance < total:
+        return jsonify(success=False, error="Yetersiz bakiye!")
+    elif len(BOT_CLIENTS) == 0:
+        return jsonify(success=False, error="Sistemde çalışan bot yok!")
+    else:
+        order = Order(
+            username=target,
+            user_id=user.id,
+            amount=amount,
+            status="pending",
+            error="",
+            total_price=total
+        )
+        user.balance -= total
+        db.session.add(order)
+        db.session.commit()
+
+        status, err = "complete", ""
+        for cl in BOT_CLIENTS[:amount]:
+            try:
+                follow_user(cl, target)
+            except Exception as e:
+                status, err = "error", str(e)
+                break
+
+        order.status = status
+        order.error = err
+        db.session.commit()
+
+        new_order_html = f"""
+        <tr>
+          <td>Yeni</td>
+          <td>{order.username}</td>
+          <td>{order.amount}</td>
+          <td>{order.total_price}</td>
+          <td><span class="badge {'bg-success' if order.status=='complete' else ('bg-danger' if order.status=='error' else 'bg-warning text-dark')}">{order.status}</span></td>
+          <td>{order.error}</td>
+        </tr>
+        """
+        return jsonify(
+            success=(status=="complete"),
+            message=f"{amount} takipçi başarıyla gönderildi." if status=="complete" else f"Bir hata oluştu: {err}",
+            error=f"Bir hata oluştu: {err}" if status!="complete" else "",
+            balance=round(user.balance,2),
+            new_order_html=new_order_html
+        )
+
 @app.route("/", methods=["GET","POST"])
 def login():
     if request.method=="POST":
@@ -801,7 +933,8 @@ def panel():
         else Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
     )
     announcement = Announcement.query.first()
-    return render_template_string(HTML_PANEL,
+    return render_template_string(
+        HTML_PANEL,
         current_user=user.username,
         role=user.role,
         balance=round(user.balance,2),
@@ -809,7 +942,8 @@ def panel():
         error=error,
         orders=orders,
         rolu_turkce=rolu_turkce,
-        announcement=announcement
+        announcement=announcement,
+        status_tr=status_tr
     )
 
 @app.route("/balance", methods=["GET","POST"])
