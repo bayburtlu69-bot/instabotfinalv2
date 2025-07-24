@@ -123,7 +123,7 @@ def rolu_turkce(rol):
 # --- HTML ŞABLONLAR ---
 HTML_LOGIN = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><title>insprov.uk</title>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>insprov.uk</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark d-flex justify-content-center align-items-center" style="height:100vh;">
   <div class="card shadow p-4" style="min-width:340px;">
@@ -156,7 +156,7 @@ HTML_LOGIN = """
 
 HTML_REGISTER = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><title>Kayıt Ol</title>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Kayıt Ol</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark d-flex justify-content-center align-items-center" style="height:100vh;">
   <div class="card shadow p-4" style="min-width:370px;">
@@ -202,7 +202,7 @@ HTML_REGISTER = """
 
 HTML_USERS = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><title>Kullanıcı Yönetimi</title>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Kullanıcı Yönetimi</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark text-light">
   <div class="container py-4">
@@ -256,7 +256,7 @@ HTML_USERS = """
 
 HTML_BALANCE = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><title>Bakiye Yükle</title>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bakiye Yükle</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark text-light">
   <div class="container py-4">
@@ -312,7 +312,7 @@ HTML_BALANCE = """
 
 HTML_BALANCE_REQUESTS = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><title>Bakiye Talepleri</title>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bakiye Talepleri</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark text-light">
   <div class="container py-4">
@@ -384,7 +384,7 @@ HTML_BALANCE_REQUESTS = """
 
 HTML_SERVICES = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><title>Servisler ve Fiyat Listesi</title>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Servisler ve Fiyat Listesi</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark text-light">
   <div class="container py-4">
@@ -419,7 +419,7 @@ HTML_SERVICES = """
 
 HTML_TICKETS = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><title>Destek & Ticket Sistemi</title>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Destek & Ticket Sistemi</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark text-light">
   <div class="container py-4">
@@ -463,7 +463,7 @@ HTML_TICKETS = """
 
 HTML_ADMIN_TICKETS = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><title>Ticket Yönetimi (Admin)</title>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ticket Yönetimi (Admin)</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark text-light">
   <div class="container py-4">
@@ -510,10 +510,9 @@ HTML_ADMIN_TICKETS = """
 </html>
 """
 
-# PANEL ŞABLONUNDA DİKKAT!
 HTML_PANEL = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><title>Sipariş Paneli</title>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sipariş Paneli</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body class="bg-dark text-light">
   <div class="container py-4">
