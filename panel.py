@@ -204,13 +204,21 @@ window.onload=function(){
 }
 </script>
 """
-THEME_TOGGLE_BUTTON = """
-<button id="themeBtn" class="btn btn-secondary theme-toggle-btn" onclick="toggleTheme()">🌙 Karanlık Mod</button>
-"""
+
 def wrap_theme(html):
-    return html.replace("<head>", "<head>"+THEME_HEAD).replace("</body>", THEME_TOGGLE_BUTTON+"</body>")
+    return html.replace("<head>", "<head>"+THEME_HEAD)
 
 # EDIT ANNOUNCEMENT TEMPLATE
+
+DUYURU_KARTI = """
+{% if announcement and announcement.content %}
+  <div class="card mb-3">
+    <div class="card-header">Duyurular</div>
+    <div class="card-body">{{ announcement.content }}</div>
+  </div>
+{% endif %}
+"""
+
 HTML_ANNOUNCEMENT = wrap_theme("""
 <!DOCTYPE html>
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Duyuru Ayarları</title>
@@ -477,46 +485,10 @@ HTML_ADMIN_TICKETS = wrap_theme("""
     <div class="card p-4 mx-auto" style="max-width:900px;">
       <h2 class="mb-4">Tüm Destek Talepleri</h2>
       <table class="table table-dark table-bordered text-center align-middle">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Kullanıcı</th>
-            <th>Tarih</th>
-            <th>Konu</th>
-            <th>Mesaj</th>
-            <th>Durum</th>
-            <th>Yanıt</th>
-            <th>İşlem</th>
-          </tr>
-        </thead>
+        <thead><tr><th>ID</th><th>Kullanıcı</th><th>Tarih</th><th>Konu</th><th>Mesaj</th><th>Durum</th><th>Yanıt</th><th>İşlem</th></tr></thead>
         <tbody>
         {% for t in tickets %}
-          <tr>
-            <td>{{ t.id }}</td>
-            <td>{{ t.user.username if t.user else "?" }}</td>
-            <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-            <td>{{ t.subject }}</td>
-            <td>{{ t.message }}</td>
-            <td>
-              {% if t.status=="open" %}
-                <span class="badge bg-warning text-dark">Açık</span>
-              {% else %}
-                <span class="badge bg-success">Yanıtlandı</span>
-              {% endif %}
-            </td>
-            <td>{{ t.response or "" }}</td>
-            <td>
-              {% if t.status=="open" %}
-                <form method="post">
-                  <input type="hidden" name="ticket_id" value="{{ t.id }}">
-                  <input name="response" class="form-control mb-1" placeholder="Yanıt">
-                  <button class="btn btn-success btn-sm w-100">Yanıt & Kapat</button>
-                </form>
-              {% else %}
-                <span class="text-muted">—</span>
-              {% endif %}
-            </td>
-          </tr>
+          <tr><td>{{ t.id }}</td><td>{{ t.user.username if t.user else "?" }}</td><td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td><td>{{ t.subject }}</td><td>{{ t.message }}</td><td>{% if t.status=="open" %}<span class="badge bg-warning text-dark">Açık</span>{% else %}<span class="badge bg-success">Yanıtlandı</span>{% endif %}</td><td>{{ t.response or "" }}</td><td>{% if t.status=="open" %}<form method="post"><input type="hidden" name="ticket_id" value="{{ t.id }}"><input name="response" class="form-control mb-1" placeholder="Yanıt"><button class="btn btn-success btn-sm w-100">Yanıt & Kapat</button></form>{% else %}<span class="text-muted">—</span>{% endif %}</td></tr>
         {% endfor %}
         </tbody>
       </table>
@@ -567,96 +539,384 @@ HTML_PANEL = wrap_theme("""
   <title>Sipariş Paneli</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    .order-box { border:2px solid #188cff; border-radius:10px; background:rgba(15,25,35,0.17);}
-    .order-input::placeholder { color:#888 !important; opacity:1;}
-    input[type="number"]::-webkit-inner-spin-button, 
-    input[type="number"]::-webkit-outer-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0; 
+    :root {
+      --main-gradient: linear-gradient(90deg, #1de9b6 0%, #1dc8e9 100%);
+      --btn-gradient: linear-gradient(90deg, #1dc8e9 0%, #1de9b6 100%);
+      --panel-bg: #fff;
+      --panel-dark: #22242a;
+      --text-main: #23272f;
+      --accent: #03dac5;
+      --border-main: #1dc8e9;
     }
+    body {
+      background: #f7fafd;
+      color: var(--text-main);
+      min-height: 100vh;
+      transition: background .2s, color .2s;
+    }
+    .panel-flex-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: stretch;
+      width: 100%;
+      max-width: 1200px;
+      margin: 32px auto 0 auto;
+      gap: 28px;
+      min-height: 730px;
+    }
+    .announcement-panel, .main-panel {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .announcement-panel {
+      flex: 0 0 340px;
+      max-width: 350px;
+      min-width: 240px;
+    }
+    .announcement-panel .card {
+      flex: 1 1 auto;
+      border-radius: 12px;
+      min-height: 500px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      height: 100%;
+      box-shadow: 0 0 12px #d0f6fc59;
+      background: var(--panel-bg);
+      border: 2px solid #e3f7ff;
+    }
+    .main-panel {
+      flex: 1 1 0;
+      min-width: 350px;
+      max-width: 550px;
+      display: flex;
+      flex-direction: column;
+    }
+    .main-panel .card.p-4 {
+      flex: 1 1 auto;
+      border-radius: 13px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      min-height: 820px;
+      height: 100%;
+      margin-bottom: 0;
+      box-shadow: 0 0 12px #d0f6fc59;
+      background: var(--panel-bg);
+      padding-bottom: 30px;
+      position: relative;
+      border: 2px solid #e3f7ff;
+    }
+    /* Menü Butonları */
+    .main-panel .d-grid .btn,
+    .order-btn,
+    .btn-outline-info {
+      background: var(--main-gradient) !important;
+      color: #fff !important;
+      border: none !important;
+      font-weight: 600;
+      font-size: 1.08em;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 8px #c0fff4a8;
+      transition: all .17s;
+      letter-spacing: .01em;
+    }
+    .main-panel .d-grid .btn:hover,
+    .main-panel .d-grid .btn:focus,
+    .order-btn:hover, .order-btn:focus,
+    .btn-outline-info:hover, .btn-outline-info:focus {
+      filter: brightness(0.97) contrast(1.08) saturate(1.1);
+      color: #fff !important;
+    }
+    /* Sipariş kutusu */
+    .order-box { 
+      border:2px solid #1de9b6; 
+      border-radius:13px; 
+      background:rgba(29,233,182,0.09);
+      box-shadow: 0 4px 22px #1dc8e926;
+    }
+    .order-input {
+      border: 2px solid #1dc8e9 !important;
+      border-radius: 9px !important;
+      background: #fff !important;
+      color: #22a0bc !important;
+      font-size: 1.08em !important;
+      font-weight: 500;
+      padding-left: 14px !important;
+    }
+    .order-input::placeholder { color:#1dc8e9 !important; opacity:1; font-weight: 500; }
+    input[type="number"]::-webkit-inner-spin-button, 
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type="number"] { -moz-appearance: textfield; }
-    @media (max-width: 600px) {
-      .order-btn { margin-top: 8px;}
+    .order-form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      width: 100%;
+      justify-content: center;
+    }
+    .order-form-row input[name="username"] {
+      flex: 2 1 230px;
+      min-width: 180px;
+      max-width: 320px;
+    }
+    .order-form-row input[name="amount"] {
+      flex: 1 1 120px;
+      min-width: 110px;
+      max-width: 160px;
+    }
+    .order-form-row button {
+      flex: 1 1 150px;
+      min-width: 140px;
+      max-width: 200px;
+    }
+    /* Accordion (SSS) Modern & Küçük Başlık */
+    .accordion-button {
+      background: var(--main-gradient) !important;
+      color: #fff !important;
+      font-weight: 600;
+      font-size: 1.08em;
+      border-radius: 13px !important;
+      margin-bottom: 4px;
+      border: none !important;
+      box-shadow: 0 1px 6px #c0fff48f;
+      transition: filter .15s, color .13s;
+      min-height: 44px;
+      padding-top: 9px;
+      padding-bottom: 9px;
+    }
+    .accordion-button:focus, .accordion-button:not(.collapsed) {
+      box-shadow: none !important;
+      outline: none !important;
+      border: none !important;
+      color: #fff !important;
+      background: var(--btn-gradient) !important;
+      filter: brightness(0.95);
+    }
+    .accordion-body {
+      background: #f9fefd;
+      color: #23272f;
+      font-size: 1em;
+      border-radius: 0 0 12px 12px;
+      margin-top: -6px;
+      padding: 16px 20px 16px 18px;
+    }
+    .accordion-button::after {
+      filter: invert(81%) sepia(19%) saturate(690%) hue-rotate(126deg);
+    }
+    /* Geçmiş Siparişlerim butonu */
+    .btn-outline-info {
+      border: none !important;
+      background: var(--btn-gradient) !important;
+      color: #fff !important;
+    }
+    /* Çıkış Butonu */
+    .btn-outline-danger {
+      border: 1.5px solid #f44336 !important;
+      background: #fff !important;
+      color: #f44336 !important;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 3px 20px;
+      font-size: 1em;
+      margin-top: 16px;
+      transition: all .18s;
+    }
+    .btn-outline-danger:hover {
+      background: #f44336 !important;
+      color: #fff !important;
+      border: 1.5px solid #e91e63 !important;
+      filter: brightness(.98);
+    }
+    /* Duyurular */
+    .card-header {
+      background: #f6feff;
+      border-bottom: 1.5px solid #d0f6fc;
+      font-weight: 700;
+      font-size: 1.11em;
+      color: #1dc8e9;
+      border-radius: 12px 12px 0 0;
+    }
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .panel-flex-row { flex-direction: column; align-items: stretch; margin-top: 18px; gap: 18px; min-height: unset;}
+      .announcement-panel, .main-panel { max-width: 100%; margin-top: 0; height: auto; min-height: unset;}
+      .announcement-panel .card, .main-panel .card.p-4 { min-height: unset; height: auto;}
+    }
+    @media (max-width: 700px) {
+      .panel-flex-row { gap: 10px; }
+      .announcement-panel { min-width: 120px; }
+      .main-panel { min-width: 0; }
+      .main-panel .card.p-4 { padding: 0.8rem !important;}
+      .order-form-row { flex-direction: column; gap: 9px;}
+    }
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Dark Mode */
+    body.dark-mode {
+      background: #181a20;
+      color: #f8fafd;
+    }
+    body.dark-mode .main-panel .card.p-4,
+    body.dark-mode .announcement-panel .card {
+      background: #23242b !important;
+      border-color: #33394b;
+      color: #fff !important;
+      box-shadow: 0 0 16px #262b348f;
+    }
+    body.dark-mode .order-box { background: #191c23 !important; border-color: #03dac5; }
+    body.dark-mode .order-input,
+    body.dark-mode .order-input::placeholder {
+      background: #23252c !important;
+      color: #1de9b6 !important;
+      border-color: #1dc8e9 !important;
+    }
+    body.dark-mode .accordion-button {
+      background: var(--btn-gradient) !important;
+      color: #fff !important;
+      border: none !important;
+    }
+    body.dark-mode .accordion-body {
+      background: #23242b !important;
+      color: #fff !important;
+    }
+    body.dark-mode .card-header { background: #181a20 !important; color: #1de9b6 !important; }
+    body.dark-mode .btn-outline-info,
+    body.dark-mode .main-panel .d-grid .btn,
+    body.dark-mode .order-btn {
+      background: var(--btn-gradient) !important;
+      color: #fff !important;
+      border: none !important;
+    }
+    body.dark-mode .btn-outline-danger {
+      background: #181a20 !important;
+      color: #ff5e57 !important;
+      border: 1.5px solid #ff5e57 !important;
+    }
+    body.dark-mode .btn-outline-danger:hover {
+      background: #ff5e57 !important;
+      color: #fff !important;
+      border: 1.5px solid #fff !important;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Tema modunu değiştir
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
+    window.onload = function() {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+      }
+    }
+  </script>
 </head>
 <body>
-  <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:800px;">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div><b>{{ current_user }}</b> <span class="badge bg-info text-dark">{{ rolu_turkce(role) }}</span></div>
-        <div>Bakiye: <b>{{ balance }} TL</b></div>
+  <div style="width:100%;display:flex;justify-content:center;margin-top:18px;">
+    <button id="themeBtn" class="btn btn-secondary" onclick="toggleTheme()">🌙 Karanlık Mod</button>
+  </div>
+  <div class="panel-flex-row">
+    <!-- Duyurular Paneli -->
+    <div class="announcement-panel">
+      <div class="card h-100 mb-3">
+        <div class="card-header fw-bold">Duyurular</div>
+        <div class="card-body" style="white-space:pre-line">
+          {% if announcement and announcement.content %}
+            {{ announcement.content }}
+          {% else %}
+            Henüz duyuru yok.
+          {% endif %}
+        </div>
       </div>
-      <div class="d-grid gap-3 mb-3">
-        {% if role=='admin' %}
-          <a href="{{ url_for('manage_users') }}" class="btn btn-secondary py-2">Kullanıcı Yönetimi</a>
-          <a href="/balance/requests" class="btn btn-warning py-2">Bakiye Talepleri</a>
-          <a href="/admin/tickets" class="btn btn-danger py-2">Tüm Destek Talepleri</a>
-        {% else %}
-          <a href="/balance" class="btn btn-warning py-2">Bakiye Yükle</a>
-          <a href="/tickets" class="btn btn-danger py-2">Destek & Yardım</a>
-        {% endif %}
-        <a href="/services" class="btn btn-info py-2">Servisler & Fiyat Listesi</a>
-      </div>
-      <h2 class="mt-4 mb-3 text-center fw-bold">Yeni Sipariş</h2>
-      <div class="order-box p-4 mb-3 shadow-sm">
-        <form method="post">
-          <div class="row g-2 align-items-center">
-            <div class="col-md-5">
-              <input name="username" type="text" class="form-control form-control-lg order-input"
-                maxlength="32"
-                placeholder="Instagram adı (ör: kuzenlertv)" required>
-            </div>
-            <div class="col-md-3">
-              <input name="amount" type="number" min="1" max="1000"
+    </div>
+    <!-- Ana Panel -->
+    <div class="main-panel">
+      <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+          <div class="mb-2"><b>{{ current_user }}</b></div>
+          <div class="mb-2">Bakiye: <b>{{ balance }} TL</b></div>
+        </div>
+        <div class="d-grid gap-3 mb-3">
+          {% if role=='admin' %}
+            <a href="{{ url_for('manage_users') }}" class="btn py-2">Kullanıcı Yönetimi</a>
+            <a href="/balance/requests" class="btn py-2">Bakiye Talepleri</a>
+            <a href="/admin/tickets" class="btn py-2">Tüm Destek Talepleri</a>
+            <a href="/announcement" class="btn py-2">Duyuruları Yönet</a>
+          {% else %}
+            <a href="/balance" class="btn py-2">Bakiye Yükle</a>
+            <a href="/tickets" class="btn py-2">Destek & Yardım</a>
+          {% endif %}
+          <a href="/services" class="btn py-2">Servisler & Fiyat Listesi</a>
+        </div>
+        <h2 class="mt-4 mb-3 text-center fw-bold">Yeni Sipariş</h2>
+        <div class="order-box p-4 mb-3 shadow-sm">
+          <form method="post">
+            <div class="order-form-row">
+              <input 
+                name="username" 
+                type="text" 
                 class="form-control form-control-lg order-input"
-                placeholder="Adet (1-1000)" required>
-            </div>
-            <div class="col-md-4 d-grid">
-              <button class="btn btn-success btn-lg w-100 fw-bold rounded-4 order-btn" style="font-size:1.25rem;">
+                maxlength="32"
+                placeholder="Instagram adı (ör: kuzenlertv)"
+                required
+              >
+              <input 
+                name="amount" 
+                type="number" 
+                min="1" max="1000"
+                class="form-control form-control-lg order-input"
+                placeholder="Adet (1-1000)"
+                required
+              >
+              <button 
+                class="btn order-btn btn-lg fw-bold rounded-4"
+                type="submit">
                 Siparişi Ver
               </button>
             </div>
+          </form>
+        </div>
+        <div class="mb-3 text-center">
+          <b>Her takipçi adedi için fiyat : <span class="text-warning fs-5" style="color:#1dc8e9 !important;">0.2 TL</span></b>
+        </div>
+        {% if error %}<div class="alert alert-danger py-2 small mb-2">{{ error }}</div>{% endif %}
+        {% if msg %}<div class="alert alert-success py-2 small mb-2">{{ msg }}</div>{% endif %}
+        <div class="d-grid mt-3 mb-2">
+          <a href="/orders" class="btn btn-outline-info fw-bold">Geçmiş Siparişlerim</a>
+        </div>
+        <!-- SSS Bölümü (Dinamik) -->
+        <div class="accordion mt-4" id="sssAccordion">
+          {% for sss in sss_list %}
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="sss{{ loop.index }}h">
+              <button class="accordion-button collapsed" type="button"
+                data-bs-toggle="collapse" data-bs-target="#sss{{ loop.index }}"
+                aria-expanded="false" aria-controls="sss{{ loop.index }}">
+                {{ sss.soru|safe }}
+              </button>
+            </h2>
+            <div id="sss{{ loop.index }}" class="accordion-collapse collapse"
+              aria-labelledby="sss{{ loop.index }}h" data-bs-parent="#sssAccordion">
+              <div class="accordion-body">
+                {{ sss.cevap|safe }}
+              </div>
+            </div>
           </div>
-        </form>
-      </div>
-      <div class="mb-3 text-center">
-        <b>Her takipçi adedi için fiyat : <span class="text-warning fs-5">0.2 TL</span></b>
-      </div>
-      {% if error %}<div class="alert alert-danger py-2 small mb-2">{{ error }}</div>{% endif %}
-      {% if msg %}<div class="alert alert-success py-2 small mb-2">{{ msg }}</div>{% endif %}
-      <hr>
-      <h5>Geçmiş Siparişler</h5>
-      {% if orders %}
-        <div class="table-responsive"><table class="table table-dark table-striped table-bordered align-middle">
-          <thead><tr><th>#</th><th>Hedef</th><th>Adet</th><th>Fiyat</th><th>Durum</th><th>Hata</th>{% if role=='admin' %}<th>İptal</th>{% endif %}</tr></thead>
-          <tbody>
-          {% for o in orders %}
-            <tr>
-              <td>{{ loop.index }}</td><td>{{ o.username }}</td><td>{{ o.amount }}</td><td>{{ o.total_price }}</td>
-              <td>
-                <span class="badge {% if o.status=='complete' %}bg-success{% elif o.status=='error' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
-                  {{ status_tr(o.status) }}
-                </span>
-              </td>
-              <td>{{ o.error }}</td>
-              {% if role=='admin' %}
-                <td>
-                  {% if o.status not in ['complete','cancelled'] %}
-                    <form method="post" action="{{ url_for('cancel_order', order_id=o.id) }}"><button class="btn btn-outline-danger btn-sm">İptal</button></form>
-                  {% else %}
-                    <span class="text-muted">–</span>
-                  {% endif %}
-                </td>
-              {% endif %}
-            </tr>
           {% endfor %}
-          </tbody>
-        </table></div>
-      {% else %}
-        <div class="alert alert-secondary">Henüz sipariş yok.</div>
-      {% endif %}
-      <div class="mt-3 text-end"><a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Çıkış</a></div>
+        </div>
+        <!-- /SSS Bölümü Sonu -->
+        <div class="mt-3 text-end">
+          <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Çıkış</a>
+        </div>
+      </div>
     </div>
   </div>
 </body>
@@ -878,15 +1138,15 @@ def cancel_order(order_id):
         db.session.commit()
     return redirect("/panel")
 
-@app.route("/panel", methods=["GET","POST"])
+@app.route("/panel", methods=["GET", "POST"])
 @login_required
 def panel():
     user = User.query.get(session["user_id"])
     msg = error = ""
-    if request.method=="POST":
-        target = request.form.get("username","").strip()
+    if request.method == "POST":
+        target = request.form.get("username", "").strip()
         try:
-            amount = int(request.form.get("amount",""))
+            amount = int(request.form.get("amount", ""))
         except:
             amount = 0
         total = amount * SABIT_FIYAT
@@ -927,23 +1187,32 @@ def panel():
             else:
                 error = f"Bir hata oluştu: {err}"
 
-    orders = (
-        Order.query.order_by(Order.created_at.desc()).all()
-        if user.role == "admin"
-        else Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
-    )
+    # SSS (Sıkça Sorulan Sorular) buradan dinamik gelir
+    sss_list = [
+        {"soru": "Takipçiler ne zaman gelir?", "cevap": "Siparişiniz genellikle <b>5-30 dakika</b> içinde başlar ve aynı gün tamamlanır. Yoğunluk durumuna göre gecikme olabilir."},
+        {"soru": "Bakiye yükledim, hesabıma ne zaman geçer?", "cevap": "Bakiye yükleme başvurunuz genellikle <b>15 dakika</b> - <b>2 saat</b> arasında onaylanır. Sorun yaşarsanız destekten bize ulaşın."},
+        {"soru": "Siparişim başlamadı/hata verdi, ne yapmalıyım?", "cevap": "Lütfen <b>destek talebi</b> oluşturun, ekibimiz en kısa sürede sizinle ilgilenecektir."}
+    ]
+
+    # Siparişler (admin ise tümünü, kullanıcı ise kendi siparişini görür)
+    if user.role == "admin":
+        orders = Order.query.order_by(Order.created_at.desc()).all()
+    else:
+        orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
+
     announcement = Announcement.query.first()
+
     return render_template_string(
         HTML_PANEL,
         current_user=user.username,
         role=user.role,
-        balance=round(user.balance,2),
+        balance=round(user.balance, 2),
         msg=msg,
         error=error,
         orders=orders,
-        rolu_turkce=rolu_turkce,
+        sss_list=sss_list,
         announcement=announcement,
-        status_tr=status_tr
+        status_tr=status_tr  # eğer durumları Türkçeleştiren bir fonksiyon varsa
     )
 
 @app.route("/balance", methods=["GET","POST"])
@@ -1006,7 +1275,8 @@ def tickets():
             db.session.add(Ticket(user_id=user.id, subject=subj, message=msg_))
             db.session.commit()
     tix = Ticket.query.filter_by(user_id=user.id).order_by(Ticket.created_at.desc()).all()
-    return render_template_string(HTML_TICKETS, tickets=tix)
+    announcement = Announcement.query.first()
+    return render_template_string(HTML_TICKETS, tickets=tix, announcement=announcement)
 
 @app.route("/admin/tickets", methods=["GET","POST"])
 @login_required
@@ -1021,7 +1291,8 @@ def admin_tickets():
             t.status = "closed"
             db.session.commit()
     tix = Ticket.query.order_by(Ticket.created_at.desc()).all()
-    return render_template_string(HTML_ADMIN_TICKETS, tickets=tix)
+    announcement = Announcement.query.first()
+    return render_template_string(HTML_ADMIN_TICKETS, tickets=tix, announcement=announcement)
 
 @app.route("/announcement", methods=["GET","POST"])
 @login_required
@@ -1042,6 +1313,23 @@ def edit_announcement():
             db.session.commit()
         return redirect("/panel")
     return render_template_string(HTML_ANNOUNCEMENT, announcement=ann)
+
+@app.route("/orders")
+@login_required
+def orders_page():
+    user = User.query.get(session["user_id"])
+    orders = (
+        Order.query.order_by(Order.created_at.desc()).all()
+        if user.role == "admin"
+        else Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
+    )
+    return render_template_string(
+        HTML_ORDERS,
+        current_user=user.username,
+        role=user.role,
+        orders=orders,
+        status_tr=status_tr
+    )
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
