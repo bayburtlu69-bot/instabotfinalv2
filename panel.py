@@ -565,6 +565,13 @@ HTML_ORDERS_SIMPLE = """
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Geçmiş Siparişler</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .badge-sirada { background: #ffd500; color: #222; font-weight: 600; }
+    .badge-basladi { background: #42c3e8; color: #222; font-weight: 600; }
+    .badge-tamamlandi { background: #29c46a; font-weight: 600; }
+    .badge-iptal { background: #949ba5; font-weight: 600; }
+    .badge-hata { background: #e45858; font-weight: 600; }
+  </style>
 </head>
 <body class="bg-dark text-light">
   <div class="container py-4">
@@ -580,7 +587,7 @@ HTML_ORDERS_SIMPLE = """
             <th>Fiyat</th>
             <th>Durum</th>
             <th>Hata</th>
-            {% if role == 'admin' %}<th>İptal</th>{% endif %}
+            {% if role == 'admin' %}<th>Durumu Değiştir</th>{% endif %}
           </tr>
         </thead>
         <tbody>
@@ -590,25 +597,34 @@ HTML_ORDERS_SIMPLE = """
             {% if role == 'admin' %}<td>{{ o.user.username }}</td>{% endif %}
             <td>{{ o.username }}</td>
             <td>{{ o.amount }}</td>
-            <td>{{ o.total_price }}</td>
+            <td>{{ "%.2f"|format(o.total_price) }}</td>
             <td>
-              {% if o.status == 'complete' %}
-                <span class="badge bg-success">Tamamlandı</span>
+              {% if o.status == 'pending' %}
+                <span class="badge badge-sirada">Sırada</span>
+              {% elif o.status == 'started' %}
+                <span class="badge badge-basladi">Başladı</span>
+              {% elif o.status == 'complete' %}
+                <span class="badge badge-tamamlandi">Tamamlandı</span>
               {% elif o.status == 'cancelled' %}
-                <span class="badge bg-secondary">İptal Edildi</span>
+                <span class="badge badge-iptal">İptal Edildi</span>
               {% elif o.status == 'error' %}
-                <span class="badge bg-danger">Hata</span>
+                <span class="badge badge-hata">Hata</span>
               {% else %}
-                <span class="badge bg-warning text-dark">{{ o.status }}</span>
+                <span class="badge bg-secondary">{{ o.status }}</span>
               {% endif %}
             </td>
             <td>{{ o.error or "-" }}</td>
             {% if role == 'admin' %}
             <td>
               {% if o.status not in ['complete','cancelled'] %}
-                <form method="post" action="{{ url_for('cancel_order', order_id=o.id) }}" style="display:inline;">
-                  <button type="submit" class="btn btn-sm btn-danger">İptal</button>
-                </form>
+              <select class="form-select form-select-sm" style="min-width:120px"
+                onchange="changeStatus('{{ o.id }}', this.value)">
+                <option disabled selected>Durumu seç</option>
+                <option value="pending">Sırada</option>
+                <option value="started">Başladı</option>
+                <option value="complete">Tamamlandı</option>
+                <option value="cancelled">İptal Edildi</option>
+              </select>
               {% else %}
                 <span class="text-muted">–</span>
               {% endif %}
@@ -617,7 +633,7 @@ HTML_ORDERS_SIMPLE = """
           </tr>
           {% else %}
           <tr>
-            <td colspan="{% if role == 'admin' %}8{% else %}7{% endif %}" class="text-center text-muted">Henüz sipariş yok.</td>
+            <td colspan="{% if role == 'admin' %}9{% else %}7{% endif %}" class="text-center text-muted">Henüz sipariş yok.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -625,6 +641,23 @@ HTML_ORDERS_SIMPLE = """
       <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
     </div>
   </div>
+  {% if role == 'admin' %}
+  <script>
+    function changeStatus(orderId, newStatus) {
+      fetch('/api/order_status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({order_id: orderId, status: newStatus})
+      }).then(res=>res.json()).then(res=>{
+        if(res.success){
+          location.reload();
+        }else{
+          alert("Hata: " + (res.error || "Durum güncellenemedi!"));
+        }
+      });
+    }
+  </script>
+  {% endif %}
 </body>
 </html>
 """
@@ -697,7 +730,7 @@ HTML_PANEL = """
           </div>
         </div>
         <div>
-          <div class="welcome-balance">Bakiye: <span style="color:#2186eb">{{ balance }} TL</span></div>
+          <div class="welcome-balance">Bakiye: <span style="color:#2186eb" id="balance">{{ balance }} TL</span></div>
           <a href="{{ url_for('orders') }}" class="btn btn-sm btn-primary mt-1 w-100" style="min-width:148px;">
             <i class="bi bi-box-seam"></i> Geçmiş Siparişler
           </a>
@@ -720,7 +753,7 @@ HTML_PANEL = """
 
       <!-- SİPARİŞ FORMU -->
       <h4 class="mb-3 mt-4">Yeni Sipariş</h4>
-      <form method="post">
+      <form id="orderForm" autocomplete="off">
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
           <select class="form-select" name="category" required>
@@ -763,8 +796,9 @@ HTML_PANEL = """
           <label class="form-label"><i class="bi bi-currency-dollar"></i> Tutar</label>
           <input type="text" class="form-control" id="total" placeholder="Tutar otomatik hesaplanır" disabled>
         </div>
-        <button type="submit" class="btn btn-primary w-100">Siparişi Gönder</button>
+        <button type="submit" class="btn btn-primary w-100" id="orderSubmitBtn">Siparişi Gönder</button>
       </form>
+
       <script>
         // Fiyat otomatik hesaplama
         function updateTotal() {
@@ -782,12 +816,44 @@ HTML_PANEL = """
         document.getElementById('amount').addEventListener('input', updateTotal);
         document.getElementById('service_id').addEventListener('change', updateTotal);
       </script>
-      {% if error %}
-        <div class="alert alert-danger py-2 small mt-3 mb-2">{{ error }}</div>
-      {% endif %}
-      {% if msg %}
-        <div class="alert alert-success py-2 small mt-3 mb-2">{{ msg }}</div>
-      {% endif %}
+
+      <script>
+      // AJAX ile sipariş oluşturma
+      document.getElementById('orderForm').addEventListener('submit', function(e){
+          e.preventDefault();
+          var formData = new FormData(this);
+          document.getElementById("orderSubmitBtn").disabled = true;
+          fetch('/api/new_order', {
+            method: 'POST',
+            body: formData
+          }).then(resp => resp.json())
+            .then(res => {
+                document.getElementById("orderSubmitBtn").disabled = false;
+                if(res.success){
+                  this.reset();
+                  updateTotal();
+                  if(res.new_balance !== undefined){
+                      document.getElementById("balance").innerText = res.new_balance + " TL";
+                  }
+                  showMsg("Siparişiniz başarıyla alınmıştır!", "success");
+                }else{
+                  showMsg(res.error || "Bir hata oluştu!", "danger");
+                }
+            }).catch(()=>{
+                document.getElementById("orderSubmitBtn").disabled = false;
+                showMsg("Bir hata oluştu!", "danger");
+            });
+      });
+
+      function showMsg(msg, type){
+        let el = document.createElement("div");
+        el.className = "alert alert-" + type + " py-2 small mt-3 mb-2";
+        el.innerText = msg;
+        document.querySelector(".card").insertBefore(el, document.querySelector(".card").children[2]);
+        setTimeout(()=>{el.remove()}, 3500);
+      }
+      </script>
+
       <div class="mt-3 text-end">
         <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Çıkış Yap</a>
       </div>
@@ -1201,6 +1267,67 @@ def save_announcement():
     
     flash("Duyuru kaydedildi.", "success")
     return redirect(url_for("panel"))
+
+from flask import jsonify, request
+
+@app.route("/api/new_order", methods=["POST"])
+@login_required
+def api_new_order():
+    user = User.query.get(session.get("user_id"))
+    username = request.form.get("username")
+    amount = int(request.form.get("amount") or 0)
+    service_id = int(request.form.get("service_id") or 0)
+    service = Service.query.filter_by(id=service_id).first()
+    if not service:
+        return jsonify({"success":False, "error":"Servis bulunamadı."})
+    total = service.price * amount
+    if not username or amount<10 or amount>1000:
+        return jsonify({"success":False, "error":"Adet 10-1000 arası olmalı."})
+    if user.balance < total:
+        return jsonify({"success":False, "error":"Yetersiz bakiye!"})
+    order = Order(
+        username=username,
+        user_id=user.id,
+        amount=amount,
+        status="pending",  # Sırada
+        total_price=total
+    )
+    user.balance -= total
+    db.session.add(order)
+    db.session.commit()
+    # Yeni bakiye de dön!
+    return jsonify({"success":True, "new_balance": round(user.balance,2)})
+
+@app.route("/api/orders/list")
+@login_required
+def api_orders_list():
+    user = User.query.get(session.get("user_id"))
+    orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
+    return jsonify({
+      "orders":[
+        {
+          "id": o.id,
+          "username": o.username,
+          "amount": o.amount,
+          "status": o.status,
+          "created_at": o.created_at.strftime('%d.%m.%Y %H:%M')
+        } for o in orders
+      ]
+    })
+
+@app.route('/api/order_status', methods=['POST'])
+def api_order_status():
+    if not (session.get("user_id") and User.query.get(session["user_id"]).role == "admin"):
+        return {"success": False, "error": "Yetkisiz işlem"}
+    data = request.get_json()
+    order = Order.query.get(data.get("order_id"))
+    if not order:
+        return {"success": False, "error": "Sipariş bulunamadı"}
+    if data.get("status") not in ["pending", "started", "complete", "cancelled"]:
+        return {"success": False, "error": "Geçersiz durum"}
+    order.status = data.get("status")
+    db.session.commit()
+    return {"success": True}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
