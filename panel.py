@@ -530,14 +530,68 @@ HTML_TICKETS = wrap_theme("""
 </html>
 """)
 
-HTML_PANEL = wrap_theme("""
+HTML_ORDERS = wrap_theme("""
 <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sipariş Paneli</title>
+  <title>Geçmiş Siparişler</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container py-4">
+    <div class="card p-4 mx-auto" style="max-width:900px;">
+      <h3 class="mb-4 text-center">Geçmiş Siparişler</h3>
+      {% if orders %}
+      <div class="table-responsive">
+        <table class="table table-dark table-striped table-bordered align-middle">
+          <thead>
+            <tr>
+              <th>#</th><th>Hedef</th><th>Adet</th><th>Fiyat</th><th>Durum</th><th>Hata</th>{% if role=='admin' %}<th>İptal</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in orders %}
+              <tr>
+                <td>{{ loop.index }}</td><td>{{ o.username }}</td><td>{{ o.amount }}</td><td>{{ o.total_price }}</td>
+                <td>
+                  <span class="badge {% if o.status=='complete' %}bg-success{% elif o.status=='error' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                    {{ status_tr(o.status) }}
+                  </span>
+                </td>
+                <td>{{ o.error }}</td>
+                {% if role=='admin' %}
+                  <td>
+                    {% if o.status not in ['complete','cancelled'] %}
+                      <form method="post" action="{{ url_for('cancel_order', order_id=o.id) }}"><button class="btn btn-outline-danger btn-sm">İptal</button></form>
+                    {% else %}
+                      <span class="text-muted">–</span>
+                    {% endif %}
+                  </td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="alert alert-secondary">Henüz sipariş yok.</div>
+      {% endif %}
+      <div class="mt-3 text-end"><a href="/panel" class="btn btn-outline-secondary btn-sm">Panele Dön</a></div>
+    </div>
+  </div>
+</body>
+</html>
+""")
+
+HTML_PANEL = wrap_theme("""
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sipariş Paneli</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     :root {
       --main-gradient: linear-gradient(90deg, #1de9b6 0%, #1dc8e9 100%);
@@ -552,7 +606,7 @@ HTML_PANEL = wrap_theme("""
       background: #f7fafd;
       color: var(--text-main);
       min-height: 100vh;
-      transition: background .2s, color .2s;
+      transition: background 0.2s, color 0.2s;
     }
     .panel-flex-row {
       display: flex;
@@ -565,7 +619,8 @@ HTML_PANEL = wrap_theme("""
       gap: 28px;
       min-height: 730px;
     }
-    .announcement-panel, .main-panel {
+    .announcement-panel,
+    .main-panel {
       display: flex;
       flex-direction: column;
       height: 100%;
@@ -621,21 +676,23 @@ HTML_PANEL = wrap_theme("""
       border-radius: 12px;
       margin-bottom: 8px;
       box-shadow: 0 1px 8px #c0fff4a8;
-      transition: all .17s;
-      letter-spacing: .01em;
+      transition: all 0.17s;
+      letter-spacing: 0.01em;
     }
     .main-panel .d-grid .btn:hover,
     .main-panel .d-grid .btn:focus,
-    .order-btn:hover, .order-btn:focus,
-    .btn-outline-info:hover, .btn-outline-info:focus {
+    .order-btn:hover,
+    .order-btn:focus,
+    .btn-outline-info:hover,
+    .btn-outline-info:focus {
       filter: brightness(0.97) contrast(1.08) saturate(1.1);
       color: #fff !important;
     }
     /* Sipariş kutusu */
-    .order-box { 
-      border:2px solid #1de9b6; 
-      border-radius:13px; 
-      background:rgba(29,233,182,0.09);
+    .order-box {
+      border: 2px solid #1de9b6;
+      border-radius: 13px;
+      background: rgba(29, 233, 182, 0.09);
       box-shadow: 0 4px 22px #1dc8e926;
     }
     .order-input {
@@ -647,10 +704,19 @@ HTML_PANEL = wrap_theme("""
       font-weight: 500;
       padding-left: 14px !important;
     }
-    .order-input::placeholder { color:#1dc8e9 !important; opacity:1; font-weight: 500; }
-    input[type="number"]::-webkit-inner-spin-button, 
-    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type="number"] { -moz-appearance: textfield; }
+    .order-input::placeholder {
+      color: #1dc8e9 !important;
+      opacity: 1;
+      font-weight: 500;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
     .order-form-row {
       display: flex;
       flex-wrap: wrap;
@@ -673,39 +739,93 @@ HTML_PANEL = wrap_theme("""
       min-width: 140px;
       max-width: 200px;
     }
-    /* Accordion (SSS) Modern & Küçük Başlık */
+    /* Accordion (SSS) Daha Sade Stil, Çizgisiz ve Küçük Yazı */
+    .accordion-item {
+      border-radius: 12px;
+      margin-bottom: 12px;
+      background: #e0f7fa;
+      border: none !important;
+      box-shadow: none !important;
+      transition: background 0.3s ease;
+    }
+
     .accordion-button {
-      background: var(--main-gradient) !important;
+      background: linear-gradient(90deg, #1de9b6 0%, #1dc8e9 100%) !important;
       color: #fff !important;
       font-weight: 600;
-      font-size: 1.08em;
-      border-radius: 13px !important;
-      margin-bottom: 4px;
-      border: none !important;
-      box-shadow: 0 1px 6px #c0fff48f;
-      transition: filter .15s, color .13s;
-      min-height: 44px;
-      padding-top: 9px;
-      padding-bottom: 9px;
-    }
-    .accordion-button:focus, .accordion-button:not(.collapsed) {
+      font-size: 0.875em;
+      border-radius: 12px !important;
       box-shadow: none !important;
-      outline: none !important;
+      transition: background 0.3s ease, filter 0.3s ease;
+      padding: 0.85rem 1.2rem;
+      min-height: 48px;
+      letter-spacing: 0.02em;
       border: none !important;
-      color: #fff !important;
-      background: var(--btn-gradient) !important;
-      filter: brightness(0.95);
     }
+
+    .accordion-button:not(.collapsed) {
+      background: linear-gradient(90deg, #18b39b 0%, #1993b4 100%) !important;
+      filter: brightness(1.1);
+      box-shadow: none;
+      color: #ffffff !important;
+      border: none !important;
+    }
+
+    .accordion-button:focus {
+      box-shadow: 0 0 8px #1dc8e9aa !important;
+      outline: none !important;
+    }
+
+    .accordion-button::after {
+      filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg)
+        brightness(102%) contrast(102%);
+      transition: transform 0.3s ease;
+    }
+
+    .accordion-button.collapsed::after {
+      transform: rotate(0deg);
+    }
+
+    .accordion-button:not(.collapsed)::after {
+      transform: rotate(180deg);
+    }
+
     .accordion-body {
-      background: #f9fefd;
-      color: #23272f;
+      background: #f0fcff;
+      color: #1a1a1a;
       font-size: 1em;
       border-radius: 0 0 12px 12px;
-      margin-top: -6px;
-      padding: 16px 20px 16px 18px;
+      padding: 1rem 1.25rem;
+      box-shadow: inset 0 0 8px #a8e8f4aa;
+      line-height: 1.5;
+      user-select: text;
+      transition: background 0.3s ease;
     }
-    .accordion-button::after {
-      filter: invert(81%) sepia(19%) saturate(690%) hue-rotate(126deg);
+
+    /* Dark mode için uyumlu */
+    body.dark-mode .accordion-item {
+      background: #134a5e;
+      box-shadow: 0 6px 15px rgba(29, 233, 182, 0.3);
+      border: none !important;
+    }
+
+    body.dark-mode .accordion-button {
+      background: var(--btn-gradient) !important;
+      color: #fff !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+
+    body.dark-mode .accordion-button:not(.collapsed) {
+      background: linear-gradient(90deg, #14a17a 0%, #138ab2 100%) !important;
+      box-shadow: none;
+      border: none !important;
+    }
+
+    body.dark-mode .accordion-body {
+      background: #23242b !important;
+      color: #fff !important;
+      box-shadow: inset 0 0 8px #1de9b699;
     }
     /* Geçmiş Siparişlerim butonu */
     .btn-outline-info {
@@ -723,13 +843,13 @@ HTML_PANEL = wrap_theme("""
       padding: 3px 20px;
       font-size: 1em;
       margin-top: 16px;
-      transition: all .18s;
+      transition: all 0.18s;
     }
     .btn-outline-danger:hover {
       background: #f44336 !important;
       color: #fff !important;
       border: 1.5px solid #e91e63 !important;
-      filter: brightness(.98);
+      filter: brightness(0.98);
     }
     /* Duyurular */
     .card-header {
@@ -742,16 +862,43 @@ HTML_PANEL = wrap_theme("""
     }
     /* Responsive */
     @media (max-width: 1100px) {
-      .panel-flex-row { flex-direction: column; align-items: stretch; margin-top: 18px; gap: 18px; min-height: unset;}
-      .announcement-panel, .main-panel { max-width: 100%; margin-top: 0; height: auto; min-height: unset;}
-      .announcement-panel .card, .main-panel .card.p-4 { min-height: unset; height: auto;}
+      .panel-flex-row {
+        flex-direction: column;
+        align-items: stretch;
+        margin-top: 18px;
+        gap: 18px;
+        min-height: unset;
+      }
+      .announcement-panel,
+      .main-panel {
+        max-width: 100%;
+        margin-top: 0;
+        height: auto;
+        min-height: unset;
+      }
+      .announcement-panel .card,
+      .main-panel .card.p-4 {
+        min-height: unset;
+        height: auto;
+      }
     }
     @media (max-width: 700px) {
-      .panel-flex-row { gap: 10px; }
-      .announcement-panel { min-width: 120px; }
-      .main-panel { min-width: 0; }
-      .main-panel .card.p-4 { padding: 0.8rem !important;}
-      .order-form-row { flex-direction: column; gap: 9px;}
+      .panel-flex-row {
+        gap: 10px;
+      }
+      .announcement-panel {
+        min-width: 120px;
+      }
+      .main-panel {
+        min-width: 0;
+      }
+      .main-panel .card.p-4 {
+        padding: 0.8rem !important;
+      }
+      .order-form-row {
+        flex-direction: column;
+        gap: 9px;
+      }
     }
     .table-responsive {
       overflow-x: auto;
@@ -770,7 +917,10 @@ HTML_PANEL = wrap_theme("""
       color: #fff !important;
       box-shadow: 0 0 16px #262b348f;
     }
-    body.dark-mode .order-box { background: #191c23 !important; border-color: #03dac5; }
+    body.dark-mode .order-box {
+      background: #191c23 !important;
+      border-color: #03dac5;
+    }
     body.dark-mode .order-input,
     body.dark-mode .order-input::placeholder {
       background: #23252c !important;
@@ -785,8 +935,12 @@ HTML_PANEL = wrap_theme("""
     body.dark-mode .accordion-body {
       background: #23242b !important;
       color: #fff !important;
+      box-shadow: inset 0 0 8px #1de9b699;
     }
-    body.dark-mode .card-header { background: #181a20 !important; color: #1de9b6 !important; }
+    body.dark-mode .card-header {
+      background: #181a20 !important;
+      color: #1de9b6 !important;
+    }
     body.dark-mode .btn-outline-info,
     body.dark-mode .main-panel .d-grid .btn,
     body.dark-mode .order-btn {
@@ -809,18 +963,21 @@ HTML_PANEL = wrap_theme("""
   <script>
     // Tema modunu değiştir
     function toggleTheme() {
-      document.body.classList.toggle('dark-mode');
-      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+      document.body.classList.toggle("dark-mode");
+      localStorage.setItem(
+        "theme",
+        document.body.classList.contains("dark-mode") ? "dark" : "light"
+      );
     }
-    window.onload = function() {
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-mode');
+    window.onload = function () {
+      if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark-mode");
       }
-    }
+    };
   </script>
 </head>
 <body>
-  <div style="width:100%;display:flex;justify-content:center;margin-top:18px;">
+  <div style="width: 100%; display: flex; justify-content: center; margin-top: 18px;">
     <button id="themeBtn" class="btn btn-secondary" onclick="toggleTheme()">🌙 Karanlık Mod</button>
   </div>
   <div class="panel-flex-row">
@@ -828,11 +985,11 @@ HTML_PANEL = wrap_theme("""
     <div class="announcement-panel">
       <div class="card h-100 mb-3">
         <div class="card-header fw-bold">Duyurular</div>
-        <div class="card-body" style="white-space:pre-line">
+        <div class="card-body" style="white-space: pre-line;">
           {% if announcement and announcement.content %}
-            {{ announcement.content }}
+          {{ announcement.content }}
           {% else %}
-            Henüz duyuru yok.
+          Henüz duyuru yok.
           {% endif %}
         </div>
       </div>
@@ -845,14 +1002,14 @@ HTML_PANEL = wrap_theme("""
           <div class="mb-2">Bakiye: <b>{{ balance }} TL</b></div>
         </div>
         <div class="d-grid gap-3 mb-3">
-          {% if role=='admin' %}
-            <a href="{{ url_for('manage_users') }}" class="btn py-2">Kullanıcı Yönetimi</a>
-            <a href="/balance/requests" class="btn py-2">Bakiye Talepleri</a>
-            <a href="/admin/tickets" class="btn py-2">Tüm Destek Talepleri</a>
-            <a href="/announcement" class="btn py-2">Duyuruları Yönet</a>
+          {% if role == "admin" %}
+          <a href="{{ url_for('manage_users') }}" class="btn py-2">Kullanıcı Yönetimi</a>
+          <a href="/balance/requests" class="btn py-2">Bakiye Talepleri</a>
+          <a href="/admin/tickets" class="btn py-2">Tüm Destek Talepleri</a>
+          <a href="/announcement" class="btn py-2">Duyuruları Yönet</a>
           {% else %}
-            <a href="/balance" class="btn py-2">Bakiye Yükle</a>
-            <a href="/tickets" class="btn py-2">Destek & Yardım</a>
+          <a href="/balance" class="btn py-2">Bakiye Yükle</a>
+          <a href="/tickets" class="btn py-2">Destek & Yardım</a>
           {% endif %}
           <a href="/services" class="btn py-2">Servisler & Fiyat Listesi</a>
         </div>
@@ -860,32 +1017,34 @@ HTML_PANEL = wrap_theme("""
         <div class="order-box p-4 mb-3 shadow-sm">
           <form method="post">
             <div class="order-form-row">
-              <input 
-                name="username" 
-                type="text" 
+              <input
+                name="username"
+                type="text"
                 class="form-control form-control-lg order-input"
                 maxlength="32"
                 placeholder="Instagram adı (ör: kuzenlertv)"
                 required
-              >
-              <input 
-                name="amount" 
-                type="number" 
-                min="1" max="1000"
+              />
+              <input
+                name="amount"
+                type="number"
+                min="1"
+                max="1000"
                 class="form-control form-control-lg order-input"
                 placeholder="Adet (1-1000)"
                 required
-              >
-              <button 
-                class="btn order-btn btn-lg fw-bold rounded-4"
-                type="submit">
+              />
+              <button class="btn order-btn btn-lg fw-bold rounded-4" type="submit">
                 Siparişi Ver
               </button>
             </div>
           </form>
         </div>
         <div class="mb-3 text-center">
-          <b>Her takipçi adedi için fiyat : <span class="text-warning fs-5" style="color:#1dc8e9 !important;">0.2 TL</span></b>
+          <b>
+            Her takipçi adedi için fiyat : <span class="text-warning fs-5" style="color:#1dc8e9 !important;">0.2
+              TL</span>
+          </b>
         </div>
         {% if error %}<div class="alert alert-danger py-2 small mb-2">{{ error }}</div>{% endif %}
         {% if msg %}<div class="alert alert-success py-2 small mb-2">{{ msg }}</div>{% endif %}
@@ -897,14 +1056,22 @@ HTML_PANEL = wrap_theme("""
           {% for sss in sss_list %}
           <div class="accordion-item">
             <h2 class="accordion-header" id="sss{{ loop.index }}h">
-              <button class="accordion-button collapsed" type="button"
-                data-bs-toggle="collapse" data-bs-target="#sss{{ loop.index }}"
-                aria-expanded="false" aria-controls="sss{{ loop.index }}">
+              <button
+                class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#sss{{ loop.index }}"
+                aria-expanded="false"
+                aria-controls="sss{{ loop.index }}"
+              >
                 {{ sss.soru|safe }}
               </button>
             </h2>
-            <div id="sss{{ loop.index }}" class="accordion-collapse collapse"
-              aria-labelledby="sss{{ loop.index }}h" data-bs-parent="#sssAccordion">
+            <div
+              id="sss{{ loop.index }}"
+              class="accordion-collapse collapse"
+              aria-labelledby="sss{{ loop.index }}h"
+            >
               <div class="accordion-body">
                 {{ sss.cevap|safe }}
               </div>
