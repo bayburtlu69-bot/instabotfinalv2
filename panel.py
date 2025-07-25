@@ -22,7 +22,7 @@ EXTERNAL_API_KEY = "6b0e961c4a42155ba44bfd4384915c27"
 
 # --- Çekmek istediğimiz ResellersMM servis ID’leri ---
 
-EXT_SELECTED_IDS = [854, 827,]  # Örneğin sadece 1 ve 2 no’lu servisleri çek
+EXT_SELECTED_IDS = [854, 827, 1588,]  # Örneğin sadece 1 ve 2 no’lu servisleri çek
 
 def fetch_selected_external_services():
     """Sadece EXT_SELECTED_IDS’deki ResellersMM servislerini çeker, hem dict hem list olanağı var."""
