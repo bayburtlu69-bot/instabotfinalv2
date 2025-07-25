@@ -4,12 +4,94 @@ import random
 import smtplib
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
+
 from flask import (
     Flask, session, request, redirect,
     render_template_string, abort, url_for, flash, jsonify
 )
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+
+import requests  # ← Harici servis için
+import json
+from functools import wraps
+
+# --- Harici servis entegrasyonu (ResellersMM) ---
+EXTERNAL_API_URL = "https://resellersmm.com/api/v2/"
+EXTERNAL_API_KEY = "6b0e961c4a42155ba44bfd4384915c27"
+
+# --- Çekmek istediğimiz ResellersMM servis ID’leri ---
+
+EXT_SELECTED_IDS = [1583, 827]  # Örneğin sadece 1 ve 2 no’lu servisleri çek
+
+def fetch_selected_external_services():
+    """Sadece EXT_SELECTED_IDS’deki ResellersMM servislerini çeker, hem dict hem list olanağı var."""
+    try:
+        resp = requests.get(
+            EXTERNAL_API_URL,
+            params={"key": EXTERNAL_API_KEY, "action": "services"},
+            timeout=10
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+
+        # payload dict ise içindeki 'data'yı, değilse (zaten list ise) kendisini al
+        if isinstance(payload, dict):
+            data = payload.get("data", [])
+        else:
+            data = payload
+
+        # Burada artık data kesinlikle bir list
+        # Filtreleme:
+        filtered = [
+            item for item in data
+            if int(item.get("service", 0)) in EXT_SELECTED_IDS
+        ]
+
+        services = []
+        for item in filtered:
+            svc = Service(
+                id=100000 + int(item["service"]),
+                name=item.get("name","İsim yok"),
+                description=item.get("description", item.get("name","")),
+                price=float(item.get("rate", 0)),
+                min_amount=int(item.get("min",1)),
+                max_amount=int(item.get("max",1)),
+                active=True
+            )
+            services.append(svc)
+
+        return services
+
+    except Exception as e:
+        print("❌ fetch_selected_external_services hata:", e)
+        return []
+
+# --- /Harici servis entegrasyonu ---
+
+# --- External servis seçim mekanizması ---
+EXT_SELECTION_FILE = "ext_selection.json"
+
+def load_selected_ext_ids():
+    try:
+        with open(EXT_SELECTION_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_selected_ext_ids(ids):
+    with open(EXT_SELECTION_FILE, "w", encoding="utf-8") as f:
+        json.dump(ids, f)
+
+def admin_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        user = User.query.get(session.get("user_id"))
+        if not user or user.role != "admin":
+            abort(403)
+        return f(*args, **kwargs)
+    return wrapper
+# --- /External servis seçim mekanizması ---
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -30,7 +112,7 @@ class User(db.Model):
     role = db.Column(db.String(16), nullable=False)
     balance = db.Column(db.Float, default=10.0)
     is_verified = db.Column(db.Boolean, default=False)
-    last_ad_watch = db.Column(db.DateTime, default=None)  # Günde 1 izleme için!
+    last_ad_watch = db.Column(db.DateTime, default=None)
 
     def check_password(self, pw):
         return check_password_hash(self.password_hash, pw)
@@ -75,13 +157,13 @@ class Ticket(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     user = db.relationship("User")
 
-# Reklam videosu embed url için model:
 class AdVideo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     embed_url = db.Column(db.String(256), default="https://www.youtube.com/embed/KzJk7e7XF3g")
 
 with app.app_context():
     db.create_all()
+    # Admin, Service ve AdVideo başlangıç kayıtları
     if not User.query.filter_by(username="admin").first():
         db.session.add(User(
             username="admin",
@@ -269,42 +351,75 @@ HTML_SERVICES_MANAGE = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Servisleri Yönet</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
 <body class="bg-dark text-light">
   <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:650px;">
-      <h3>Servisleri Yönet</h3>
-      {% if msg %}
-        <div class="alert alert-success">{{ msg }}</div>
-      {% endif %}
-      <form method="post">
-        <table class="table table-dark table-bordered mt-3">
-          <thead>
-            <tr>
-              <th>Servis</th>
-              <th>Açıklama</th>
-              <th>Fiyat (TL)</th>
-            </tr>
-          </thead>
-          <tbody>
+    <div class="card mx-auto" style="max-width:800px">
+      <div class="card-body">
+        <h3>Servisleri Yönet</h3>
+        <form method="post" action="{{ url_for('manage_services') }}">
+          <table class="table table-dark table-striped align-middle">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Servis</th>
+                <th>Açıklama</th>
+                <th>Fiyat (TL)</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th>Kaynak</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
             {% for s in services %}
-            <tr>
-              <td>{{ s.name }}</td>
-              <td>{{ s.description }}</td>
-              <td>
-                <input type="number" name="price_{{ s.id }}" value="{{ s.price }}" step="0.01" min="0.01" class="form-control" required>
-              </td>
-            </tr>
+              <tr>
+                <td>{{ s.id }}</td>
+                <td>
+                  <input name="name_{{s.id}}" class="form-control form-control-sm"
+                         value="{{ s.name }}" {% if s.id not in local_ids %}readonly{% endif %}>
+                </td>
+                <td>
+                  <input name="desc_{{s.id}}" class="form-control form-control-sm"
+                         value="{{ s.description }}" {% if s.id not in local_ids %}readonly{% endif %}>
+                </td>
+                <td style="width:100px">
+                  <input name="price_{{s.id}}" type="number" step="0.01" min="0.01"
+                         class="form-control form-control-sm"
+                         value="{{ "%.2f"|format(s.price) }}" {% if s.id not in local_ids %}readonly{% endif %}>
+                </td>
+                <td>{{ s.min_amount }}</td>
+                <td>{{ s.max_amount }}</td>
+                <td>
+                  {% if s.id in local_ids %}
+                    <span class="badge bg-success">Local</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">External</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if s.id not in local_ids %}
+                  <!-- External ise ekle butonu -->
+                  <button type="submit" name="add_external" value="{{ s.id }}" class="btn btn-sm btn-primary">
+                    Veritabanına Ekle
+                  </button>
+                  {% endif %}
+                </td>
+              </tr>
             {% endfor %}
-          </tbody>
-        </table>
-        <button class="btn btn-success w-100">Fiyatları Kaydet</button>
-      </form>
-      <a href="/panel" class="btn btn-secondary btn-sm mt-3">Panele Dön</a>
+            </tbody>
+          </table>
+          <div class="d-grid">
+            <button class="btn btn-success" type="submit">Fiyatları Kaydet</button>
+          </div>
+        </form>
+        <div class="mt-3">
+          <a href="{{ url_for('panel') }}" class="btn btn-secondary w-100">Panele Dön</a>
+        </div>
+      </div>
     </div>
   </div>
 </body>
@@ -441,79 +556,113 @@ HTML_BALANCE_REQUESTS = """
 
 HTML_SERVICES = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Servisler ve Fiyat Listesi</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Servisler & Fiyat Listesi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    .editing .text { display:none; }
+    .editing .inp  { display:inline-block !important; width:100%; }
+  </style>
+</head>
 <body class="bg-dark text-light">
   <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:700px;">
-      <h3>Aktif Servisler & Fiyat Listesi</h3>
-      <table class="table table-dark table-bordered mt-3">
-        <thead>
-          <tr>
-            <th>Servis</th>
-            <th>Açıklama</th>
-            <th>Fiyat (1 Adet)</th>
-            <th>Min/Max</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for s in servisler %}
-          <tr>
-            <td>{{ s.name }}</td>
-            <td>{{ s.description }}</td>
-            <td>{{ s.price }} TL</td>
-            <td>{{ s.min_amount }} / {{ s.max_amount }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      <a href="/panel" class="btn btn-secondary btn-sm mt-3">Panele Dön</a>
-    </div>
-  </div>
-</body>
-</html>
-"""
+    <div class="card mx-auto" style="max-width:900px">
+      <div class="card-body">
+        <h3>Servisler & Fiyat Listesi</h3>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div><strong>Toplam:</strong> {{ servisler|length }} servis</div>
+          <div class="d-flex">
+            <input id="search" class="form-control form-control-sm me-2" placeholder="Search…">
+            {% if user.role=='admin' %}
+              <button id="editBtn" class="btn btn-outline-info btn-sm">Edit</button>
+            {% endif %}
+          </div>
+        </div>
 
-HTML_TICKETS = """
-<!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Destek & Ticket Sistemi</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body class="bg-dark text-light">
-  <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:650px;">
-      <h2 class="mb-3">Destek & Ticket Sistemi</h2>
-      <form method="post">
-        <label class="form-label">Konu</label>
-        <input name="subject" class="form-control mb-2" placeholder="Konu başlığı">
-        <label class="form-label">Mesaj</label>
-        <textarea name="message" class="form-control mb-3" placeholder="Destek talebiniz..." rows="3"></textarea>
-        <button class="btn btn-danger w-100 mb-3">Gönder</button>
-      </form>
-      <h5 class="mt-4 mb-2">Geçmiş Destek Talepleriniz</h5>
-      <table class="table table-dark table-bordered text-center">
-        <thead>
-          <tr>
-            <th>Tarih</th><th>Konu</th><th>Mesaj</th><th>Durum</th><th>Yanıt</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for t in tickets %}
-          <tr>
-            <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-            <td>{{ t.subject }}</td>
-            <td>{{ t.message }}</td>
-            <td>
-              {% if t.status == "open" %}<span class="badge bg-warning text-dark">Açık</span>
-              {% else %}<span class="badge bg-success">Yanıtlandı</span>{% endif %}
-            </td>
-            <td>{{ t.response or "" }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
+        {# — Form, sadece admin görsün — #}
+        {% if user.role=='admin' %}
+        <form method="post" action="{{ url_for('services') }}">
+        {% endif %}
+
+          <table id="tbl" class="table table-dark table-striped">
+            <thead>
+              <tr>
+                <th>Servis</th><th>Açıklama</th><th>Fiyat (TL)</th><th>Min</th><th>Max</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for s in servisler %}
+              <tr class="{% if user.role=='admin' %}editable{% endif %}">
+                <td>
+                  <span class="text">{{ s.name }}</span>
+                  {% if user.role=='admin' %}
+                  <input type="text" name="name_{{s.id}}" value="{{ s.name }}"
+                         class="form-control form-control-sm inp" style="display:none">
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="text">{{ s.description }}</span>
+                  {% if user.role=='admin' %}
+                  <input type="text" name="desc_{{s.id}}" value="{{ s.description }}"
+                         class="form-control form-control-sm inp" style="display:none">
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="text">{{"%.2f"|format(s.price)}}</span>
+                  {% if user.role=='admin' %}
+                  <input type="number" step="0.01" min="0.01" name="price_{{s.id}}"
+                         value="{{"%.2f"|format(s.price)}}"
+                         class="form-control form-control-sm inp" style="display:none">
+                  {% endif %}
+                </td>
+                <td>{{ s.min_amount }}</td>
+                <td>{{ s.max_amount }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+
+        {% if user.role=='admin' %}
+          <div id="btns" class="mt-2" style="display:none">
+            <button type="submit" class="btn btn-success btn-sm me-2">Save</button>
+            <button type="button" id="cancel" class="btn btn-secondary btn-sm">Cancel</button>
+          </div>
+        </form>
+        {% endif %}
+
+      </div>
     </div>
   </div>
+
+  <script>
+    // Search
+    document.getElementById('search').addEventListener('input', function(){
+      const q = this.value.toLowerCase();
+      document.querySelectorAll('#tbl tbody tr').forEach(tr=>{
+        tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+
+    {% if user.role=='admin' %}
+    // Edit mode
+    let editing=false;
+    const card=document.querySelector('.card'),
+          editBtn=document.getElementById('editBtn'),
+          cancelBtn=document.getElementById('cancel'),
+          btns=document.getElementById('btns');
+
+    editBtn.addEventListener('click', e=>{
+      e.preventDefault();
+      editing = !editing;
+      card.classList.toggle('editing', editing);
+      btns.style.display = editing ? 'block' : 'none';
+      editBtn.textContent = editing ? 'Stop' : 'Edit';
+    });
+    cancelBtn.addEventListener('click', ()=>location.reload());
+    {% endif %}
+  </script>
 </body>
 </html>
 """
@@ -562,6 +711,41 @@ HTML_ADMIN_TICKETS = """
       </table>
       <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
     </div>
+  </div>
+</body>
+</html>
+"""
+
+HTML_EXTERNAL_MANAGE = """
+<!DOCTYPE html>
+<html lang="tr"><head>
+  <meta charset="utf-8"><title>Dış Servis Seçimi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-dark text-light">
+  <div class="container py-4">
+    <h3>Dış Servis Seçimi (ResellersMM)</h3>
+    <form method="post">
+      <table class="table table-dark table-striped">
+        <thead>
+          <tr><th>Seç</th><th>Servis Adı</th><th>Min / Max</th></tr>
+        </thead>
+        <tbody>
+        {% for s in all_ext %}
+          <tr>
+            <td>
+              <input type="checkbox" name="ext_{{s.id}}"
+                {% if s.id in selected %}checked{% endif %}>
+            </td>
+            <td>{{ s.name }}</td>
+            <td>{{ s.min_amount }} / {{ s.max_amount }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <button class="btn btn-success">Kaydet</button>
+      <a href="{{ url_for('panel') }}" class="btn btn-secondary ms-2">Panele Dön</a>
+    </form>
   </div>
 </body>
 </html>
@@ -729,7 +913,7 @@ HTML_PANEL = """
 <body class="bg-dark text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
-      
+
       <!-- HOŞGELDİN ALANI -->
       <div class="welcome-card">
         <div class="welcome-left">
@@ -750,21 +934,20 @@ HTML_PANEL = """
       <!-- ANA BUTONLAR -->
       <div class="d-grid gap-3 mb-3">
         {% if role == 'admin' %}
-          <a href="{{ url_for('manage_users') }}" class="btn btn-secondary btn-block py-2">Kullanıcı Yönetimi</a>
-          <a href="{{ url_for('balance_requests') }}" class="btn btn-warning btn-block py-2">Bakiye Talepleri</a>
-          <a href="{{ url_for('admin_tickets') }}" class="btn btn-danger btn-block py-2">Tüm Destek Talepleri</a>
-          <a href="{{ url_for('manage_services') }}" class="btn btn-info btn-block py-2">Servisleri Yönet</a>
+          <a href="{{ url_for('manage_users') }}" class="btn btn-secondary py-2">Kullanıcı Yönetimi</a>
+          <a href="{{ url_for('balance_requests') }}" class="btn btn-warning py-2">Bakiye Talepleri</a>
+          <a href="{{ url_for('admin_tickets') }}" class="btn btn-danger py-2">Tüm Destek Talepleri</a>
+          <a href="{{ url_for('manage_services') }}" class="btn btn-info py-2">Servisleri Yönet</a>
         {% else %}
-          <a href="{{ url_for('user_balance') }}" class="btn btn-warning btn-block py-2">Bakiye Yükle</a>
-          <a href="{{ url_for('tickets') }}" class="btn btn-danger btn-block py-2">Destek & Canlı Yardım</a>
+          <a href="{{ url_for('user_balance') }}" class="btn btn-warning py-2">Bakiye Yükle</a>
+          <a href="{{ url_for('tickets') }}" class="btn btn-danger py-2">Destek & Canlı Yardım</a>
         {% endif %}
-        <a href="{{ url_for('services') }}" class="btn btn-info btn-block py-2">Servisler & Fiyat Listesi</a>
-        <a href="{{ url_for('watchads') }}" class="btn btn-success btn-block py-2">Reklam İzle – Bakiye Kazan</a>
+        <a href="{{ url_for('watchads') }}" class="btn btn-success py-2">Reklam İzle – Bakiye Kazan</a>
       </div>
 
       <!-- SİPARİŞ FORMU -->
       <h4 class="mb-3 mt-4">Yeni Sipariş</h4>
-      <form id="orderForm" autocomplete="off">
+      <form id="orderForm" method="post" autocomplete="off">
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
           <select class="form-select" name="category" required>
@@ -775,7 +958,9 @@ HTML_PANEL = """
           <label class="form-label"><i class="bi bi-box-seam"></i> Servis</label>
           <select class="form-select" name="service_id" id="service_id" required>
             {% for s in services %}
-              <option value="{{ s.id }}" data-price="{{ s.price }}">{{ s.name }} - {{ s.price }} TL</option>
+              <option value="{{ s.id }}" data-price="{{ s.price }}">
+                {{ s.name }} – {{ "%.2f"|format(s.price) }} TL
+              </option>
             {% endfor %}
           </select>
         </div>
@@ -796,12 +981,7 @@ HTML_PANEL = """
         </div>
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-list-ol"></i> Adet</label>
-          <input name="amount" id="amount" type="number" min="10" max="1000" class="form-control" placeholder="Takipçi adedini giriniz" required>
-          <small class="form-text text-muted">Min: 10 - Max: 1.000</small>
-        </div>
-        <div class="mb-3">
-          <label class="form-label"><i class="bi bi-clock-history"></i> Ortalama Süre</label>
-          <input type="text" class="form-control" value="Ortalama 3-6 saat arasında tamamlanmaktadır." disabled>
+          <input name="amount" id="amount" type="number" min="1" class="form-control" placeholder="Adet" required>
         </div>
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-currency-dollar"></i> Tutar</label>
@@ -810,64 +990,52 @@ HTML_PANEL = """
         <button type="submit" class="btn btn-primary w-100" id="orderSubmitBtn">Siparişi Gönder</button>
       </form>
 
+      <!-- Fiyat hesaplama script -->
       <script>
-        // Fiyat otomatik hesaplama
-        function updateTotal() {
-          var serviceSelect = document.getElementById('service_id');
-          var price = parseFloat(serviceSelect.options[serviceSelect.selectedIndex].getAttribute('data-price') || "0");
-          var amount = parseInt(document.getElementById('amount').value) || 0;
-          var total = price * amount;
-          var totalInput = document.getElementById('total');
-          if (total > 0) {
-            totalInput.value = amount + " x " + price.toFixed(2) + " TL = " + total.toFixed(2) + " TL";
-          } else {
-            totalInput.value = "Tutar otomatik hesaplanır";
-          }
+        const sel = document.getElementById('service_id'),
+              amt = document.getElementById('amount'),
+              tot = document.getElementById('total');
+
+        function updateTotal(){
+          const price = parseFloat(sel.selectedOptions[0].dataset.price)||0,
+                num   = parseInt(amt.value)||0;
+          tot.value = num>0
+            ? `${num}×${price.toFixed(2)} TL = ${(num*price).toFixed(2)} TL`
+            : "";
         }
-        document.getElementById('amount').addEventListener('input', updateTotal);
-        document.getElementById('service_id').addEventListener('change', updateTotal);
+        sel.addEventListener('change', updateTotal);
+        amt.addEventListener('input', updateTotal);
       </script>
 
+      <!-- AJAX sipariş gönderme (opsiyonel) -->
       <script>
-      // AJAX ile sipariş oluşturma
-      document.getElementById('orderForm').addEventListener('submit', function(e){
+        document.getElementById('orderForm').addEventListener('submit', function(e){
           e.preventDefault();
-          var formData = new FormData(this);
-          document.getElementById("orderSubmitBtn").disabled = true;
+          const btn = document.getElementById('orderSubmitBtn');
+          btn.disabled = true;
           fetch('/api/new_order', {
             method: 'POST',
-            body: formData
-          }).then(resp => resp.json())
-            .then(res => {
-                document.getElementById("orderSubmitBtn").disabled = false;
-                if(res.success){
-                  this.reset();
-                  updateTotal();
-                  if(res.new_balance !== undefined){
-                      document.getElementById("balance").innerText = res.new_balance + " TL";
-                  }
-                  showMsg("Siparişiniz başarıyla alınmıştır!", "success");
-                }else{
-                  showMsg(res.error || "Bir hata oluştu!", "danger");
-                }
-            }).catch(()=>{
-                document.getElementById("orderSubmitBtn").disabled = false;
-                showMsg("Bir hata oluştu!", "danger");
-            });
-      });
-
-      function showMsg(msg, type){
-        let el = document.createElement("div");
-        el.className = "alert alert-" + type + " py-2 small mt-3 mb-2";
-        el.innerText = msg;
-        document.querySelector(".card").insertBefore(el, document.querySelector(".card").children[2]);
-        setTimeout(()=>{el.remove()}, 3500);
-      }
+            body: new FormData(this)
+          })
+          .then(r=>r.json())
+          .then(res=>{
+            btn.disabled = false;
+            if(res.success){
+              this.reset(); updateTotal();
+              document.getElementById('balance').innerText = res.new_balance + ' TL';
+              alert('Sipariş başarıyla alındı!');
+            } else {
+              alert(res.error || 'Bir hata oluştu');
+            }
+          })
+          .catch(()=>{ btn.disabled = false; alert('İstek başarısız'); });
+        });
       </script>
 
       <div class="mt-3 text-end">
         <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Çıkış Yap</a>
       </div>
+
     </div>
   </div>
 </body>
@@ -1299,61 +1467,65 @@ def cancel_order(order_id):
 def panel():
     user = User.query.get(session.get("user_id"))
     msg, error = "", ""
-    services = Service.query.filter_by(active=True).all()
+
+    # 1) Yerel servisler (DB’daki Service tablosu)
+    local = Service.query.filter_by(active=True).all()
+    local_ids = {s.id for s in local}
+    # 2) Seçili external servisler
+    external = fetch_selected_external_services()
+    external = [s for s in external if s.id not in local_ids]
+    # 3) Merge: yerel + sadece local’de olmayan external
+    services = local + external
+
+    # Fiyat referansı
     price = services[0].price if services else SABIT_FIYAT
 
     if request.method == "POST":
-        target = request.form.get("username", "").strip()
+        target = request.form.get("username","").strip()
         try:
-            amount = int(request.form.get("amount", "").strip())
+            amount = int(request.form.get("amount",""))
         except:
             amount = 0
         total = amount * price
+
         if not target or amount <= 0:
             error = "Tüm alanları doğru doldurun!"
         elif user.balance < total:
             error = "Yetersiz bakiye!"
-        elif len(BOT_CLIENTS) == 0:
-            error = "Sistemde çalışan bot yok!"
         else:
-            order = Order(
-                username=target,
-                user_id=user.id,
-                amount=amount,
-                status="pending",
-                error="",
-                total_price=total
-            )
+            # siparişi kaydet…
+            order = Order(username=target, user_id=user.id,
+                          amount=amount, total_price=total,
+                          status="pending", error="")
             user.balance -= total
-            db.session.add(order)
-            db.session.commit()
+            db.session.add(order); db.session.commit()
+
+            # BOT’larla gönderimi simüle et
             status, err = "complete", ""
-            for idx, cl in enumerate(BOT_CLIENTS[:amount], start=1):
+            for cl in BOT_CLIENTS[:amount]:
                 try:
                     follow_user(cl, target)
                 except Exception as e:
                     status, err = "error", str(e)
                     break
+
             order.status = status
             order.error = err
             db.session.commit()
-            if status == "complete":
-                msg = f"{amount} takipçi başarıyla gönderildi."
-            else:
-                error = f"Bir hata oluştu: {err}"
 
-    # Geçmiş siparişleri getir
-    if user.role == "admin":
+            msg = f"{amount} takipçi başarıyla gönderildi." if status=="complete" else f"Hata: {err}"
+
+    # Geçmiş siparişler
+    if user.role=="admin":
         orders = Order.query.order_by(Order.created_at.desc()).all()
     else:
         orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
 
-    return render_template_string(
-        HTML_PANEL,
+    return render_template_string(HTML_PANEL,
         orders=orders,
         role=user.role,
         current_user=user.username,
-        balance=round(user.balance, 2),
+        balance=round(user.balance,2),
         msg=msg,
         error=error,
         rolu_turkce=rolu_turkce,
@@ -1364,21 +1536,60 @@ def panel():
 @login_required
 @admin_required
 def manage_services():
-    services = Service.query.order_by(Service.id).all()
-    msg = ""
-    if request.method == "POST":
-        for s in services:
-            new_price = request.form.get(f"price_{s.id}")
-            try:
-                new_price = float(new_price)
-                if new_price > 0 and s.price != new_price:
-                    s.price = new_price
-                    msg = "Fiyatlar güncellendi."
-            except:
-                continue
+    user = User.query.get(session["user_id"])
+
+    # 1) Veritabanındaki (yerel) servisler
+    local_services = Service.query.order_by(Service.id).all()
+    local_ids = {s.id for s in local_services}
+
+    # 2) Dış API’den seçili servisler
+    external_services = fetch_selected_external_services()
+    external_services = [s for s in external_services if s.id not in local_ids]
+
+    # 3) External servisi veritabanına ekleme
+    if request.method == "POST" and "add_external" in request.form:
+        ext_id = int(request.form.get("add_external"))
+        ext_service = next((s for s in external_services if s.id == ext_id), None)
+        if ext_service:
+            # External servisten local'a kopyala ve kaydet
+            new_service = Service(
+                id = ext_service.id,
+                name = ext_service.name,
+                description = ext_service.description,
+                price = ext_service.price,
+                min_amount = ext_service.min_amount,
+                max_amount = ext_service.max_amount
+            )
+            db.session.add(new_service)
+            db.session.commit()
+            flash("Servis veritabanına eklendi ve artık düzenlenebilir!", "success")
+        return redirect(url_for("manage_services"))
+
+    # 4) POST ile güncelleme:
+    if request.method == "POST" and "add_external" not in request.form:
+        for svc in local_services:
+            nk = f"name_{svc.id}"
+            dk = f"desc_{svc.id}"
+            pk = f"price_{svc.id}"
+            if nk in request.form:
+                svc.name        = request.form[nk].strip() or svc.name
+                svc.description = request.form[dk].strip() or svc.description
+                try:
+                    np = float(request.form[pk])
+                    if np > 0:
+                        svc.price = np
+                except:
+                    pass
         db.session.commit()
-        services = Service.query.order_by(Service.id).all()
-    return render_template_string(HTML_SERVICES_MANAGE, services=services, msg=msg)
+        flash("Yerel servisler başarıyla güncellendi.", "success")
+        return redirect(url_for("manage_services"))
+
+    tüm_servisler = local_services + external_services
+    return render_template_string(
+        HTML_SERVICES_MANAGE,
+        services=tüm_servisler,
+        local_ids=local_ids
+    )
 
 @app.route("/balance", methods=["GET", "POST"])
 @login_required
@@ -1428,11 +1639,37 @@ def balance_requests():
     reqs = BalanceRequest.query.order_by(BalanceRequest.created_at.desc()).all()
     return render_template_string(HTML_BALANCE_REQUESTS, reqs=reqs)
 
-@app.route("/services")
+@app.route("/services", methods=["GET", "POST"])
 @login_required
 def services():
-    servisler = Service.query.filter_by(active=True).all()
-    return render_template_string(HTML_SERVICES, servisler=servisler)
+    user = User.query.get(session.get("user_id"))
+
+    # — Admin ise fiyatları kaydetme işlemi —
+    if request.method == "POST" and user.role == "admin":
+        for svc in Service.query.filter_by(active=True).all():
+            form_key = f"price_{svc.id}"
+            if form_key in request.form:
+                try:
+                    new_price = float(request.form[form_key])
+                    if new_price > 0:
+                        svc.price = new_price
+                except ValueError:
+                    pass
+        db.session.commit()
+        flash("Servis fiyatları güncellendi.", "success")
+
+    # 1) Yerel servisler
+    local = Service.query.filter_by(active=True).all()
+    # 2) Seçili external servisler (EXT_SELECTED_IDS içinde tanımlı olanlar)
+    external = fetch_selected_external_services()
+    # 3) İkisini birleştir
+    servisler = local + external
+
+    return render_template_string(
+        HTML_SERVICES,
+        servisler=servisler,
+        user=user
+    )
 
 @app.route("/tickets", methods=["GET", "POST"])
 @login_required
