@@ -22,7 +22,7 @@ EXTERNAL_API_KEY = "6b0e961c4a42155ba44bfd4384915c27"
 
 # --- Çekmek istediğimiz ResellersMM servis ID’leri ---
 
-EXT_SELECTED_IDS = [1583, 827]  # Örneğin sadece 1 ve 2 no’lu servisleri çek
+EXT_SELECTED_IDS = [854, 827,]  # Örneğin sadece 1 ve 2 no’lu servisleri çek
 
 def fetch_selected_external_services():
     """Sadece EXT_SELECTED_IDS’deki ResellersMM servislerini çeker, hem dict hem list olanağı var."""
@@ -117,16 +117,19 @@ class User(db.Model):
     def check_password(self, pw):
         return check_password_hash(self.password_hash, pw)
 
+from datetime import datetime
+
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    username = db.Column(db.String(128), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     amount = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(32), default="pending")
-    error = db.Column(db.String(256), default="")
-    total_price = db.Column(db.Float, default=0.0)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    user = db.relationship("User")
+    status = db.Column(db.String(32), nullable=False, default="pending")
+    total_price = db.Column(db.Float, nullable=False)
+    service_id = db.Column(db.Integer, nullable=False)
+    error = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship("User", backref="orders")
 
 class BalanceRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -750,108 +753,183 @@ HTML_EXTERNAL_MANAGE = """
 </body>
 </html>
 """
-
 HTML_ORDERS_SIMPLE = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Geçmiş Siparişler</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <style>
-    .badge-sirada { background: #ffd500; color: #222; font-weight: 600; }
-    .badge-basladi { background: #42c3e8; color: #222; font-weight: 600; }
-    .badge-tamamlandi { background: #29c46a; font-weight: 600; }
-    .badge-iptal { background: #949ba5; font-weight: 600; }
-    .badge-hata { background: #e45858; font-weight: 600; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Geçmiş Siparişler</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #23262b; }
+        .container { margin-top: 60px; }
+        .table { background: #23262b; color: #fff; border-radius: 16px; }
+        .table th, .table td { vertical-align: middle; }
+        .badge-warning { background: #ffc107; color: #23262b; }
+        .badge-success { background: #22c55e; }
+        .badge-secondary { background: #6c757d; }
+        .badge-danger { background: #e11d48; }
+        .orders-card { border-radius: 25px; box-shadow: 0 4px 24px #0004; padding: 40px; background: #262933; }
+        .flash-msg { margin-bottom: 24px; }
+    </style>
+</head>
+<body>
+    <div class="container d-flex justify-content-center">
+        <div class="orders-card w-100" style="max-width: 1000px;">
+          <h1 class="mb-4 fw-bold text-center" style="color:#61dafb; text-shadow: 0 2px 16px #000a;">Geçmiş Siparişler</h1>
+            <div id="alert-area"></div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="flash-msg">
+                  {% for category, message in messages %}
+                    <div class="alert alert-{{ 'warning' if category=='danger' else category }} text-center mb-2 py-2 px-3" style="border-radius:12px;">{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <div class="table-responsive">
+                <table class="table table-dark table-bordered align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            {% if role == 'admin' %}
+                              <th>Kullanıcı</th>
+                            {% endif %}
+                            <th>Hedef Kullanıcı</th>
+                            <th>Adet</th>
+                            <th>Fiyat</th>
+                            <th>Durum</th>
+                            {% if role == 'admin' %}
+                              <th>Hata</th>
+                              <th>İşlem</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in orders %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            {% if role == 'admin' %}
+                              <td>{{ o.user.username }}</td>
+                            {% endif %}
+                            <td>{{ o.username }}</td>
+                            <td>{{ o.amount }}</td>
+                            <td>{{ "%.2f"|format(o.total_price) }}</td>
+                            <td>
+                                {% if role != 'admin' %}
+                                    {% if o.status == 'pending' %}
+                                        <span class="badge badge-warning">Sırada</span>
+                                    {% elif o.status == 'completed' %}
+                                        <span class="badge badge-success">Tamamlandı</span>
+                                    {% elif o.status == 'cancelled' %}
+                                        <span class="badge badge-secondary">İptal Edildi</span>
+                                    {% else %}
+                                        <span class="badge badge-warning">Sırada</span>
+                                    {% endif %}
+                                {% else %}
+                                    {% if o.error %}
+                                        <span class="badge badge-danger">HATA</span>
+                                    {% elif o.status == 'pending' %}
+                                        <span class="badge badge-warning">Sırada</span>
+                                    {% elif o.status == 'completed' %}
+                                        <span class="badge badge-success">Tamamlandı</span>
+                                    {% elif o.status == 'cancelled' %}
+                                        <span class="badge badge-secondary">İptal Edildi</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ o.status }}</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            {% if role == 'admin' %}
+                            <td>
+                                {% if o.error %}
+                                    {{ o.error }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if o.error %}
+                                    <form method="post" style="display:inline;" action="/orders/resend/{{ o.id }}">
+                                        <button class="btn btn-warning btn-sm btn-resend" type="submit">Resend</button>
+                                    </form>
+                                {% endif %}
+                                {% if o.status == 'pending' %}
+                                  <form method="post" style="display:inline;" action="/orders/complete/{{ o.id }}">
+                                    <button class="btn btn-success btn-sm btn-complete" type="submit">Tamamlandı</button>
+                                  </form>
+                                {% endif %}
+                                {% if o.status != 'completed' and o.status != 'cancelled' %}
+                                  <form method="post" style="display:inline;" action="/orders/cancel/{{ o.id }}">
+                                    <button class="btn btn-danger btn-sm btn-cancel" type="submit">İptal & Bakiye İade</button>
+                                  </form>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <a href="/panel" class="btn btn-secondary w-100 mt-4" style="border-radius:12px;">Panele Dön</a>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+HTML_TICKETS = """
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Destek Taleplerim</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
 <body class="bg-dark text-light">
   <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:750px;">
-      <h2 class="mb-3">Geçmiş Siparişler</h2>
-      <table class="table table-dark table-bordered text-center mb-3">
+    <div class="card p-4 mx-auto" style="max-width:800px;">
+      <h3>Destek & Canlı Yardım</h3>
+      <form method="post" class="mb-4">
+        <div class="mb-2">
+          <input name="subject" class="form-control" placeholder="Konu" required>
+        </div>
+        <div class="mb-2">
+          <textarea name="message" class="form-control" placeholder="Mesajınız" rows="3" required></textarea>
+        </div>
+        <button class="btn btn-primary w-100">Gönder</button>
+      </form>
+      <h5>Geçmiş Talepleriniz</h5>
+      <table class="table table-dark table-bordered table-sm">
         <thead>
           <tr>
-            <th>#</th>
-            {% if role == 'admin' %}<th>Kullanıcı</th>{% endif %}
-            <th>Hedef Kullanıcı</th>
-            <th>Adet</th>
-            <th>Fiyat</th>
+            <th>Konu</th>
+            <th>Mesaj</th>
+            <th>Tarih</th>
             <th>Durum</th>
-            <th>Hata</th>
-            {% if role == 'admin' %}<th>Durumu Değiştir</th>{% endif %}
+            <th>Yanıt</th>
           </tr>
         </thead>
         <tbody>
-          {% for o in orders %}
+        {% for t in tickets %}
           <tr>
-            <td>{{ loop.index }}</td>
-            {% if role == 'admin' %}<td>{{ o.user.username }}</td>{% endif %}
-            <td>{{ o.username }}</td>
-            <td>{{ o.amount }}</td>
-            <td>{{ "%.2f"|format(o.total_price) }}</td>
+            <td>{{ t.subject }}</td>
+            <td>{{ t.message }}</td>
+            <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
             <td>
-              {% if o.status == 'pending' %}
-                <span class="badge badge-sirada">Sırada</span>
-              {% elif o.status == 'started' %}
-                <span class="badge badge-basladi">Başladı</span>
-              {% elif o.status == 'complete' %}
-                <span class="badge badge-tamamlandi">Tamamlandı</span>
-              {% elif o.status == 'cancelled' %}
-                <span class="badge badge-iptal">İptal Edildi</span>
-              {% elif o.status == 'error' %}
-                <span class="badge badge-hata">Hata</span>
-              {% else %}
-                <span class="badge bg-secondary">{{ o.status }}</span>
-              {% endif %}
+              {% if t.status == "open" %}<span class="badge bg-warning text-dark">Açık</span>
+              {% else %}<span class="badge bg-success">Yanıtlandı</span>{% endif %}
             </td>
-            <td>{{ o.error or "-" }}</td>
-            {% if role == 'admin' %}
-            <td>
-              {% if o.status not in ['complete','cancelled'] %}
-              <select class="form-select form-select-sm" style="min-width:120px"
-                onchange="changeStatus('{{ o.id }}', this.value)">
-                <option disabled selected>Durumu seç</option>
-                <option value="pending">Sırada</option>
-                <option value="started">Başladı</option>
-                <option value="complete">Tamamlandı</option>
-                <option value="cancelled">İptal Edildi</option>
-              </select>
-              {% else %}
-                <span class="text-muted">–</span>
-              {% endif %}
-            </td>
-            {% endif %}
+            <td>{{ t.response or "-" }}</td>
           </tr>
-          {% else %}
-          <tr>
-            <td colspan="{% if role == 'admin' %}9{% else %}7{% endif %}" class="text-center text-muted">Henüz sipariş yok.</td>
-          </tr>
-          {% endfor %}
+        {% endfor %}
         </tbody>
       </table>
       <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
     </div>
   </div>
-  {% if role == 'admin' %}
-  <script>
-    function changeStatus(orderId, newStatus) {
-      fetch('/api/order_status', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({order_id: orderId, status: newStatus})
-      }).then(res=>res.json()).then(res=>{
-        if(res.success){
-          location.reload();
-        }else{
-          alert("Hata: " + (res.error || "Durum güncellenemedi!"));
-        }
-      });
-    }
-  </script>
-  {% endif %}
 </body>
 </html>
 """
@@ -1740,22 +1818,84 @@ def api_new_order():
     if not service:
         return jsonify({"success":False, "error":"Servis bulunamadı."})
     total = service.price * amount
-    if not username or amount<10 or amount>1000:
+    if not username or amount < 10 or amount > 1000:
         return jsonify({"success":False, "error":"Adet 10-1000 arası olmalı."})
     if user.balance < total:
         return jsonify({"success":False, "error":"Yetersiz bakiye!"})
+
+    # Varsayılanlar
+    status = "pending"
+    error = None
+
+    # Eğer Resellersmm API kullanılacaksa
+    if service.id >= 100000:
+        try:
+            real_service_id = service.id - 100000
+            resp = requests.post(EXTERNAL_API_URL, data={
+                "key": EXTERNAL_API_KEY,
+                "action": "add",
+                "service": real_service_id,
+                "link": username,
+                "quantity": amount
+            }, timeout=10)
+            resp.raise_for_status()
+            result = resp.json()
+            if "order" not in result:
+                # HATA GELDİ, siparişi error statüsünde kaydet!
+                status = "error"
+                error = result.get("error", "Resellersmm sipariş hatası!")
+        except Exception as e:
+            status = "error"
+            error = "ResellersMM API bağlantı/yanıt hatası: "+str(e)
+
+    # Siparişi oluştur
     order = Order(
         username=username,
         user_id=user.id,
         amount=amount,
-        status="pending",  # Sırada
-        total_price=total
+        status=status,
+        total_price=total,
+        service_id=service_id,
+        error=error
     )
     user.balance -= total
     db.session.add(order)
     db.session.commit()
-    # Yeni bakiye de dön!
-    return jsonify({"success":True, "new_balance": round(user.balance,2)})
+
+    if status == "error":
+        return jsonify({"success":True, "new_balance": round(user.balance,2), "info":error})
+    else:
+        return jsonify({"success":True, "new_balance": round(user.balance,2)})
+
+@app.route("/admin/order_resend/<int:order_id>", methods=["POST"])
+@login_required
+@admin_required
+def admin_order_resend(order_id):
+    order = Order.query.get_or_404(order_id)
+    service = Service.query.get(order.service_id)
+    if service and service.id >= 100000:
+        try:
+            real_service_id = service.id - 100000
+            resp = requests.post(EXTERNAL_API_URL, data={
+                "key": EXTERNAL_API_KEY,
+                "action": "add",
+                "service": real_service_id,
+                "link": order.username,
+                "quantity": order.amount
+            }, timeout=10)
+            resp.raise_for_status()
+            result = resp.json()
+            if "order" in result:
+                order.status = "pending"
+                order.error = ""
+            else:
+                order.status = "waiting"
+                order.error = result.get("error", "ResellersMM sipariş hatası!")
+        except Exception as e:
+            order.status = "waiting"
+            order.error = "ResellersMM API bağlantı/yanıt hatası: "+str(e)
+        db.session.commit()
+    return redirect(url_for("orders"))
 
 @app.route("/api/orders/list")
 @login_required
@@ -1773,6 +1913,138 @@ def api_orders_list():
         } for o in orders
       ]
     })
+
+@app.route("/orders/resend/<int:order_id>", methods=["POST"])
+@login_required
+@admin_required
+def resend_order(order_id):
+    order = Order.query.get_or_404(order_id)
+    user = User.query.get(order.user_id)
+    service = Service.query.get(order.service_id)
+
+    if user.balance < order.total_price:
+        flash("Kullanıcının bakiyesi hala yetersiz!", "danger")
+        return redirect("/orders")
+
+    order.status = "pending"
+    order.error = ""
+
+    # Eğer dış servis ise ResellersMM'ye tekrar gönder
+    if service and service.id >= 100000:
+        try:
+            real_service_id = service.id - 100000
+            resp = requests.post(EXTERNAL_API_URL, data={
+                "key": EXTERNAL_API_KEY,
+                "action": "add",
+                "service": real_service_id,
+                "link": order.username,
+                "quantity": order.amount
+            }, timeout=10)
+            resp.raise_for_status()
+            result = resp.json()
+            if "order" not in result:
+                order.status = "error"
+                order.error = result.get("error", "ResellersMM sipariş hatası!")
+                db.session.commit()
+                flash(order.error, "danger")
+                return redirect("/orders")
+        except Exception as e:
+            order.status = "error"
+            order.error = "ResellersMM API bağlantı/yanıt hatası: "+str(e)
+            db.session.commit()
+            flash(order.error, "danger")
+            return redirect("/orders")
+
+    user.balance -= order.total_price
+    db.session.commit()
+    flash("Sipariş tekrar başlatıldı!", "success")
+    return redirect("/orders")
+
+@app.route('/orders/resend/<int:order_id>', methods=['POST'])
+@login_required
+def order_resend(order_id):
+    user = User.query.get(session.get("user_id"))
+    if not user or user.role != "admin":
+        return jsonify({"success": False, "error": "Yetkisiz erişim!"}), 403
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({"success": False, "error": "Sipariş bulunamadı."})
+    service = Service.query.get(order.service_id)
+    # Sadece Resellersmm (dış servis) siparişleri için:
+    if not (service and service.id >= 100000):
+        return jsonify({"success": False, "error": "Bu sipariş Resellersmm servisi değil."})
+    try:
+        real_service_id = service.id - 100000
+        resp = requests.post(EXTERNAL_API_URL, data={
+            "key": EXTERNAL_API_KEY,
+            "action": "add",
+            "service": real_service_id,
+            "link": order.username,
+            "quantity": order.amount
+        }, timeout=15)
+        resp.raise_for_status()
+        result = resp.json()
+        if "order" in result:
+            order.status = "pending"
+            order.error = None
+            db.session.commit()
+            return jsonify({"success": True, "message": "Sipariş Resellersmm'e tekrar sıraya alındı!"})
+        else:
+            order.error = result.get("error", "ResellersMM sipariş hatası!")
+            db.session.commit()
+            return jsonify({"success": False, "error": order.error})
+    except Exception as e:
+        order.error = str(e)
+        db.session.commit()
+        return jsonify({"success": False, "error": "API bağlantı/yanıt hatası: " + str(e)})
+
+@app.route('/orders/complete/<int:order_id>', methods=['POST'])
+@login_required
+def order_complete(order_id):
+    user = User.query.get(session.get("user_id"))
+    if not user or getattr(user, "role", None) != "admin":
+        abort(403)
+    order = Order.query.get(order_id)
+    if not order:
+        flash("Sipariş bulunamadı.", "danger")
+        return redirect(url_for("orders"))
+    order.status = "completed"
+    order.error = None
+    db.session.commit()
+    flash("Sipariş manuel tamamlandı.", "success")
+    return redirect(url_for("orders"))
+
+@app.route('/orders/cancel/<int:order_id>', methods=['POST'])
+@login_required
+def order_cancel(order_id):
+    user = User.query.get(session.get("user_id"))
+    # Sadece admin iptal edebilir:
+    if not user or user.role != "admin":
+        abort(403)
+
+    order = Order.query.get(order_id)
+    if not order:
+        flash("Sipariş bulunamadı.", "danger")
+        return redirect(url_for("orders"))
+
+    # Eğer sipariş zaten iptal edilmişse, tekrar iade etme!
+    if order.status == "cancelled":
+        flash("Sipariş zaten iptal edilmiş.", "warning")
+        return redirect(url_for("orders"))
+
+    target_user = User.query.get(order.user_id)
+    if not target_user:
+        flash("Müşteri bulunamadı.", "danger")
+        return redirect(url_for("orders"))
+
+    # Siparişi iptal et ve bakiyeyi iade et
+    order.status = "cancelled"
+    order.error = None
+    target_user.balance += order.total_price   # --- BAKİYE İADE!
+
+    db.session.commit()
+    flash("Sipariş iptal edildi ve bakiye iade edildi.", "success")
+    return redirect(url_for("orders"))
 
 @app.route('/api/order_status', methods=['POST'])
 def api_order_status():
