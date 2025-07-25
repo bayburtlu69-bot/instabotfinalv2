@@ -2,15 +2,14 @@ import os
 import time
 import random
 import smtplib
+from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from flask import (
     Flask, session, request, redirect,
-    render_template_string, abort, url_for, flash
+    render_template_string, abort, url_for, flash, jsonify
 )
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from instagrapi import Client
-from instagrapi.exceptions import LoginRequired
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -22,6 +21,7 @@ db = SQLAlchemy(app)
 SABIT_FIYAT = 0.5
 
 # --- MODELLER ---
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
@@ -30,6 +30,8 @@ class User(db.Model):
     role = db.Column(db.String(16), nullable=False)
     balance = db.Column(db.Float, default=10.0)
     is_verified = db.Column(db.Boolean, default=False)
+    last_ad_watch = db.Column(db.DateTime, default=None)  # Günde 1 izleme için!
+
     def check_password(self, pw):
         return check_password_hash(self.password_hash, pw)
 
@@ -73,6 +75,11 @@ class Ticket(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     user = db.relationship("User")
 
+# Reklam videosu embed url için model:
+class AdVideo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    embed_url = db.Column(db.String(256), default="https://www.youtube.com/embed/KzJk7e7XF3g")
+
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username="admin").first():
@@ -95,8 +102,11 @@ with app.app_context():
             active=True
         ))
         db.session.commit()
+    if not AdVideo.query.first():
+        db.session.add(AdVideo(embed_url="https://www.youtube.com/embed/KzJk7e7XF3g"))
+        db.session.commit()
 
-# --- SMTP AYARLARI ---
+# --- SMTP AYARLARI (mail ile ilgili) ---
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
 SMTP_ADDR = "kuzenlertv6996@gmail.com"
@@ -121,6 +131,7 @@ def rolu_turkce(rol):
     return "Yönetici" if rol == "admin" else ("Kullanıcı" if rol == "viewer" else rol)
 
 # --- HTML ŞABLONLAR ---
+
 HTML_LOGIN = """
 <!DOCTYPE html>
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>insprov.uk</title>
@@ -254,7 +265,6 @@ HTML_USERS = """
 </html>
 """
 
-# --- EKLENEN: SERVİSLERİ YÖNET (FİYAT DEĞİŞTİRME) ---
 HTML_SERVICES_MANAGE = """
 <!DOCTYPE html>
 <html lang="tr">
@@ -749,6 +759,7 @@ HTML_PANEL = """
           <a href="{{ url_for('tickets') }}" class="btn btn-danger btn-block py-2">Destek & Canlı Yardım</a>
         {% endif %}
         <a href="{{ url_for('services') }}" class="btn btn-info btn-block py-2">Servisler & Fiyat Listesi</a>
+        <a href="{{ url_for('watchads') }}" class="btn btn-success btn-block py-2">Reklam İzle – Bakiye Kazan</a>
       </div>
 
       <!-- SİPARİŞ FORMU -->
@@ -863,7 +874,166 @@ HTML_PANEL = """
 </html>
 """
 
+HTML_ADS_MANAGE = """
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reklam Videosu</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<body class="bg-dark text-light">
+  <div class="container py-4">
+    <div class="card p-4 mx-auto" style="max-width:600px;">
+      <h3>Reklam Videosu Ayarları</h3>
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-info">{{ messages[0] }}</div>
+      {% endif %}
+      {% endwith %}
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">YouTube Embed URL</label>
+          <input name="embed_url" class="form-control" value="{{ embed_url }}">
+        </div>
+        <button class="btn btn-success w-100">Kaydet</button>
+      </form>
+      <h5 class="mt-4">Mevcut Video Önizlemesi:</h5>
+      <iframe width="100%" height="315" src="{{ embed_url }}" frameborder="0" allowfullscreen></iframe>
+      <a href="/panel" class="btn btn-secondary btn-sm mt-3">Panele Dön</a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+HTML_ADS_MANAGE = """
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reklam Videosu</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<body class="bg-dark text-light">
+  <div class="container py-4">
+    <div class="card p-4 mx-auto" style="max-width:600px;">
+      <h3>Reklam Videosu Ayarları</h3>
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-info">{{ messages[0] }}</div>
+      {% endif %}
+      {% endwith %}
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">YouTube Embed URL</label>
+          <input name="embed_url" class="form-control" value="{{ embed_url }}">
+        </div>
+        <button class="btn btn-success w-100">Kaydet</button>
+      </form>
+      <h5 class="mt-4">Mevcut Video Önizlemesi:</h5>
+      <iframe width="100%" height="315" src="{{ embed_url }}" frameborder="0" allowfullscreen></iframe>
+      <a href="/panel" class="btn btn-secondary btn-sm mt-3">Panele Dön</a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+HTML_WATCH_ADS = """
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reklam İzle – Bakiye Kazan</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #22252b; min-height: 100vh; }
+    .ad-modern-card { max-width: 440px; margin: 64px auto; border-radius: 18px; background: #fff; box-shadow: 0 3px 32px 0 rgba(30,38,67,0.14); padding: 40px 34px 34px 34px; text-align: center; }
+    .ad-modern-title { font-weight: 700; color: #23273e; letter-spacing: 0.01em; margin-bottom: 16px; font-size: 1.55rem; display: flex; align-items: center; gap: 9px; justify-content: center; }
+    .ad-modern-title i { font-size: 1.32em; color: #24aaf8; }
+    .ad-modern-desc { color: #274164; background: #e7f3ff; border-radius: 11px; font-size: 1.14rem; padding: 14px 7px 10px 7px; margin-bottom: 18px; font-weight: 600; border: 1.5px solid #c7e6fe; }
+    .ad-modern-video-frame { background: #181c22; border-radius: 12px; overflow: hidden; border: 2.5px solid #e8f1fa; margin-bottom: 23px; box-shadow: 0 1px 12px 0 rgba(24,34,56,0.07);}
+    .ad-modern-video-frame video { display: block; width: 100%; height: 245px; border: none; background: #000;}
+    .ad-modern-btn { background: linear-gradient(90deg, #24aaf8 0%, #3763f4 100%); border: none; color: #fff; padding: 12px 22px; border-radius: 10px; font-size: 1.09rem; font-weight: 600; box-shadow: 0 2px 16px 0 rgba(36,170,248,0.11); margin-bottom: 13px; width: 100%; transition: background 0.19s, box-shadow 0.19s; }
+    .ad-modern-btn:disabled, .ad-modern-btn[disabled] { background: linear-gradient(90deg, #7cc6b7 0%, #95cfc0 100%); color: #edf4f3; opacity: 1; cursor: not-allowed; }
+    .ad-modern-timer { font-size: 1.07rem; color: #1e3c6c; margin-bottom: 15px; font-weight: 500; letter-spacing: 0.01em; }
+    .modern-link-btn { background: #727a87; border: none; color: #fff; font-weight: 600; padding: 11px 0; width: 100%; border-radius: 8px; margin-top: 5px; font-size: 1.04rem; transition: background .18s; text-decoration: none; display: block; }
+    .modern-link-btn:hover { background: #61656d; color: #fff; }
+    @media (max-width: 600px) { .ad-modern-card { max-width: 99vw; padding: 18px 4vw 17px 4vw; margin: 22px auto;} .ad-modern-video-frame video { height: 39vw; min-height: 145px;} }
+  </style>
+</head>
+<body>
+  <div class="ad-modern-card">
+    <div class="ad-modern-title"><i class="bi bi-play-circle-fill"></i> Reklam İzle – Bakiye Kazan</div>
+    <div class="ad-modern-desc">Reklamı izleyerek <b>{{ reward }} TL</b> bakiye kazan!</div>
+    {% if already_watched %}
+      <div class="alert alert-warning" id="waitDiv">
+        <b>Tekrar izleyip bakiye kazanmak için:</b><br>
+        <span id="waitTimer"></span>
+      </div>
+      <script>
+        // Geriye kalan süreyi gösteren sayaç:
+        var wait_seconds = {{ wait_seconds }};
+        function fmt(sec) {
+          var h = Math.floor(sec/3600);
+          var m = Math.floor((sec%3600)/60);
+          var s = sec%60;
+          return (h<10?'0':'')+h+":"+(m<10?'0':'')+m+":"+(s<10?'0':'')+s;
+        }
+        function countdown() {
+          if(wait_seconds>0){
+            document.getElementById("waitTimer").innerText = fmt(wait_seconds) + " sonra tekrar izleyebilirsin!";
+            wait_seconds--;
+            setTimeout(countdown,1000);
+          } else {
+            location.reload();
+          }
+        }
+        countdown();
+      </script>
+    {% else %}
+      <div class="ad-modern-video-frame mb-3">
+        <video id="adVideo" width="100%" height="245" controls>
+          <source src="/static/reklam.mp4" type="video/mp4">
+          Tarayıcınız video etiketini desteklemiyor.
+        </video>
+      </div>
+      <button class="ad-modern-btn" id="watchBtn" disabled>30 sn sonra Bakiyeyi Al</button>
+      <div class="ad-modern-timer" id="timer">30 sn kaldı...</div>
+      <script>
+        let sec = 30;
+        let btn = document.getElementById("watchBtn");
+        let timer = document.getElementById("timer");
+        let video = document.getElementById("adVideo");
+        let watched = false;
+        video.addEventListener("play", function() { if(!watched) countdown(); });
+        function countdown() {
+          if (sec > 0) {
+            timer.innerText = sec + " sn kaldı...";
+            sec--;
+            setTimeout(countdown, 1000);
+          } else {
+            btn.disabled = false;
+            timer.innerText = "Bakiyeyi alabilirsin!";
+            watched = true;
+          }
+        }
+        btn.onclick = function(){
+          btn.disabled = true;
+          btn.innerText = "Bakiyen ekleniyor...";
+          fetch('/watchads/collect', {method:"POST"}).then(r=>r.json()).then(res=>{
+            if(res.success){
+              btn.innerText = "Bakiye eklendi!";
+            }else{
+              btn.innerText = res.msg || "Hata!";
+            }
+          });
+        }
+      </script>
+    {% endif %}
+    <a href="/panel" class="modern-link-btn">Panele Dön</a>
+  </div>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</body>
+</html>
+"""
+
 # --- BOT SETUP ---
+
 def load_bots(path="bots.txt"):
     if not os.path.exists(path): return []
     with open(path, "r", encoding="utf-8") as f:
@@ -911,7 +1081,8 @@ def follow_user(client, target):
         client.login(client.username, client._password)
         client.user_follow(client.user_id_from_username(target))
 
-# --- DECORATORS ---
+# ------------- DECORATORS -------------
+
 def login_required(f):
     def wrapper(*args, **kwargs):
         if not session.get("user_id"):
@@ -930,6 +1101,57 @@ def admin_required(f):
     return wrapper
 
 # --- ROUTELAR ---
+
+@app.route("/admin/ads", methods=["GET", "POST"])
+@login_required
+@admin_required
+def manage_ads():
+    ad = AdVideo.query.first()
+    if request.method == "POST":
+        new_url = request.form.get("embed_url", "").strip()
+        if new_url.startswith("https://www.youtube.com/embed/"):
+            ad.embed_url = new_url
+            db.session.commit()
+            flash("Reklam videosu başarıyla güncellendi.")
+        else:
+            flash("Sadece YouTube embed URL girebilirsiniz.")
+    return render_template_string(HTML_ADS_MANAGE, embed_url=ad.embed_url)
+
+# Kullanıcı için reklam izleme ve bakiye kazanma
+REWARD = 0.15  # Kullanıcı izlediğinde kazanacağı bakiye
+
+@app.route("/watchads")
+@login_required
+def watchads():
+    user = User.query.get(session.get("user_id"))
+    now = datetime.utcnow()
+    already = False
+    wait_seconds = 0
+    if user.last_ad_watch:
+        elapsed = (now - user.last_ad_watch).total_seconds()
+        if elapsed < 12 * 3600:
+            already = True
+            wait_seconds = int(12*3600 - elapsed)
+    ad = AdVideo.query.first()
+    return render_template_string(
+        HTML_WATCH_ADS,
+        already_watched=already,
+        wait_seconds=wait_seconds,
+        reward=REWARD
+    )
+
+@app.route("/watchads/collect", methods=["POST"])
+@login_required
+def collect_ads_reward():
+    user = User.query.get(session.get("user_id"))
+    today = datetime.utcnow().date()
+    if user.last_ad_watch and user.last_ad_watch.date() == today:
+        return jsonify({"success":False, "msg":"Bugün zaten reklam izledin!"})
+    user.balance += REWARD
+    user.last_ad_watch = datetime.utcnow()
+    db.session.commit()
+    return jsonify({"success":True, "new_balance": round(user.balance,2)})
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
