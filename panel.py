@@ -84,6 +84,17 @@ def save_selected_ext_ids(ids):
     with open(EXT_SELECTION_FILE, "w", encoding="utf-8") as f:
         json.dump(ids, f)
 
+def durum_turkce(status):
+    mapping = {
+        "completed": "Tamamlandı",
+        "pending": "Sırada",
+        "started": "Sırada",
+        "canceled": "İptal Edildi",
+        "cancelled": "İptal Edildi",
+        "partial": "Kısmen Tamamlandı"
+    }
+    return mapping.get(status, status)
+
 def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -1353,7 +1364,6 @@ HTML_ORDERS_SIMPLE = """
           50% {background-position: 100% 50%;}
           100% {background-position: 0% 50%;}
         }
-
         .container { margin-top: 60px; }
         .table { background: #1f1f1f; color: #eaeaea; border-radius: 16px; }
         .table th, .table td { vertical-align: middle; color: #fff; }
@@ -1361,6 +1371,8 @@ HTML_ORDERS_SIMPLE = """
         .badge-success { background: #28a745; }
         .badge-secondary { background: #6c757d; }
         .badge-danger { background: #dc3545; }
+        .badge-info { background: #17a2b8; }
+        .badge-dark { background: #222; }
         .orders-card {
           border-radius: 25px;
           box-shadow: 0 4px 24px rgba(0,0,0,0.5);
@@ -1391,7 +1403,6 @@ HTML_ORDERS_SIMPLE = """
                 </div>
               {% endif %}
             {% endwith %}
-
             <div class="table-responsive">
                 <table class="table table-dark table-bordered align-middle text-center">
                     <thead>
@@ -1423,45 +1434,33 @@ HTML_ORDERS_SIMPLE = """
                             <td>{{ "%.2f"|format(o.total_price) }}</td>
                             <td>{{ o.service_id }}</td>
                             <td>
-                                {% if role != 'admin' %}
-                                    {% if o.status == 'pending' %}
-                                        <span class="badge badge-warning">Sırada</span>
-                                    {% elif o.status == 'completed' %}
-                                        <span class="badge badge-success">Tamamlandı</span>
-                                    {% elif o.status == 'cancelled' %}
-                                        <span class="badge badge-secondary">İptal Edildi</span>
-                                    {% else %}
-                                        <span class="badge badge-warning">Sırada</span>
-                                    {% endif %}
-                                {% else %}
-                                    {% if o.error %}
-                                        <span class="badge badge-danger">HATA</span>
-                                    {% elif o.status == 'pending' %}
-                                        <span class="badge badge-warning">Sırada</span>
-                                    {% elif o.status == 'completed' %}
-                                        <span class="badge badge-success">Tamamlandı</span>
-                                    {% elif o.status == 'cancelled' %}
-                                        <span class="badge badge-secondary">İptal Edildi</span>
-                                    {% else %}
-                                        <span class="badge badge-secondary">{{ o.status }}</span>
-                                    {% endif %}
+                                <span class="badge
+                                    {% if o.status in ['canceled', 'cancelled'] %}badge-secondary
+                                    {% elif o.status == 'completed' %}badge-success
+                                    {% elif o.status == 'pending' %}badge-warning
+                                    {% elif o.status == 'partial' %}badge-info
+                                    {% else %}badge-dark{% endif %}">
+                                    {{ durum_turkce(o.status) }}
+                                </span>
+                                {% if o.error %}
+                                    <span class="badge badge-danger">HATA</span>
                                 {% endif %}
                             </td>
                             {% if role == 'admin' %}
                             <td>{{ o.error if o.error else "-" }}</td>
                             <td>
                                 {% if o.error %}
-                                    <form method="post" style="display:inline;" action="/orders/resend/{{ o.id }}">
+                                    <form method="post" style="display:inline;" action="{{ url_for('orders_resend', order_id=o.id) }}">
                                         <button class="btn btn-warning btn-sm btn-resend" type="submit">Resend</button>
                                     </form>
                                 {% endif %}
                                 {% if o.status == 'pending' %}
-                                  <form method="post" style="display:inline;" action="/orders/complete/{{ o.id }}">
+                                  <form method="post" style="display:inline;" action="{{ url_for('orders_complete', order_id=o.id) }}">
                                     <button class="btn btn-success btn-sm btn-complete" type="submit">Tamamlandı</button>
                                   </form>
                                 {% endif %}
-                                {% if o.status != 'completed' and o.status != 'cancelled' %}
-                                  <form method="post" style="display:inline;" action="/orders/cancel/{{ o.id }}">
+                                {% if o.status not in ['completed', 'canceled', 'cancelled'] %}
+                                  <form method="post" style="display:inline;" action="{{ url_for('orders_cancel', order_id=o.id) }}">
                                     <button class="btn btn-danger btn-sm btn-cancel" type="submit">İptal & Bakiye İade</button>
                                   </form>
                                 {% endif %}
@@ -1472,14 +1471,12 @@ HTML_ORDERS_SIMPLE = """
                     </tbody>
                 </table>
             </div>
-            <a href="/panel" class="btn btn-secondary w-100 mt-4" style="border-radius:12px;">Panele Dön</a>
+            <a href="{{ url_for('panel') }}" class="btn btn-secondary w-100 mt-4" style="border-radius:12px;">Panele Dön</a>
         </div>
     </div>
 </body>
 </html>
 """
-
-
 
 HTML_TICKETS = """
 <!DOCTYPE html>
@@ -2783,13 +2780,15 @@ def admin_tickets():
 
 @app.route("/orders")
 @login_required
-def orders():
+def orders_page():
     user = User.query.get(session.get("user_id"))
     if user.role == "admin":
-        orders = Order.query.order_by(Order.created_at.desc()).all()
+        orders = Order.query.order_by(Order.id.desc()).all()
+        role = "admin"
     else:
-        orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
-    return render_template_string(HTML_ORDERS_SIMPLE, orders=orders, role=user.role)
+        orders = Order.query.filter_by(user_id=user.id).order_by(Order.id.desc()).all()
+        role = "user"
+    return render_template_string(HTML_ORDERS_SIMPLE, orders=orders, role=role, durum_turkce=durum_turkce)
 
 @app.route("/save_announcement", methods=["POST"])
 @login_required
@@ -3110,7 +3109,9 @@ def sync_external_order_status():
         ).all()
         for order in external_orders:
             result = fetch_resellersmm_status(order.api_order_id)
+            print(f"Order ID: {order.id}, API Order ID: {order.api_order_id}, API Sonuç: {result}")  # <-- BURAYI EKLE!
             new_status = result.get("status", "").lower()
+            print(f"Order ID: {order.id}, new_status: {new_status}")  # <-- BURAYI DA EKLE!
             status_map = {
                 "completed": "completed",
                 "canceled": "canceled",
@@ -3119,12 +3120,13 @@ def sync_external_order_status():
                 "partial": "partial"
             }
             mapped_status = status_map.get(new_status, order.status)
+            print(f"Order ID: {order.id}, mapped_status: {mapped_status}, mevcut status: {order.status}")  # <-- BURAYI DA EKLE!
             if order.status != mapped_status:
                 order.status = mapped_status
                 db.session.commit()
                 print(f"[Senkron] Order {order.id}: Durum güncellendi: {mapped_status}")
 
-    threading.Timer(120, sync_external_order_status).start()
+    threading.Timer(180, sync_external_order_status).start()
 
 if __name__ == "__main__":
     sync_external_order_status()
