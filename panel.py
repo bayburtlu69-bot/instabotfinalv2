@@ -130,6 +130,7 @@ class Order(db.Model):
     error = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user = db.relationship("User", backref="orders")
+    api_order_id = db.Column(db.String(64), nullable=True)
 
 class BalanceRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -2833,6 +2834,7 @@ def api_new_order():
     # Varsayılanlar
     status = "pending"
     error = None
+    api_order_id = None
 
     # Eğer Resellersmm API kullanılacaksa
     if service.id >= 100000:
@@ -2847,7 +2849,9 @@ def api_new_order():
             }, timeout=10)
             resp.raise_for_status()
             result = resp.json()
-            if "order" not in result:
+            if "order" in result:
+                api_order_id = str(result["order"])
+            else:
                 status = "error"
                 error = result.get("error", "Resellersmm sipariş hatası!")
         except Exception as e:
@@ -2862,7 +2866,8 @@ def api_new_order():
         status=status,
         total_price=total,
         service_id=service_id,
-        error=error
+        error=error,
+        api_order_id=api_order_id
     )
     user.balance -= total
     db.session.add(order)
@@ -2872,7 +2877,6 @@ def api_new_order():
         return jsonify({"success": True, "new_balance": round(user.balance, 2), "info": error})
     else:
         return jsonify({"success": True, "new_balance": round(user.balance, 2)})
-
 
 @app.route("/admin/order_resend/<int:order_id>", methods=["POST"])
 @login_required
@@ -3082,6 +3086,61 @@ def update_service(service_id):
     db.session.commit()
     flash('Servis ayarları güncellendi!', 'success')
     return redirect(url_for('manage_services'))
+
+def fetch_resellersmm_status(api_order_id):
+    try:
+        resp = requests.post(EXTERNAL_API_URL, data={
+            "key": EXTERNAL_API_KEY,
+            "action": "status",
+            "order": api_order_id
+        }, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as e:
+        print(f"Status API Hatası: {e}")
+        return {}
+
+import threading
+
+def fetch_resellersmm_status(api_order_id):
+    # ResellersMM API'ye order_id ile sorgu yapıp son durumu döndürür
+    try:
+        resp = requests.post(EXTERNAL_API_URL, data={
+            "key": EXTERNAL_API_KEY,
+            "action": "status",
+            "order": api_order_id
+        }, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as e:
+        print("Status fetch error:", e)
+        return {}
+
+def sync_external_order_status():
+    with app.app_context():
+        external_orders = Order.query.filter(
+            Order.status.in_(["pending", "started"]),
+            Order.api_order_id != None,
+            Order.service_id >= 100000
+        ).all()
+        for order in external_orders:
+            result = fetch_resellersmm_status(order.api_order_id)
+            new_status = result.get("status", "").lower()
+            status_map = {
+                "completed": "completed",
+                "canceled": "cancelled",
+                "pending": "pending",
+                "in progress": "pending"
+            }
+            mapped_status = status_map.get(new_status, order.status)
+            if order.status != mapped_status:
+                order.status = mapped_status
+                db.session.commit()
+                print(f"[Senkron] Order {order.id}: Durum güncellendi: {mapped_status}")
+
+    threading.Timer(180, sync_external_order_status).start()
+
+# ---- TAM BU SATIRDAN HEMEN ÖNCE ÇAĞIR ----
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
