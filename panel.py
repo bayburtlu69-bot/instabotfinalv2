@@ -242,12 +242,7 @@ HTML_LOGIN = """
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Baybayim</title>
-  <meta name="description" content="VİDEO İZLE 5 TL BAKİYE KAZAN TAKİPÇİ BEĞENİ İZLENME SİPARİŞİ VER">
-  <meta property="og:site_name" content="Baybayim">
-  <meta property="og:title" content="ınsprov">
-  <meta property="og:description" content="VİDEO İZLE 5 TL BAKİYE KAZAN TAKİPÇİ BEĞENİ İZLENME SİPARİŞİ VER">
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='faviconu.png') }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -257,6 +252,8 @@ HTML_LOGIN = """
       background-size: 400% 400%;
       animation: gradientBG 12s ease infinite;
       color: #fff;
+      overflow: hidden;
+      position: relative;
     }
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
@@ -277,6 +274,36 @@ HTML_LOGIN = """
       background-color: #1b1b1b;
       color: #fff;
       border-radius: 16px;
+      z-index: 2;
+      position: relative;
+    }
+    .logo-img {
+      width: 62px;
+      height: 62px;
+      display: block;
+      margin: 0 auto 12px auto;
+      border-radius: 20%;
+      box-shadow: 0 4px 16px #0005;
+      object-fit: contain;
+      background: #232323;
+    }
+    .modern-title {
+      font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+      font-size: 2.6rem;
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: 0.01em;
+      margin-bottom: 20px;
+      background: linear-gradient(92deg, #58a7ff 10%, #b95cff 65%, #2feea3 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 4px 24px #000c, 0 2px 2px #1e254430;
+      filter: none;
+      line-height: 1.1;
+      transition: all .25s;
+      padding-bottom: 2px;
+      text-transform: uppercase;
     }
     .alert-custom {
       background-color: #1f1f1f;
@@ -287,19 +314,93 @@ HTML_LOGIN = """
       font-size: 0.95rem;
       margin-bottom: 1rem;
     }
-    a {
-      color: #89b4f8;
+    /* -- Sosyal medya hareketli arka plan -- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
     }
-    a:hover {
-      color: #ffffff;
-      text-decoration: underline;
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
     }
+    /* 18 farklı pozisyon ve animasyon */
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
   </style>
 </head>
 <body class="d-flex justify-content-center align-items-center">
-  <div class="card shadow p-4" style="min-width:340px;">
-    <h3 class="mb-3 text-center">Baybayim</h3>
+  <!-- Hareketli Sosyal Medya İkonları Arka Planı -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
 
+  <div class="card shadow p-4" style="min-width:340px; z-index:2; position:relative;">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-img">
+    <div class="modern-title">BAYBAYİM</div>
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <div class="alert-custom text-center">
@@ -309,7 +410,6 @@ HTML_LOGIN = """
         </div>
       {% endif %}
     {% endwith %}
-
     <form method="post">
       <div class="mb-2">
         <label class="form-label">Kullanıcı Adı:</label>
@@ -346,6 +446,8 @@ HTML_REGISTER = """
       background-size: 400% 400%;
       animation: gradientBG 12s ease infinite;
       color: #fff;
+      overflow: hidden;
+      position: relative;
     }
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
@@ -365,6 +467,55 @@ HTML_REGISTER = """
     .card {
       background-color: #1b1b1b;
       color: #fff;
+      border-radius: 16px;
+      z-index: 2;
+      position: relative;
+    }
+    .logo-img {
+      width: 62px;
+      height: 62px;
+      display: block;
+      margin: 0 auto 12px auto;
+      border-radius: 20%;
+      box-shadow: 0 4px 16px #0005;
+      object-fit: contain;
+      background: #232323;
+    }
+    .modern-title-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 8px;
+      margin-top: 3px;
+    }
+    .modern-title,
+    .modern-title-register {
+      font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+      font-size: 2.6rem;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      line-height: 1.13;
+      background: linear-gradient(92deg, #58a7ff 10%, #b95cff 65%, #2feea3 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 4px 24px #000c, 0 2px 2px #1e254430;
+      filter: none;
+      transition: all .25s;
+      display: inline-block;
+      padding: 0 2px;
+    }
+    .modern-title-register {
+      background: linear-gradient(90deg, #14fff1 0%, #4294ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 2px 10px #00485a55;
+      margin-left: 2px;
+      padding: 0 2px;
+      font-size: 2.6rem;
     }
     .spaced-link {
       display: block;
@@ -383,12 +534,94 @@ HTML_REGISTER = """
     .text-danger.btn-link {
       margin-top: 8px;
     }
+    /* -- Sosyal medya hareketli arka plan -- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    /* 18 farklı pozisyon ve animasyon */
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
   </style>
 </head>
 <body class="d-flex justify-content-center align-items-center">
+  <!-- Hareketli Sosyal Medya İkonları Arka Planı -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="card shadow p-4" style="min-width:370px;">
-    <h3 class="mb-3 text-center">Baybayim <span class="text-primary">Kayıt</span></h3>
-
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-img">
+    <div class="modern-title-row">
+      <span class="modern-title">BAYBAYİM</span>
+      <span class="modern-title-register">KAYIT</span>
+    </div>
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         {% for message in messages %}
@@ -398,7 +631,6 @@ HTML_REGISTER = """
         {% endfor %}
       {% endif %}
     {% endwith %}
-
     {% if not sent %}
       <form method="post">
         <div class="mb-2">
@@ -423,12 +655,10 @@ HTML_REGISTER = """
         </div>
         <button class="btn btn-primary w-100 mb-2">Kodu Doğrula</button>
       </form>
-
       <form method="post" action="/reset-registration" class="text-center">
         <button type="submit" class="btn btn-link btn-sm text-decoration-none text-danger">Kayıt İşleminden Vazgeç</button>
       </form>
     {% endif %}
-
     <div class="text-center mt-2">
       <a href="/" class="btn btn-link btn-sm text-decoration-none spaced-link">Giriş Yap</a>
     </div>
@@ -455,6 +685,8 @@ HTML_USERS = """
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       color: #fff;
+      overflow: hidden;
+      position: relative;
     }
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
@@ -465,6 +697,8 @@ HTML_USERS = """
       background-color: #1f1f1f;
       color: #fff;
       border-radius: 18px;
+      z-index: 2;
+      position: relative;
     }
     .form-control, .form-select {
       background-color: #2e2e2e !important;
@@ -481,7 +715,6 @@ HTML_USERS = """
     .form-control::placeholder {
       color: #aaa;
     }
-    /* number input: okları kaldır */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
       -webkit-appearance: none;
@@ -507,9 +740,88 @@ HTML_USERS = """
     .btn {
       font-weight: 500;
     }
+    /* -- Sosyal medya hareketli arka plan -- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    /* 18 farklı pozisyon ve animasyon */
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
   </style>
 </head>
 <body class="text-light">
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:700px;">
       <h3>Kullanıcı Yönetimi</h3>
@@ -582,6 +894,8 @@ HTML_SERVICES_MANAGE = """
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       color: #fff;
+      overflow: hidden;
+      position: relative;
     }
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
@@ -592,6 +906,8 @@ HTML_SERVICES_MANAGE = """
       background-color: #1f1f1f;
       color: #fff;
       border-radius: 18px;
+      z-index: 2;
+      position: relative;
     }
     .form-control, .form-control-sm, .form-select {
       background-color: #2e2e2e !important;
@@ -622,7 +938,6 @@ HTML_SERVICES_MANAGE = """
       color: #fff;
       text-decoration: underline;
     }
-    /* Number input oklarını kaldır */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
       -webkit-appearance: none;
@@ -632,9 +947,88 @@ HTML_SERVICES_MANAGE = """
       -moz-appearance: textfield;
       appearance: textfield;
     }
+    /* -- Sosyal medya hareketli arka plan -- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    /* 18 farklı pozisyon ve animasyon */
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
   </style>
 </head>
 <body class="text-light">
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="container py-4">
     <div class="card mx-auto" style="max-width:800px;">
       <div class="card-body">
@@ -709,7 +1103,6 @@ HTML_SERVICES_MANAGE = """
 </html>
 """
 
-
 HTML_BALANCE = """
 <!DOCTYPE html>
 <html lang="tr">
@@ -727,6 +1120,8 @@ HTML_BALANCE = """
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       color: #fff;
+      overflow: hidden;
+      position: relative;
     }
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
@@ -737,6 +1132,8 @@ HTML_BALANCE = """
       background-color: #1f1f1f;
       color: #fff;
       border-radius: 18px;
+      z-index: 2;
+      position: relative;
     }
     .form-control, .form-select {
       background-color: #2e2e2e !important;
@@ -779,9 +1176,88 @@ HTML_BALANCE = """
       color: #fff;
       text-decoration: underline;
     }
+    /* -- Sosyal medya hareketli arka plan -- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    /* 18 farklı pozisyon ve animasyon */
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
   </style>
 </head>
 <body class="text-light">
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:500px;">
       <h3>Bakiye Yükle</h3>
@@ -850,6 +1326,8 @@ HTML_BALANCE_REQUESTS = """
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       color: #fff;
+      overflow: hidden;
+      position: relative;
     }
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
@@ -860,6 +1338,8 @@ HTML_BALANCE_REQUESTS = """
       background-color: #1f1f1f;
       color: #fff;
       border-radius: 18px;
+      z-index: 2;
+      position: relative;
     }
     .form-control,
     .form-select {
@@ -889,9 +1369,88 @@ HTML_BALANCE_REQUESTS = """
       color: #cce4ff;
       border-color: #2a4d6b;
     }
+    /* -- Sosyal medya hareketli arka plan -- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    /* 18 farklı pozisyon ve animasyon */
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
   </style>
 </head>
 <body class="text-light">
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
       <h3>Bakiye Talepleri</h3>
@@ -975,6 +1534,8 @@ HTML_SERVICES = """
       background-size: 400% 400%;
       animation: gradientBG 12s ease infinite;
       color: #fff;
+      overflow: hidden;
+      position: relative;
     }
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
@@ -990,6 +1551,8 @@ HTML_SERVICES = """
       border-radius: 14px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
       color: #f1f1f1;
+      z-index: 2;
+      position: relative;
     }
 
     .card h3 {
@@ -1038,9 +1601,89 @@ HTML_SERVICES = """
     input::placeholder {
       color: #bbb;
     }
+
+    /* -- Sosyal medya hareketli arka plan -- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    /* 18 farklı pozisyon ve animasyon */
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
   </style>
 </head>
 <body>
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="container py-4">
     <div class="card mx-auto" style="max-width:900px">
       <div class="card-body">
@@ -1136,6 +1779,27 @@ HTML_SERVICES = """
     cancelBtn.addEventListener('click', ()=>location.reload());
     {% endif %}
   </script>
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
 </body>
 </html>
 """
@@ -1156,6 +1820,8 @@ HTML_ADMIN_TICKETS = """
       background-size: 400% 400%;
       animation: gradientBG 12s ease infinite;
       color: #fff;
+      overflow: hidden;
+      position: relative;
     }
 
     @keyframes gradientBG {
@@ -1169,6 +1835,8 @@ HTML_ADMIN_TICKETS = """
       border-radius: 14px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
       color: #f1f1f1;
+      z-index: 2;
+      position: relative;
     }
 
     .form-control {
@@ -1196,10 +1864,7 @@ HTML_ADMIN_TICKETS = """
       color: #e6e6e6;
     }
 
-    .btn-success {
-      font-weight: 500;
-    }
-
+    .btn-success,
     .btn-secondary {
       font-weight: 500;
     }
@@ -1207,9 +1872,88 @@ HTML_ADMIN_TICKETS = """
     .text-muted {
       color: #bbb !important;
     }
+    /* -- Sosyal medya hareketli arka plan -- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    /* 18 farklı pozisyon ve animasyon */
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
   </style>
 </head>
 <body>
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:900px;">
       <h2 class="mb-4">Tüm Destek Talepleri</h2>
@@ -1280,6 +2024,8 @@ HTML_EXTERNAL_MANAGE = """
       background-size: 400% 400%;
       animation: gradientBG 12s ease infinite;
       color: #fff;
+      overflow: hidden;
+      position: relative;
     }
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
@@ -1290,6 +2036,8 @@ HTML_EXTERNAL_MANAGE = """
       background-color: rgba(20, 20, 20, 0.9) !important;
       border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      z-index: 2;
+      position: relative;
     }
     .form-control, .form-select {
       background-color: #1e1e1e;
@@ -1317,9 +2065,88 @@ HTML_EXTERNAL_MANAGE = """
     h3 {
       color: #f8f9fa;
     }
+    /* -- Sosyal medya hareketli arka plan -- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    /* 18 farklı pozisyon ve animasyon */
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
   </style>
 </head>
 <body>
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:850px;">
       <h3 class="mb-4 text-center">Dış Servis Seçimi (ResellersMM)</h3>
@@ -1367,6 +2194,8 @@ HTML_ORDERS_SIMPLE = """
           background-size: 400% 400%;
           animation: gradientBG 15s ease infinite;
           color: #fff;
+          overflow: hidden;
+          position: relative;
         }
         @keyframes gradientBG {
           0% {background-position: 0% 50%;}
@@ -1389,6 +2218,8 @@ HTML_ORDERS_SIMPLE = """
           background: rgba(33, 37, 41, 0.95);
           max-width: 1200px;
           overflow-x: hidden;
+          z-index: 2;
+          position: relative;
         }
         .flash-msg { margin-bottom: 24px; }
         .btn-resend, .btn-complete, .btn-cancel {
@@ -1403,9 +2234,88 @@ HTML_ORDERS_SIMPLE = """
           height: 0px;
           background: transparent;
         }
+        /* -- Sosyal medya hareketli arka plan -- */
+        .animated-social-bg {
+          position: fixed;
+          inset: 0;
+          width: 100vw;
+          height: 100vh;
+          z-index: 0;
+          pointer-events: none;
+          overflow: hidden;
+          user-select: none;
+        }
+        .bg-icon {
+          position: absolute;
+          width: 48px;
+          opacity: 0.13;
+          filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+          animation-duration: 18s;
+          animation-iteration-count: infinite;
+          animation-timing-function: ease-in-out;
+          user-select: none;
+        }
+        /* 18 farklı pozisyon ve animasyon */
+        .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+        .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+        .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+        .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+        .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+        .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+        .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+        .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+        .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+        .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+        .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+        .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+        .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+        .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+        .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+        .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+        .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+        .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+        @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+        @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+        @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+        @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+        @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+        @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+        @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+        @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+        @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+        @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+        @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+        @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+        @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+        @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+        @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+        @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+        @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+        @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
     </style>
 </head>
 <body>
+    <!-- Sosyal medya hareketli arka plan -->
+    <div class="animated-social-bg">
+      <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+      <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+      <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+      <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+      <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+      <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+      <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+      <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+      <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+      <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+      <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+      <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+      <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+      <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+      <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+      <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+      <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+      <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+    </div>
     <div class="container d-flex justify-content-center">
         <div class="orders-card w-100">
           <h1 class="mb-4 fw-bold text-center">Geçmiş Siparişler</h1>
@@ -1574,66 +2484,138 @@ HTML_TICKETS = """
       background-size: 400% 400%;
       animation: gradientBG 12s ease infinite;
       color: #fff;
+      overflow: hidden;
+      position: relative;
     }
-
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
       100% {background-position: 0% 50%;}
     }
-
     .card {
       background-color: rgba(0, 0, 0, 0.7);
       border-radius: 16px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      z-index: 2;
+      position: relative;
     }
-
     .form-control, .form-select, textarea {
       background-color: #1e1e1e;
       border-color: #444;
       color: #fff;
     }
-
     .form-control:focus, .form-select:focus, textarea:focus {
       background-color: #1e1e1e;
       border-color: #2186eb;
       color: #fff;
       box-shadow: none;
     }
-
     .form-control::placeholder,
     textarea::placeholder {
       color: #bbb;
     }
-
     .table-dark {
       background-color: #1f1f1f;
     }
-
     .table-dark th, .table-dark td {
       color: #e6e6e6;
     }
-
     .badge.bg-warning.text-dark {
       color: #000 !important;
     }
-
     h3, h5 {
       color: #61dafb;
       text-shadow: 0 2px 12px rgba(0,0,0,0.4);
     }
-
     a {
       color: #8db4ff;
     }
-
     a:hover {
       color: #fff;
       text-decoration: underline;
     }
+    /* -- Sosyal medya hareketli arka plan -- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    /* 18 farklı pozisyon ve animasyon */
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
   </style>
 </head>
 <body class="text-light">
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
       <h3 class="mb-4 text-center">Destek & Canlı Yardım</h3>
@@ -1697,7 +2679,6 @@ HTML_PANEL = """
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    /* (BURADA STİLLERİN TAMAMI KALDI, KISALTILMADI) */
     body {
       background: #181c20 !important;
       color: #fff;
@@ -1719,6 +2700,64 @@ HTML_PANEL = """
       50% {background-position: 100% 50%;}
       100% {background-position: 0% 50%;}
     }
+    /* --- Sosyal medya hareketli arka plan ikonları --- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+    /* --- Senin diğer CSS kodların burada aynı şekilde devam ediyor --- */
     .card {
       background: rgba(28,31,34,0.95);
       border-radius: 18px;
@@ -1914,7 +2953,6 @@ HTML_PANEL = """
       .order-title-center { font-size: 1.05rem; gap: 6px; min-height: 27px; }
       .form-total-custom { font-size: 1.06em !important; }
     }
-    /* Flash mesaj kutusu */
     .flash-info-box {
       margin-bottom: 15px;
       border-radius: 8px;
@@ -1937,7 +2975,6 @@ HTML_PANEL = """
       from { opacity: 0; transform: translateY(-18px);}
       to   { opacity: 1; transform: translateY(0);}
     }
-    /* Modern WhatsApp Butonu */
     #whatsapp-float {
       position: fixed;
       right: 32px;
@@ -2003,6 +3040,27 @@ HTML_PANEL = """
   </style>
 </head>
 <body>
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
       <!-- HOŞGELDİN -->
@@ -2179,6 +3237,63 @@ HTML_ADS_MANAGE = """
       50% {background-position: 100% 50%;}
       100% {background-position: 0% 50%;}
     }
+    /* --- Sosyal medya hareketli arka plan ikonları --- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
     .card {
       background: rgba(0,0,0,0.6);
       border-radius: 14px;
@@ -2206,6 +3321,27 @@ HTML_ADS_MANAGE = """
   </style>
 </head>
 <body class="text-light">
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:600px;">
       <h3>Reklam Videosu Ayarları</h3>
@@ -2256,7 +3392,63 @@ HTML_WATCH_ADS = """
       50% {background-position: 100% 50%;}
       100% {background-position: 0% 50%;}
     }
-
+    /* --- Sosyal medya hareketli arka plan ikonları --- */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
     .ad-modern-card {
       max-width: 440px;
       margin: 64px auto;
@@ -2367,6 +3559,27 @@ HTML_WATCH_ADS = """
   </style>
 </head>
 <body>
+  <!-- Sosyal medya hareketli arka plan -->
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
   <div class="ad-modern-card">
     <div class="ad-modern-title"><i class="bi bi-play-circle-fill"></i> Reklam İzle – Bakiye Kazan</div>
     <div class="ad-modern-desc">Reklamı izleyerek <b>{{ reward }} TL</b> bakiye kazan!</div>
