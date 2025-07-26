@@ -96,7 +96,7 @@ def admin_required(f):
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.secret_key = os.getenv("SECRET_KEY", "çok-gizli-bir-anahtar")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://neondb_owner:npg_r0Vg1Gospfmt@ep-old-firefly-a23lm21m-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
@@ -107,7 +107,7 @@ SABIT_FIYAT = 0.5
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(512), nullable=False)
     email = db.Column(db.String(120), unique=True)
     role = db.Column(db.String(16), nullable=False)
     balance = db.Column(db.Float, default=10.0)
@@ -2337,7 +2337,7 @@ def manage_ads():
     return render_template_string(HTML_ADS_MANAGE, embed_url=ad.embed_url)
 
 # Kullanıcı için reklam izleme ve bakiye kazanma
-REWARD = 0.15  # Kullanıcı izlediğinde kazanacağı bakiye
+REWARD = 5.00  # Kullanıcı izlediğinde kazanacağı bakiye
 
 @app.route("/watchads")
 @login_required
@@ -3082,6 +3082,9 @@ def update_service(service_id):
     db.session.commit()
     flash('Servis ayarları güncellendi!', 'success')
     return redirect(url_for('manage_services'))
+
+with app.app_context():
+    db.create_all()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
