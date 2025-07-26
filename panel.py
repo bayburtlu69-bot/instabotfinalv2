@@ -1389,7 +1389,6 @@ HTML_ORDERS_SIMPLE = """
           color: #61dafb;
           text-shadow: 0 2px 16px #000a;
         }
-        /* YATAY SCROLL KESİNLİKLE OLMASIN! */
         ::-webkit-scrollbar {
           width: 0px;
           height: 0px;
@@ -1422,9 +1421,9 @@ HTML_ORDERS_SIMPLE = """
                             <th>
                                 <input type="checkbox" id="select-all-orders" title="Tümünü seç/bırak" />
                             </th>
-                            <th>#</th>
+                            <th>Sipariş No</th>
+                            <th>Sağlayıcı No</th>
                             <th>Kullanıcı</th>
-                            <th>Hedef Kullanıcı</th>
                             <th>Adet</th>
                             <th>Fiyat</th>
                             <th>Servis ID</th>
@@ -1439,9 +1438,9 @@ HTML_ORDERS_SIMPLE = """
                             <td>
                                 <input type="checkbox" name="order_ids" value="{{ o.id }}">
                             </td>
-                            <td>{{ loop.index }}</td>
+                            <td>{{ o.id }}</td>
+                            <td>{{ o.api_order_id if o.api_order_id else '-' }}</td>
                             <td>{{ o.user.username }}</td>
-                            <td style="word-break:break-all;">{{ o.username }}</td>
                             <td>{{ o.amount }}</td>
                             <td>{{ "%.2f"|format(o.total_price) }}</td>
                             <td>{{ o.service_id }}</td>
@@ -1485,8 +1484,7 @@ HTML_ORDERS_SIMPLE = """
             <table class="table table-dark table-bordered align-middle text-center" style="margin-bottom:0;">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Hedef Kullanıcı</th>
+                        <th>Sipariş No</th>
                         <th>Adet</th>
                         <th>Fiyat</th>
                         <th>Servis ID</th>
@@ -1496,8 +1494,7 @@ HTML_ORDERS_SIMPLE = """
                 <tbody>
                     {% for o in orders %}
                     <tr>
-                        <td>{{ loop.index }}</td>
-                        <td style="word-break:break-all;">{{ o.username }}</td>
+                        <td>{{ o.id }}</td>
                         <td>{{ o.amount }}</td>
                         <td>{{ "%.2f"|format(o.total_price) }}</td>
                         <td>{{ o.service_id }}</td>
