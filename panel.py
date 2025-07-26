@@ -219,26 +219,81 @@ def rolu_turkce(rol):
 
 HTML_LOGIN = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>insprov.uk</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body class="bg-dark d-flex justify-content-center align-items-center" style="height:100vh;">
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>insprov.uk</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #fff;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .form-control,
+    .form-control:focus {
+      background-color: #2c2c2c;
+      color: #f1f1f1;
+      border: 1px solid #555;
+    }
+    ::placeholder {
+      color: #aaa;
+      opacity: 1;
+    }
+    .card {
+      background-color: #1b1b1b;
+      color: #fff;
+      border-radius: 16px;
+    }
+    .alert-custom {
+      background-color: #1f1f1f;
+      color: #fff;
+      border-left: 4px solid #0d6efd;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+    a {
+      color: #89b4f8;
+    }
+    a:hover {
+      color: #ffffff;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="d-flex justify-content-center align-items-center">
   <div class="card shadow p-4" style="min-width:340px;">
     <h3 class="mb-3 text-center">insprov.uk</h3>
+
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <div class="alert alert-danger p-2 py-1 small mb-3" role="alert">
+        <div class="alert-custom text-center">
           {% for message in messages %}
             {{ message }}<br>
           {% endfor %}
         </div>
       {% endif %}
     {% endwith %}
+
     <form method="post">
-      <div class="mb-2"><label class="form-label">Kullanıcı Adı:</label>
-        <input name="username" class="form-control" placeholder="Kullanıcı Adı">
+      <div class="mb-2">
+        <label class="form-label">Kullanıcı Adı:</label>
+        <input name="username" class="form-control" placeholder="">
       </div>
-      <div class="mb-3"><label class="form-label">Şifre:</label>
-        <input name="password" type="password" class="form-control" placeholder="Şifre">
+      <div class="mb-3">
+        <label class="form-label">Şifre:</label>
+        <input name="password" type="password" class="form-control" placeholder="">
       </div>
       <button class="btn btn-primary w-100">Giriş</button>
     </form>
@@ -252,44 +307,105 @@ HTML_LOGIN = """
 
 HTML_REGISTER = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Kayıt Ol</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body class="bg-dark d-flex justify-content-center align-items-center" style="height:100vh;">
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kayıt Ol</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #fff;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .form-control,
+    .form-control:focus {
+      background-color: #2c2c2c;
+      color: #f1f1f1;
+      border: 1px solid #555;
+    }
+    ::placeholder {
+      color: #aaa;
+      opacity: 1;
+    }
+    .card {
+      background-color: #1b1b1b;
+      color: #fff;
+    }
+    .spaced-link {
+      display: block;
+      margin-top: 10px;
+    }
+    .custom-alert {
+      background-color: #292929;
+      border-left: 5px solid #4da3ff;
+      padding: 12px 15px;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.92rem;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+    .text-danger.btn-link {
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body class="d-flex justify-content-center align-items-center">
   <div class="card shadow p-4" style="min-width:370px;">
     <h3 class="mb-3 text-center">insprov.uk <span class="text-primary">Kayıt</span></h3>
+
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <div class="alert alert-danger p-2 py-1 small mb-3" role="alert">
-          {% for message in messages %}
-            {{ message }}<br>
-          {% endfor %}
-        </div>
+        {% for message in messages %}
+          <div class="custom-alert">
+            {{ message }}
+          </div>
+        {% endfor %}
       {% endif %}
     {% endwith %}
+
     {% if not sent %}
       <form method="post">
-        <div class="mb-2"><label class="form-label">Kullanıcı Adı:</label>
-          <input name="username" class="form-control" placeholder="Kullanıcı Adı" required>
+        <div class="mb-2">
+          <label class="form-label">Kullanıcı Adı:</label>
+          <input name="username" class="form-control" placeholder="" required>
         </div>
-        <div class="mb-2"><label class="form-label">Şifre:</label>
-          <input name="password" type="password" class="form-control" placeholder="Şifre" required>
+        <div class="mb-2">
+          <label class="form-label">Şifre:</label>
+          <input name="password" type="password" class="form-control" placeholder="" required>
         </div>
-        <div class="mb-3"><label class="form-label">E-Posta:</label>
-          <input name="email" type="email" class="form-control" placeholder="E-Posta" required>
+        <div class="mb-3">
+          <label class="form-label">E-Posta:</label>
+          <input name="email" type="email" class="form-control" placeholder="" required>
         </div>
-        <button class="btn btn-success w-100">Kayıt Ol</button>
+        <button class="btn btn-success w-100 mb-2">Kayıt Ol</button>
       </form>
     {% else %}
       <form method="post">
         <div class="mb-3">
           <label class="form-label">E-Posta Adresinize Gönderilen Kod:</label>
-          <input name="verify_code" class="form-control" placeholder="Doğrulama Kodu" required>
+          <input name="verify_code" class="form-control" placeholder="" required>
         </div>
-        <button class="btn btn-primary w-100">Kodu Doğrula</button>
+        <button class="btn btn-primary w-100 mb-2">Kodu Doğrula</button>
+      </form>
+
+      <form method="post" action="/reset-registration" class="text-center">
+        <button type="submit" class="btn btn-link btn-sm text-decoration-none text-danger">Kayıt İşleminden Vazgeç</button>
       </form>
     {% endif %}
+
     <div class="text-center mt-2">
-      <a href="/" class="btn btn-link btn-sm">Girişe Dön</a>
+      <a href="/" class="btn btn-link btn-sm text-decoration-none spaced-link">Giriş Yap</a>
     </div>
   </div>
 </body>
@@ -298,42 +414,113 @@ HTML_REGISTER = """
 
 HTML_USERS = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Kullanıcı Yönetimi</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body class="bg-dark text-light">
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kullanıcı Yönetimi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #1e1e1e, #2c2f34, #1e1e1e, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #fff;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .card {
+      background-color: #1f1f1f;
+      color: #fff;
+      border-radius: 18px;
+    }
+    .form-control, .form-select {
+      background-color: #2e2e2e !important;
+      color: #f1f1f1;
+      border: 1px solid #444;
+      box-shadow: none;
+    }
+    .form-control:focus, .form-select:focus {
+      background-color: #2e2e2e;
+      color: #fff;
+      border-color: #666;
+      box-shadow: none;
+    }
+    .form-control::placeholder {
+      color: #aaa;
+    }
+    /* number input: okları kaldır */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    .table-dark {
+      background-color: #2c2c2c;
+    }
+    .table-dark th, .table-dark td {
+      color: #eee;
+    }
+    a {
+      color: #8db4ff;
+    }
+    a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+    .btn {
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body class="text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:700px;">
       <h3>Kullanıcı Yönetimi</h3>
       <form method="post" class="row g-2 align-items-end mb-4">
         <div class="col"><input name="u" class="form-control" placeholder="Yeni kullanıcı"></div>
         <div class="col"><input name="pw" type="password" class="form-control" placeholder="Parola"></div>
-        <div class="col"><select name="role" class="form-select">
+        <div class="col">
+          <select name="role" class="form-select">
             <option value="admin">Yönetici</option>
             <option value="viewer">Kullanıcı</option>
-          </select></div>
+          </select>
+        </div>
         <div class="col"><button class="btn btn-success">Ekle</button></div>
       </form>
       <hr><h5>Mevcut Kullanıcılar</h5>
-      <div class="table-responsive"><table class="table table-dark table-striped table-bordered align-middle mb-4">
-          <thead><tr>
-            <th>#</th><th>Kullanıcı</th><th>Rol</th><th>Bakiye</th><th>İşlem</th>
-          </tr></thead>
-          <tbody>
-          {% for usr in users %}
+      <div class="table-responsive">
+        <table class="table table-dark table-striped table-bordered align-middle mb-4">
+          <thead>
             <tr>
-              <td>{{ loop.index }}</td>
-              <td>{{ usr.username }}</td>
-              <td>{{ rolu_turkce(usr.role) }}</td>
-              <td>{{ usr.balance }}</td>
-              <td>
-                {% if usr.username != current_user %}
-                  <a href="{{ url_for('delete_user', user_id=usr.id) }}" class="btn btn-danger btn-sm">Sil</a>
-                {% else %}
-                  <span class="text-muted">–</span>
-                {% endif %}
-              </td>
+              <th>#</th><th>Kullanıcı</th><th>Rol</th><th>Bakiye</th><th>İşlem</th>
             </tr>
-          {% endfor %}
+          </thead>
+          <tbody>
+            {% for usr in users %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ usr.username }}</td>
+                <td>{{ rolu_turkce(usr.role) }}</td>
+                <td>{{ usr.balance }}</td>
+                <td>
+                  {% if usr.username != current_user %}
+                    <a href="{{ url_for('delete_user', user_id=usr.id) }}" class="btn btn-danger btn-sm">Sil</a>
+                  {% else %}
+                    <span class="text-muted">–</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
@@ -343,7 +530,9 @@ HTML_USERS = """
         <div class="col"><input name="amount" type="number" step="0.01" class="form-control" placeholder="Tutar"></div>
         <div class="col"><button class="btn btn-primary">Bakiye Ekle</button></div>
       </form>
-      <div class="mt-3"><a href="{{ url_for('panel') }}" class="btn btn-secondary btn-sm">Panel’e Dön</a></div>
+      <div class="mt-3">
+        <a href="{{ url_for('panel') }}" class="btn btn-secondary btn-sm">Panel’e Dön</a>
+      </div>
     </div>
   </div>
 </body>
@@ -357,10 +546,69 @@ HTML_SERVICES_MANAGE = """
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Servisleri Yönet</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #1e1e1e, #2c2f34, #1e1e1e, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #fff;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .card {
+      background-color: #1f1f1f;
+      color: #fff;
+      border-radius: 18px;
+    }
+    .form-control, .form-control-sm, .form-select {
+      background-color: #2e2e2e !important;
+      color: #f1f1f1 !important;
+      border: 1px solid #444;
+      box-shadow: none;
+    }
+    .form-control:focus, .form-control-sm:focus, .form-select:focus {
+      background-color: #2e2e2e !important;
+      color: #fff !important;
+      border-color: #666;
+      box-shadow: none;
+    }
+    .form-control::placeholder,
+    .form-control-sm::placeholder {
+      color: #aaa;
+    }
+    .table-dark th, .table-dark td {
+      color: #eee;
+    }
+    .btn {
+      font-weight: 500;
+    }
+    a {
+      color: #8db4ff;
+    }
+    a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+    /* Number input oklarını kaldır */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  </style>
 </head>
-<body class="bg-dark text-light">
+<body class="text-light">
   <div class="container py-4">
-    <div class="card mx-auto" style="max-width:800px">
+    <div class="card mx-auto" style="max-width:800px;">
       <div class="card-body">
         <h3>Servisleri Yönet</h3>
         <form method="post" action="{{ url_for('manage_services') }}">
@@ -405,7 +653,6 @@ HTML_SERVICES_MANAGE = """
                 </td>
                 <td>
                   {% if s.id not in local_ids %}
-                  <!-- External ise ekle butonu -->
                   <button type="submit" name="add_external" value="{{ s.id }}" class="btn btn-sm btn-primary">
                     Veritabanına Ekle
                   </button>
@@ -416,7 +663,7 @@ HTML_SERVICES_MANAGE = """
             </tbody>
           </table>
           <div class="d-grid">
-            <button class="btn btn-success" type="submit">Fiyatları Kaydet</button>
+            <button class="btn btn-success" type="submit">Düzenlemeleri Kaydet</button>
           </div>
         </form>
         <div class="mt-3">
@@ -431,9 +678,75 @@ HTML_SERVICES_MANAGE = """
 
 HTML_BALANCE = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bakiye Yükle</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body class="bg-dark text-light">
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bakiye Yükle</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #1e1e1e, #2c2f34, #1e1e1e, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #fff;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .card {
+      background-color: #1f1f1f;
+      color: #fff;
+      border-radius: 18px;
+    }
+    .form-control, .form-select {
+      background-color: #2e2e2e !important;
+      color: #f1f1f1 !important;
+      border: 1px solid #444;
+    }
+    .form-control::placeholder,
+    .form-select::placeholder {
+      color: #aaa;
+    }
+    .form-control:focus, .form-select:focus {
+      background-color: #2e2e2e !important;
+      color: #fff !important;
+      border-color: #2186eb;
+      box-shadow: none !important;
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .table-dark th, .table-dark td {
+      color: #eee;
+    }
+    .alert-info {
+      background-color: #1a2a3a;
+      color: #cce4ff;
+      border-color: #2a4d6b;
+    }
+    .btn {
+      font-weight: 500;
+    }
+    a {
+      color: #8db4ff;
+    }
+    a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:500px;">
       <h3>Bakiye Yükle</h3>
@@ -447,8 +760,8 @@ HTML_BALANCE = """
       {% if err %}<div class="alert alert-danger">{{ err }}</div>{% endif %}
       <form method="post" class="mb-4">
         <label class="form-label">Tutar (TL):</label>
-        <input name="amount" type="number" step="0.01" min="1" class="form-control mb-2" required>
-        <button class="btn btn-primary w-100">Başvuru Yap</button>
+        <input name="amount" type="number" step="0.01" min="1" class="form-control mb-2" placeholder="" required>
+        <button class="btn btn-primary w-100">Ödemeyi Yaptım</button>
       </form>
       <h5>Geçmiş Bakiye Talepleriniz</h5>
       <table class="table table-dark table-bordered table-sm">
@@ -487,9 +800,61 @@ HTML_BALANCE = """
 
 HTML_BALANCE_REQUESTS = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bakiye Talepleri</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body class="bg-dark text-light">
+<html lang="tr"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bakiye Talepleri</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #1e1e1e, #2c2f34, #1e1e1e, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #fff;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .card {
+      background-color: #1f1f1f;
+      color: #fff;
+      border-radius: 18px;
+    }
+    .form-control,
+    .form-select {
+      background-color: #2e2e2e;
+      color: #fff;
+      border: 1px solid #444;
+    }
+    .form-control::placeholder,
+    .form-select option {
+      color: #aaa;
+    }
+    .table-dark th, .table-dark td {
+      color: #eee;
+    }
+    .btn {
+      font-weight: 500;
+    }
+    a {
+      color: #8db4ff;
+    }
+    a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+    .alert-info {
+      background-color: #1a2a3a;
+      color: #cce4ff;
+      border-color: #2a4d6b;
+    }
+  </style>
+</head>
+<body class="text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
       <h3>Bakiye Talepleri</h3>
@@ -565,11 +930,79 @@ HTML_SERVICES = """
   <title>Servisler & Fiyat Listesi</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
-    .editing .text { display:none; }
-    .editing .inp  { display:inline-block !important; width:100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #fff;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    .editing .text { display: none; }
+    .editing .inp  { display: inline-block !important; width: 100%; }
+
+    .card {
+      background: rgba(20, 20, 20, 0.9);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      color: #f1f1f1;
+    }
+
+    .card h3 {
+      color: #ffffff;
+    }
+
+    .form-control, .form-select {
+      background-color: #1e1e1e;
+      border-color: #444;
+      color: #fff;
+    }
+
+    .form-control:focus, .form-select:focus {
+      background-color: #1e1e1e;
+      border-color: #2186eb;
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .form-control::placeholder {
+      color: #aaa;
+    }
+
+    .table-dark {
+      background-color: #1f1f1f;
+    }
+
+    .table-dark td, .table-dark th {
+      color: #e6e6e6;
+    }
+
+    .btn-outline-info {
+      color: #8ecfff;
+      border-color: #2186eb;
+    }
+
+    .btn-outline-info:hover {
+      background-color: #2186eb;
+      color: white;
+    }
+
+    .btn-success, .btn-secondary {
+      font-weight: 500;
+    }
+
+    input::placeholder {
+      color: #bbb;
+    }
   </style>
 </head>
-<body class="bg-dark text-light">
+<body>
   <div class="container py-4">
     <div class="card mx-auto" style="max-width:900px">
       <div class="card-body">
@@ -577,14 +1010,13 @@ HTML_SERVICES = """
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div><strong>Toplam:</strong> {{ servisler|length }} servis</div>
           <div class="d-flex">
-            <input id="search" class="form-control form-control-sm me-2" placeholder="Search…">
+            <input id="search" class="form-control form-control-sm me-2" placeholder="Servis ara…">
             {% if user.role=='admin' %}
               <button id="editBtn" class="btn btn-outline-info btn-sm">Edit</button>
             {% endif %}
           </div>
         </div>
 
-        {# — Form, sadece admin görsün — #}
         {% if user.role=='admin' %}
         <form method="post" action="{{ url_for('services') }}">
         {% endif %}
@@ -629,8 +1061,8 @@ HTML_SERVICES = """
 
         {% if user.role=='admin' %}
           <div id="btns" class="mt-2" style="display:none">
-            <button type="submit" class="btn btn-success btn-sm me-2">Save</button>
-            <button type="button" id="cancel" class="btn btn-secondary btn-sm">Cancel</button>
+            <button type="submit" class="btn btn-success btn-sm me-2">Kaydet</button>
+            <button type="button" id="cancel" class="btn btn-secondary btn-sm">İptal</button>
           </div>
         </form>
         {% endif %}
@@ -640,7 +1072,7 @@ HTML_SERVICES = """
   </div>
 
   <script>
-    // Search
+    // Arama
     document.getElementById('search').addEventListener('input', function(){
       const q = this.value.toLowerCase();
       document.querySelectorAll('#tbl tbody tr').forEach(tr=>{
@@ -649,7 +1081,7 @@ HTML_SERVICES = """
     });
 
     {% if user.role=='admin' %}
-    // Edit mode
+    // Edit modu
     let editing=false;
     const card=document.querySelector('.card'),
           editBtn=document.getElementById('editBtn'),
@@ -672,16 +1104,87 @@ HTML_SERVICES = """
 
 HTML_ADMIN_TICKETS = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ticket Yönetimi (Admin)</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body class="bg-dark text-light">
+<html lang="tr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ticket Yönetimi (Admin)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #fff;
+    }
+
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    .card {
+      background: rgba(20, 20, 20, 0.9);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      color: #f1f1f1;
+    }
+
+    .form-control {
+      background-color: #1e1e1e;
+      border-color: #444;
+      color: #fff;
+    }
+
+    .form-control:focus {
+      background-color: #1e1e1e;
+      border-color: #2186eb;
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .form-control::placeholder {
+      color: #aaa;
+    }
+
+    .table-dark {
+      background-color: #1f1f1f;
+    }
+
+    .table-dark td, .table-dark th {
+      color: #e6e6e6;
+    }
+
+    .btn-success {
+      font-weight: 500;
+    }
+
+    .btn-secondary {
+      font-weight: 500;
+    }
+
+    .text-muted {
+      color: #bbb !important;
+    }
+  </style>
+</head>
+<body>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:900px;">
       <h2 class="mb-4">Tüm Destek Talepleri</h2>
       <table class="table table-dark table-bordered text-center align-middle">
         <thead>
           <tr>
-            <th>ID</th><th>Kullanıcı</th><th>Tarih</th><th>Konu</th><th>Mesaj</th><th>Durum</th><th>Yanıt</th><th>İşlem</th>
+            <th>ID</th>
+            <th>Kullanıcı</th>
+            <th>Tarih</th>
+            <th>Konu</th>
+            <th>Mesaj</th>
+            <th>Durum</th>
+            <th>Yanıt</th>
+            <th>İşlem</th>
           </tr>
         </thead>
         <tbody>
@@ -693,8 +1196,11 @@ HTML_ADMIN_TICKETS = """
             <td>{{ t.subject }}</td>
             <td>{{ t.message }}</td>
             <td>
-              {% if t.status == "open" %}<span class="badge bg-warning text-dark">Açık</span>
-              {% else %}<span class="badge bg-success">Yanıtlandı</span>{% endif %}
+              {% if t.status == "open" %}
+                <span class="badge bg-warning text-dark">Açık</span>
+              {% else %}
+                <span class="badge bg-success">Yanıtlandı</span>
+              {% endif %}
             </td>
             <td>{{ t.response or "" }}</td>
             <td>
@@ -712,7 +1218,7 @@ HTML_ADMIN_TICKETS = """
         {% endfor %}
         </tbody>
       </table>
-      <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
+      <a href="/panel" class="btn btn-secondary btn-sm w-100 mt-3">Panele Dön</a>
     </div>
   </div>
 </body>
@@ -721,38 +1227,90 @@ HTML_ADMIN_TICKETS = """
 
 HTML_EXTERNAL_MANAGE = """
 <!DOCTYPE html>
-<html lang="tr"><head>
-  <meta charset="utf-8"><title>Dış Servis Seçimi</title>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Dış Servis Seçimi</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #fff;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .card, .table {
+      background-color: rgba(20, 20, 20, 0.9) !important;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .form-control, .form-select {
+      background-color: #1e1e1e;
+      border-color: #444;
+      color: #fff;
+    }
+    .form-control:focus, .form-select:focus {
+      background-color: #1e1e1e;
+      border-color: #2186eb;
+      color: #fff;
+      box-shadow: none;
+    }
+    .form-control::placeholder {
+      color: #aaa;
+    }
+    .table-dark {
+      background-color: #1f1f1f;
+    }
+    .table-dark td, .table-dark th {
+      color: #e6e6e6;
+    }
+    .btn {
+      font-weight: 500;
+    }
+    h3 {
+      color: #f8f9fa;
+    }
+  </style>
 </head>
-<body class="bg-dark text-light">
+<body>
   <div class="container py-4">
-    <h3>Dış Servis Seçimi (ResellersMM)</h3>
-    <form method="post">
-      <table class="table table-dark table-striped">
-        <thead>
-          <tr><th>Seç</th><th>Servis Adı</th><th>Min / Max</th></tr>
-        </thead>
-        <tbody>
-        {% for s in all_ext %}
-          <tr>
-            <td>
-              <input type="checkbox" name="ext_{{s.id}}"
-                {% if s.id in selected %}checked{% endif %}>
-            </td>
-            <td>{{ s.name }}</td>
-            <td>{{ s.min_amount }} / {{ s.max_amount }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      <button class="btn btn-success">Kaydet</button>
-      <a href="{{ url_for('panel') }}" class="btn btn-secondary ms-2">Panele Dön</a>
-    </form>
+    <div class="card p-4 mx-auto" style="max-width:850px;">
+      <h3 class="mb-4 text-center">Dış Servis Seçimi (ResellersMM)</h3>
+      <form method="post">
+        <table class="table table-dark table-striped">
+          <thead>
+            <tr><th>Seç</th><th>Servis Adı</th><th>Min / Max</th></tr>
+          </thead>
+          <tbody>
+          {% for s in all_ext %}
+            <tr>
+              <td>
+                <input type="checkbox" name="ext_{{s.id}}" {% if s.id in selected %}checked{% endif %}>
+              </td>
+              <td>{{ s.name }}</td>
+              <td>{{ s.min_amount }} / {{ s.max_amount }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <div class="d-flex justify-content-start gap-2 mt-3">
+          <button class="btn btn-success">Kaydet</button>
+          <a href="{{ url_for('panel') }}" class="btn btn-secondary">Panele Dön</a>
+        </div>
+      </form>
+    </div>
   </div>
 </body>
 </html>
 """
+
 HTML_ORDERS_SIMPLE = """
 <!DOCTYPE html>
 <html lang="tr">
@@ -761,22 +1319,47 @@ HTML_ORDERS_SIMPLE = """
     <title>Geçmiş Siparişler</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background: #23262b; }
+        body {
+          margin: 0;
+          min-height: 100vh;
+          background: linear-gradient(-45deg, #1e1e1e, #2c2f34, #1e1e1e, #000000);
+          background-size: 400% 400%;
+          animation: gradientBG 15s ease infinite;
+          color: #fff;
+        }
+        @keyframes gradientBG {
+          0% {background-position: 0% 50%;}
+          50% {background-position: 100% 50%;}
+          100% {background-position: 0% 50%;}
+        }
+
         .container { margin-top: 60px; }
-        .table { background: #23262b; color: #fff; border-radius: 16px; }
-        .table th, .table td { vertical-align: middle; }
-        .badge-warning { background: #ffc107; color: #23262b; }
-        .badge-success { background: #22c55e; }
+        .table { background: #1f1f1f; color: #eaeaea; border-radius: 16px; }
+        .table th, .table td { vertical-align: middle; color: #fff; }
+        .badge-warning { background: #ffc107; color: #000; }
+        .badge-success { background: #28a745; }
         .badge-secondary { background: #6c757d; }
-        .badge-danger { background: #e11d48; }
-        .orders-card { border-radius: 25px; box-shadow: 0 4px 24px #0004; padding: 40px; background: #262933; }
+        .badge-danger { background: #dc3545; }
+        .orders-card {
+          border-radius: 25px;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+          padding: 40px;
+          background: rgba(33, 37, 41, 0.95);
+        }
         .flash-msg { margin-bottom: 24px; }
+        .btn-resend, .btn-complete, .btn-cancel {
+          margin: 2px 0;
+        }
+        h1 {
+          color: #61dafb;
+          text-shadow: 0 2px 16px #000a;
+        }
     </style>
 </head>
 <body>
     <div class="container d-flex justify-content-center">
         <div class="orders-card w-100" style="max-width: 1000px;">
-          <h1 class="mb-4 fw-bold text-center" style="color:#61dafb; text-shadow: 0 2px 16px #000a;">Geçmiş Siparişler</h1>
+          <h1 class="mb-4 fw-bold text-center">Geçmiş Siparişler</h1>
             <div id="alert-area"></div>
             {% with messages = get_flashed_messages(with_categories=true) %}
               {% if messages %}
@@ -842,13 +1425,7 @@ HTML_ORDERS_SIMPLE = """
                                 {% endif %}
                             </td>
                             {% if role == 'admin' %}
-                            <td>
-                                {% if o.error %}
-                                    {{ o.error }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
+                            <td>{{ o.error if o.error else "-" }}</td>
                             <td>
                                 {% if o.error %}
                                     <form method="post" style="display:inline;" action="/orders/resend/{{ o.id }}">
@@ -887,11 +1464,77 @@ HTML_TICKETS = """
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Destek Taleplerim</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #fff;
+    }
+
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    .card {
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    .form-control, .form-select, textarea {
+      background-color: #1e1e1e;
+      border-color: #444;
+      color: #fff;
+    }
+
+    .form-control:focus, .form-select:focus, textarea:focus {
+      background-color: #1e1e1e;
+      border-color: #2186eb;
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .form-control::placeholder,
+    textarea::placeholder {
+      color: #bbb;
+    }
+
+    .table-dark {
+      background-color: #1f1f1f;
+    }
+
+    .table-dark th, .table-dark td {
+      color: #e6e6e6;
+    }
+
+    .badge.bg-warning.text-dark {
+      color: #000 !important;
+    }
+
+    h3, h5 {
+      color: #61dafb;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+
+    a {
+      color: #8db4ff;
+    }
+
+    a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+  </style>
 </head>
-<body class="bg-dark text-light">
+<body class="text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
-      <h3>Destek & Canlı Yardım</h3>
+      <h3 class="mb-4 text-center">Destek & Canlı Yardım</h3>
       <form method="post" class="mb-4">
         <div class="mb-2">
           <input name="subject" class="form-control" placeholder="Konu" required>
@@ -901,33 +1544,40 @@ HTML_TICKETS = """
         </div>
         <button class="btn btn-primary w-100">Gönder</button>
       </form>
-      <h5>Geçmiş Talepleriniz</h5>
-      <table class="table table-dark table-bordered table-sm">
-        <thead>
-          <tr>
-            <th>Konu</th>
-            <th>Mesaj</th>
-            <th>Tarih</th>
-            <th>Durum</th>
-            <th>Yanıt</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for t in tickets %}
-          <tr>
-            <td>{{ t.subject }}</td>
-            <td>{{ t.message }}</td>
-            <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-            <td>
-              {% if t.status == "open" %}<span class="badge bg-warning text-dark">Açık</span>
-              {% else %}<span class="badge bg-success">Yanıtlandı</span>{% endif %}
-            </td>
-            <td>{{ t.response or "-" }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
+
+      <h5 class="mt-4">Geçmiş Talepleriniz</h5>
+      <div class="table-responsive">
+        <table class="table table-dark table-bordered table-sm text-center align-middle">
+          <thead>
+            <tr>
+              <th>Konu</th>
+              <th>Mesaj</th>
+              <th>Tarih</th>
+              <th>Durum</th>
+              <th>Yanıt</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for t in tickets %}
+            <tr>
+              <td>{{ t.subject }}</td>
+              <td>{{ t.message }}</td>
+              <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+              <td>
+                {% if t.status == "open" %}
+                  <span class="badge bg-warning text-dark">Açık</span>
+                {% else %}
+                  <span class="badge bg-success">Yanıtlandı</span>
+                {% endif %}
+              </td>
+              <td>{{ t.response or "-" }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <a href="/panel" class="btn btn-secondary btn-sm w-100 mt-3">Panele Dön</a>
     </div>
   </div>
 </body>
@@ -944,51 +1594,146 @@ HTML_PANEL = """
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      overflow-x: hidden;
+      color: #fff;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(-45deg, #1e1e1e, #2c2f34, #1e1e1e, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      z-index: -1;
+      opacity: 0.4;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h4 {
+      color: #ffffff !important;
+    }
+
+    .card {
+      background-color: rgba(33, 37, 41, 0.92);
+      border-radius: 14px;
+    }
+
+    .form-control, .form-select {
+      background-color: #1e1e1e;
+      border-color: #444;
+      color: #fff;
+    }
+
+    .form-control:focus, .form-select:focus {
+      background-color: #1e1e1e;
+      border-color: #2186eb;
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .form-label {
+      color: #fff !important;
+      font-weight: 500;
+    }
+
+    .alert-secondary {
+      background-color: #2c2f34;
+      border-color: #3c3f46;
+      color: #ddd;
+    }
+
+    .btn-primary, .btn-secondary, .btn-warning, .btn-danger, .btn-success, .btn-info {
+      color: #fff;
+    }
+
+    .btn-outline-danger {
+      color: #dc3545;
+      border-color: #dc3545;
+    }
+
+    .btn-outline-danger:hover {
+      background-color: #dc3545;
+      color: #fff;
+    }
+
     .welcome-card {
-      background: linear-gradient(90deg, #f8fafc 0%, #e0e7ef 100%);
+      background: linear-gradient(90deg, #2b2f41 0%, #1e1e1e 100%);
       border-radius: 18px;
       padding: 20px 28px 16px 24px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 18px 0 rgba(0,0,0,0.04);
+      box-shadow: 0 2px 18px 0 rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
+
     .welcome-left {
       display: flex;
       align-items: flex-start;
       gap: 16px;
     }
+
     .welcome-icon {
       font-size: 2.3rem;
       color: #2186eb;
       margin-top: 2px;
     }
+
     .welcome-title {
       font-weight: 700;
       font-size: 1.2rem;
       margin-bottom: 0.1rem;
-      color: #222a38;
+      color: #fff;
       letter-spacing: 0.02em;
     }
+
     .welcome-desc {
       font-size: 0.97rem;
-      color: #5c6474;
+      color: #ccc;
     }
+
     .welcome-balance {
       font-size: 1.08rem;
-      color: #2b2f41;
+      color: #fff;
       font-weight: 600;
       margin-bottom: 0.3rem;
       text-align: right;
     }
+
+    input[disabled] {
+      background-color: #2c2f34 !important;
+      color: #d6dce5 !important;
+      opacity: 1 !important;
+    }
+
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+
     @media (max-width: 575px) {
       .welcome-card { flex-direction: column; align-items: flex-start; gap: 14px; }
       .welcome-balance { text-align: left; }
     }
   </style>
 </head>
-<body class="bg-dark text-light">
+<body class="text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
 
@@ -1002,7 +1747,7 @@ HTML_PANEL = """
           </div>
         </div>
         <div>
-          <div class="welcome-balance">Bakiye: <span style="color:#2186eb" id="balance">{{ balance }} TL</span></div>
+          <div class="welcome-balance">Bakiye: <span style="color:#4da3ff" id="balance">{{ balance }} TL</span></div>
           <a href="{{ url_for('orders') }}" class="btn btn-sm btn-primary mt-1 w-100" style="min-width:148px;">
             <i class="bi bi-box-seam"></i> Geçmiş Siparişler
           </a>
@@ -1044,31 +1789,32 @@ HTML_PANEL = """
         </div>
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-info-circle"></i> Açıklama</label>
-          <div class="alert alert-secondary" style="white-space: pre-line;">
+          <div class="alert alert-secondary" style="white-space: pre-line; display: flex; flex-direction: column; justify-content: center; min-height: 200px;">
+            <b>LÜTFEN SİPARİŞ VERMEDEN ÖNCE BU KISMI OKU</b>
+
             Sistem, gönderilecek takipçi sayısına göre en uygun şekilde çalışır.
 
             Örnek: 1000 Türk gerçek takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
 
-            DİKKAT: Takipçi gönderimi, organik hesaplardan ve gerçek Türk profillerden yapılır. 
-            Gizli (kapalı) hesaplara gönderim yapılmaz. Lütfen gönderimden önce hesabınızın herkese açık olduğundan emin olun.
+            <b>DİKKAT:</b> Takipçi gönderimi, organik hesaplardan ve gerçek Türk profillerden yapılır. 
+            Gizli (kapalı) hesaplara gönderim yapılmaz.
           </div>
         </div>
         <div class="mb-3">
-          <label class="form-label"><i class="bi bi-link-45deg"></i> Takip Edilecek Hesap</label>
-          <input name="username" type="text" class="form-control" placeholder="Instagram kullanıcı adını girin" required>
+          <label class="form-label"><i class="bi bi-link-45deg"></i> Sipariş verilecek link</label>
+          <input name="username" type="text" class="form-control" placeholder="" required>
         </div>
         <div class="mb-3">
-          <label class="form-label"><i class="bi bi-list-ol"></i> Adet</label>
-          <input name="amount" id="amount" type="number" min="1" class="form-control" placeholder="Adet" required>
+          <label class="form-label"><i class="bi bi-list-ol"></i> Miktar</label>
+          <input name="amount" id="amount" type="number" min="1" class="form-control" placeholder="" required>
         </div>
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-currency-dollar"></i> Tutar</label>
-          <input type="text" class="form-control" id="total" placeholder="Tutar otomatik hesaplanır" disabled>
+          <input type="text" class="form-control" id="total" placeholder="" disabled>
         </div>
         <button type="submit" class="btn btn-primary w-100" id="orderSubmitBtn">Siparişi Gönder</button>
       </form>
 
-      <!-- Fiyat hesaplama script -->
       <script>
         const sel = document.getElementById('service_id'),
               amt = document.getElementById('amount'),
@@ -1078,14 +1824,13 @@ HTML_PANEL = """
           const price = parseFloat(sel.selectedOptions[0].dataset.price)||0,
                 num   = parseInt(amt.value)||0;
           tot.value = num>0
-            ? `${num}×${price.toFixed(2)} TL = ${(num*price).toFixed(2)} TL`
+            ? (num + " × " + price.toFixed(2) + " TL = " + (num*price).toFixed(2) + " TL")
             : "";
         }
         sel.addEventListener('change', updateTotal);
         amt.addEventListener('input', updateTotal);
       </script>
 
-      <!-- AJAX sipariş gönderme (opsiyonel) -->
       <script>
         document.getElementById('orderForm').addEventListener('submit', function(e){
           e.preventDefault();
@@ -1122,18 +1867,62 @@ HTML_PANEL = """
 
 HTML_ADS_MANAGE = """
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reklam Videosu</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body class="bg-dark text-light">
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reklam Videosu</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #fff;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .card {
+      background: rgba(0,0,0,0.6);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .form-control {
+      background-color: #1e1e1e;
+      border-color: #444;
+      color: #fff;
+    }
+    .form-control:focus {
+      background-color: #1e1e1e;
+      border-color: #2186eb;
+      color: #fff;
+      box-shadow: none;
+    }
+    .alert-info {
+      background-color: #1c1f23;
+      border-color: #3b4c59;
+      color: #cde5ff;
+    }
+    .btn-success, .btn-secondary {
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="text-light">
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:600px;">
       <h3>Reklam Videosu Ayarları</h3>
       {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <div class="alert alert-info">{{ messages[0] }}</div>
+        <div class="alert alert-info mt-3">{{ messages[0] }}</div>
       {% endif %}
       {% endwith %}
-      <form method="post">
+      <form method="post" class="mt-3">
         <div class="mb-3">
           <label class="form-label">YouTube Embed URL</label>
           <input name="embed_url" class="form-control" value="{{ embed_url }}">
@@ -1141,37 +1930,10 @@ HTML_ADS_MANAGE = """
         <button class="btn btn-success w-100">Kaydet</button>
       </form>
       <h5 class="mt-4">Mevcut Video Önizlemesi:</h5>
-      <iframe width="100%" height="315" src="{{ embed_url }}" frameborder="0" allowfullscreen></iframe>
-      <a href="/panel" class="btn btn-secondary btn-sm mt-3">Panele Dön</a>
-    </div>
-  </div>
-</body>
-</html>
-"""
-
-HTML_ADS_MANAGE = """
-<!DOCTYPE html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reklam Videosu</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body class="bg-dark text-light">
-  <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:600px;">
-      <h3>Reklam Videosu Ayarları</h3>
-      {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="alert alert-info">{{ messages[0] }}</div>
-      {% endif %}
-      {% endwith %}
-      <form method="post">
-        <div class="mb-3">
-          <label class="form-label">YouTube Embed URL</label>
-          <input name="embed_url" class="form-control" value="{{ embed_url }}">
-        </div>
-        <button class="btn btn-success w-100">Kaydet</button>
-      </form>
-      <h5 class="mt-4">Mevcut Video Önizlemesi:</h5>
-      <iframe width="100%" height="315" src="{{ embed_url }}" frameborder="0" allowfullscreen></iframe>
-      <a href="/panel" class="btn btn-secondary btn-sm mt-3">Panele Dön</a>
+      <div class="ratio ratio-16x9 mb-3">
+        <iframe src="{{ embed_url }}" frameborder="0" allowfullscreen></iframe>
+      </div>
+      <a href="/panel" class="btn btn-secondary btn-sm w-100">Panele Dön</a>
     </div>
   </div>
 </body>
@@ -1186,20 +1948,129 @@ HTML_WATCH_ADS = """
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Reklam İzle – Bakiye Kazan</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    body { background: #22252b; min-height: 100vh; }
-    .ad-modern-card { max-width: 440px; margin: 64px auto; border-radius: 18px; background: #fff; box-shadow: 0 3px 32px 0 rgba(30,38,67,0.14); padding: 40px 34px 34px 34px; text-align: center; }
-    .ad-modern-title { font-weight: 700; color: #23273e; letter-spacing: 0.01em; margin-bottom: 16px; font-size: 1.55rem; display: flex; align-items: center; gap: 9px; justify-content: center; }
-    .ad-modern-title i { font-size: 1.32em; color: #24aaf8; }
-    .ad-modern-desc { color: #274164; background: #e7f3ff; border-radius: 11px; font-size: 1.14rem; padding: 14px 7px 10px 7px; margin-bottom: 18px; font-weight: 600; border: 1.5px solid #c7e6fe; }
-    .ad-modern-video-frame { background: #181c22; border-radius: 12px; overflow: hidden; border: 2.5px solid #e8f1fa; margin-bottom: 23px; box-shadow: 0 1px 12px 0 rgba(24,34,56,0.07);}
-    .ad-modern-video-frame video { display: block; width: 100%; height: 245px; border: none; background: #000;}
-    .ad-modern-btn { background: linear-gradient(90deg, #24aaf8 0%, #3763f4 100%); border: none; color: #fff; padding: 12px 22px; border-radius: 10px; font-size: 1.09rem; font-weight: 600; box-shadow: 0 2px 16px 0 rgba(36,170,248,0.11); margin-bottom: 13px; width: 100%; transition: background 0.19s, box-shadow 0.19s; }
-    .ad-modern-btn:disabled, .ad-modern-btn[disabled] { background: linear-gradient(90deg, #7cc6b7 0%, #95cfc0 100%); color: #edf4f3; opacity: 1; cursor: not-allowed; }
-    .ad-modern-timer { font-size: 1.07rem; color: #1e3c6c; margin-bottom: 15px; font-weight: 500; letter-spacing: 0.01em; }
-    .modern-link-btn { background: #727a87; border: none; color: #fff; font-weight: 600; padding: 11px 0; width: 100%; border-radius: 8px; margin-top: 5px; font-size: 1.04rem; transition: background .18s; text-decoration: none; display: block; }
-    .modern-link-btn:hover { background: #61656d; color: #fff; }
-    @media (max-width: 600px) { .ad-modern-card { max-width: 99vw; padding: 18px 4vw 17px 4vw; margin: 22px auto;} .ad-modern-video-frame video { height: 39vw; min-height: 145px;} }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #fff;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    .ad-modern-card {
+      max-width: 440px;
+      margin: 64px auto;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.65);
+      box-shadow: 0 3px 32px 0 rgba(30, 38, 67, 0.3);
+      padding: 40px 34px 34px 34px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    .ad-modern-title {
+      font-weight: 700;
+      color: #e6f1ff;
+      letter-spacing: 0.01em;
+      margin-bottom: 16px;
+      font-size: 1.55rem;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      justify-content: center;
+    }
+    .ad-modern-title i {
+      font-size: 1.32em;
+      color: #24aaf8;
+    }
+    .ad-modern-desc {
+      color: #d9e8f5;
+      background: rgba(36, 170, 248, 0.15);
+      border-radius: 11px;
+      font-size: 1.1rem;
+      padding: 14px 7px 10px 7px;
+      margin-bottom: 18px;
+      font-weight: 600;
+      border: 1.5px solid #7fcaf8;
+    }
+    .ad-modern-video-frame {
+      background: #181c22;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2.5px solid #7fcaf8;
+      margin-bottom: 23px;
+      box-shadow: 0 1px 12px 0 rgba(24,34,56,0.1);
+    }
+    .ad-modern-video-frame video {
+      display: block;
+      width: 100%;
+      height: 245px;
+      border: none;
+      background: #000;
+    }
+    .ad-modern-btn {
+      background: linear-gradient(90deg, #24aaf8 0%, #3763f4 100%);
+      border: none;
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: 1.09rem;
+      font-weight: 600;
+      box-shadow: 0 2px 16px 0 rgba(36,170,248,0.11);
+      margin-bottom: 13px;
+      width: 100%;
+      transition: background 0.19s, box-shadow 0.19s;
+    }
+    .ad-modern-btn:disabled {
+      background: #555e6c;
+      color: #ccc;
+      cursor: not-allowed;
+    }
+    .ad-modern-timer {
+      font-size: 1.07rem;
+      color: #eee;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+    .modern-link-btn {
+      background: #727a87;
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      padding: 11px 0;
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 5px;
+      font-size: 1.04rem;
+      transition: background .18s;
+      text-decoration: none;
+      display: block;
+    }
+    .modern-link-btn:hover {
+      background: #61656d;
+    }
+    .alert-warning {
+      background-color: #4c3e14;
+      border-color: #ffe58f;
+      color: #ffecb5;
+    }
+    @media (max-width: 600px) {
+      .ad-modern-card {
+        max-width: 95vw;
+        padding: 20px 4vw;
+        margin: 22px auto;
+      }
+      .ad-modern-video-frame video {
+        height: 38vw;
+        min-height: 145px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1212,7 +2083,6 @@ HTML_WATCH_ADS = """
         <span id="waitTimer"></span>
       </div>
       <script>
-        // Geriye kalan süreyi gösteren sayaç:
         var wait_seconds = {{ wait_seconds }};
         function fmt(sec) {
           var h = Math.floor(sec/3600);
@@ -1233,12 +2103,12 @@ HTML_WATCH_ADS = """
       </script>
     {% else %}
       <div class="ad-modern-video-frame mb-3">
-        <video id="adVideo" width="100%" height="245" controls>
+        <video id="adVideo" controls>
           <source src="/static/reklam.mp4" type="video/mp4">
           Tarayıcınız video etiketini desteklemiyor.
         </video>
       </div>
-      <button class="ad-modern-btn" id="watchBtn" disabled>30 sn sonra Bakiyeyi Al</button>
+      <button class="ad-modern-btn" id="watchBtn" disabled>BAKİYENİ AL</button>
       <div class="ad-modern-timer" id="timer">30 sn kaldı...</div>
       <script>
         let sec = 30;
@@ -1273,7 +2143,6 @@ HTML_WATCH_ADS = """
     {% endif %}
     <a href="/panel" class="modern-link-btn">Panele Dön</a>
   </div>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </body>
 </html>
 """
@@ -1415,8 +2284,13 @@ def login():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    # Kullanıcı eğer doğrulama ekranına takıldı ama session'da veri yoksa temizle:
+    if session.get("register_sent") and not session.get("register_temp_user"):
+        session.pop("register_sent", None)
+
     sent = session.get("register_sent", False)
     temp_user = session.get("register_temp_user", {})
+
     if request.method == "POST":
         if not sent:
             username = request.form.get("username", "").strip()
@@ -1442,7 +2316,6 @@ def register():
                 return redirect("/register")
         else:
             code = request.form.get("verify_code", "").strip()
-            temp_user = session.get("register_temp_user", {})
             if not code or not temp_user:
                 flash("Bir hata oluştu, tekrar kayıt olun.")
                 session.pop("register_sent", None)
@@ -1460,12 +2333,11 @@ def register():
                 )
                 db.session.add(user)
                 db.session.commit()
-                flash("Kayıt başarıyla tamamlandı! Giriş yapabilirsiniz.")
+                flash("Kayıt başarıyla tamamlandı!")
                 session.pop("register_sent", None)
                 session.pop("register_temp_user", None)
                 return redirect("/")
-    sent = session.get("register_sent", False)
-    return render_template_string(HTML_REGISTER, sent=sent)
+    return render_template_string(HTML_REGISTER, sent=session.get("register_sent", False))
 
 @app.route("/logout")
 def logout():
@@ -1499,15 +2371,24 @@ def manage_users():
     )
 
 @app.route("/users/delete/<int:user_id>")
-@login_required
 @admin_required
 def delete_user(user_id):
-    admin = User.query.get(session.get("user_id"))
-    usr = User.query.get_or_404(user_id)
-    if usr.username != admin.username:
-        db.session.delete(usr)
+    user = User.query.get_or_404(user_id)
+    
+    # Admin kendi kendini silmeye çalışmasın
+    if user.id == session.get("user_id"):
+        flash("Kendi hesabınızı silemezsiniz!")
+        return redirect(url_for("manage_users"))
+
+    try:
+        db.session.delete(user)
         db.session.commit()
-    return redirect("/users")
+        flash("Kullanıcı başarıyla silindi.")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Hata oluştu: {str(e)}")
+
+    return redirect(url_for("manage_users"))
 
 @app.route("/admin/add-balance", methods=["POST"])
 @login_required
@@ -2059,6 +2940,12 @@ def api_order_status():
     order.status = data.get("status")
     db.session.commit()
     return {"success": True}
+
+@app.route("/reset-registration", methods=["POST"])
+def reset_registration():
+    session.pop("register_sent", None)
+    session.pop("register_temp_user", None)
+    return redirect("/register")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
