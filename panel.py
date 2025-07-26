@@ -239,10 +239,14 @@ HTML_LOGIN = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>insprov.uk</title>
+  <title>ınsprov</title>
+  <meta name="description" content="VİDEO İZLE 5 TL BAKİYE KAZAN TAKİPÇİ BEĞENİ İZLENME SİPARİŞİ VER">
+  <meta property="og:site_name" content="ınsprov">
+  <meta property="og:title" content="ınsprov">
+  <meta property="og:description" content="VİDEO İZLE 5 TL BAKİYE KAZAN TAKİPÇİ BEĞENİ İZLENME SİPARİŞİ VER">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='faviconu.png') }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
@@ -294,7 +298,7 @@ HTML_LOGIN = """
 </head>
 <body class="d-flex justify-content-center align-items-center">
   <div class="card shadow p-4" style="min-width:340px;">
-    <h3 class="mb-3 text-center">insprov.uk</h3>
+    <h3 class="mb-3 text-center">ınsprov</h3>
 
     {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -3264,6 +3268,10 @@ def sync_external_order_status():
             print(f"[SYNC][ERROR] Genel hata: {e}", flush=True)
     # 180 saniye sonra tekrar çalıştır
     threading.Timer(60, sync_external_order_status).start()
+
+@app.route('/google6aef354bdd638dfc4.html')
+def google_verify():
+    return "google-site-verification: google6aef354bdd638dfc4.html"
 
 # DOSYANIN EN SONUNA KOY!
 sync_external_order_status()
