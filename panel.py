@@ -110,6 +110,11 @@ app.url_map.strict_slashes = False
 app.secret_key = os.getenv("SECRET_KEY", "çok-gizli-bir-anahtar")
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://neondb_owner:npg_r0Vg1Gospfmt@ep-old-firefly-a23lm21m-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 280
+}
+
 db = SQLAlchemy(app)
 
 SABIT_FIYAT = 0.5
@@ -3186,32 +3191,39 @@ def delete_orders_bulk():
 
 def sync_external_order_status():
     with app.app_context():
-        external_orders = Order.query.filter(
-            Order.status.in_(["pending", "started"]),
-            Order.api_order_id != None,
-            Order.service_id >= 100000
-        ).all()
-        for order in external_orders:
-            result = fetch_resellersmm_status(order.api_order_id)
-            print(f"Order ID: {order.id}, API Order ID: {order.api_order_id}, API Sonuç: {result}")  # <-- BURAYI EKLE!
-            new_status = result.get("status", "").lower()
-            print(f"Order ID: {order.id}, new_status: {new_status}")  # <-- BURAYI DA EKLE!
-            status_map = {
-                "completed": "completed",
-                "canceled": "canceled",
-                "pending": "pending",
-                "in progress": "pending",
-                "partial": "partial"
-            }
-            mapped_status = status_map.get(new_status, order.status)
-            print(f"Order ID: {order.id}, mapped_status: {mapped_status}, mevcut status: {order.status}")  # <-- BURAYI DA EKLE!
-            if order.status != mapped_status:
-                order.status = mapped_status
-                db.session.commit()
-                print(f"[Senkron] Order {order.id}: Durum güncellendi: {mapped_status}")
+        try:
+            external_orders = Order.query.filter(
+                Order.status.in_(["pending", "started"]),
+                Order.api_order_id != None,
+                Order.service_id >= 100000
+            ).all()
+            for order in external_orders:
+                try:
+                    result = fetch_resellersmm_status(order.api_order_id)
+                    print(f"Order ID: {order.id}, API Order ID: {order.api_order_id}, API Sonuç: {result}", flush=True)
+                    new_status = result.get("status", "").lower()
+                    print(f"Order ID: {order.id}, new_status: {new_status}", flush=True)
+                    status_map = {
+                        "completed": "completed",
+                        "canceled": "canceled",
+                        "pending": "pending",
+                        "in progress": "pending",
+                        "partial": "partial"
+                    }
+                    mapped_status = status_map.get(new_status, order.status)
+                    print(f"Order ID: {order.id}, mapped_status: {mapped_status}, mevcut status: {order.status}", flush=True)
+                    if order.status != mapped_status:
+                        order.status = mapped_status
+                        db.session.commit()
+                        print(f"[Senkron] Order {order.id}: Durum güncellendi: {mapped_status}", flush=True)
+                except Exception as order_err:
+                    print(f"[SYNC][ORDER][ERROR] Order ID {order.id}: {order_err}", flush=True)
+        except Exception as e:
+            print(f"[SYNC][ERROR] Genel hata: {e}", flush=True)
+    # 180 saniye sonra tekrar çalıştır
+    threading.Timer(60, sync_external_order_status).start()
 
-    threading.Timer(180, sync_external_order_status).start()
-
+# DOSYANIN EN SONUNA KOY!
 sync_external_order_status()
 
 if __name__ == "__main__":
