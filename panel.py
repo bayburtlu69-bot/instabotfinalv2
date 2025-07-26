@@ -2,6 +2,7 @@ import os
 import time
 import random
 import smtplib
+import threading
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 
@@ -3100,22 +3101,6 @@ def fetch_resellersmm_status(api_order_id):
         print(f"Status API Hatası: {e}")
         return {}
 
-import threading
-
-def fetch_resellersmm_status(api_order_id):
-    # ResellersMM API'ye order_id ile sorgu yapıp son durumu döndürür
-    try:
-        resp = requests.post(EXTERNAL_API_URL, data={
-            "key": EXTERNAL_API_KEY,
-            "action": "status",
-            "order": api_order_id
-        }, timeout=10)
-        resp.raise_for_status()
-        return resp.json()
-    except Exception as e:
-        print("Status fetch error:", e)
-        return {}
-
 def sync_external_order_status():
     with app.app_context():
         external_orders = Order.query.filter(
@@ -3128,9 +3113,10 @@ def sync_external_order_status():
             new_status = result.get("status", "").lower()
             status_map = {
                 "completed": "completed",
-                "canceled": "cancelled",
+                "canceled": "canceled",
                 "pending": "pending",
-                "in progress": "pending"
+                "in progress": "pending",
+                "partial": "partial"
             }
             mapped_status = status_map.get(new_status, order.status)
             if order.status != mapped_status:
@@ -3138,9 +3124,8 @@ def sync_external_order_status():
                 db.session.commit()
                 print(f"[Senkron] Order {order.id}: Durum güncellendi: {mapped_status}")
 
-    threading.Timer(180, sync_external_order_status).start()
-
-# ---- TAM BU SATIRDAN HEMEN ÖNCE ÇAĞIR ----
+    threading.Timer(120, sync_external_order_status).start()
 
 if __name__ == "__main__":
+    sync_external_order_status()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
