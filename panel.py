@@ -221,9 +221,11 @@ HTML_LOGIN = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>insprov.uk</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='faviconu.png') }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -309,6 +311,7 @@ HTML_REGISTER = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kayıt Ol</title>
@@ -413,9 +416,11 @@ HTML_REGISTER = """
 """
 
 HTML_USERS = """
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kullanıcı Yönetimi</title>
@@ -543,6 +548,7 @@ HTML_SERVICES_MANAGE = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Servisleri Yönet</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
@@ -642,8 +648,13 @@ HTML_SERVICES_MANAGE = """
                          class="form-control form-control-sm"
                          value="{{ "%.2f"|format(s.price) }}" {% if s.id not in local_ids %}readonly{% endif %}>
                 </td>
-                <td>{{ s.min_amount }}</td>
-                <td>{{ s.max_amount }}</td>
+                <td>
+                  {{ s.min_amount }}
+                </td>
+                <td>
+                  <input name="max_{{s.id}}" type="number" min="{{ s.min_amount }}" class="form-control form-control-sm"
+                         value="{{ s.max_amount }}" {% if s.id not in local_ids %}readonly{% endif %}>
+                </td>
                 <td>
                   {% if s.id in local_ids %}
                     <span class="badge bg-success">Local</span>
@@ -676,10 +687,12 @@ HTML_SERVICES_MANAGE = """
 </html>
 """
 
+
 HTML_BALANCE = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bakiye Yükle</title>
@@ -800,7 +813,9 @@ HTML_BALANCE = """
 
 HTML_BALANCE_REQUESTS = """
 <!DOCTYPE html>
-<html lang="tr"><head>
+<html lang="tr">
+  <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bakiye Talepleri</title>
@@ -926,6 +941,7 @@ HTML_SERVICES = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Servisler & Fiyat Listesi</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
@@ -1106,6 +1122,7 @@ HTML_ADMIN_TICKETS = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ticket Yönetimi (Admin)</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -1229,6 +1246,7 @@ HTML_EXTERNAL_MANAGE = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <title>Dış Servis Seçimi</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
@@ -1315,6 +1333,7 @@ HTML_ORDERS_SIMPLE = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <meta charset="UTF-8">
     <title>Geçmiş Siparişler</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -1460,6 +1479,7 @@ HTML_TICKETS = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Destek Taleplerim</title>
@@ -1588,6 +1608,7 @@ HTML_PANEL = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sipariş Paneli</title>
@@ -1595,209 +1616,289 @@ HTML_PANEL = """
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #000;
-      overflow-x: hidden;
+      background: #181c20 !important;
       color: #fff;
+      font-family: 'Segoe UI', Arial, sans-serif;
     }
-
     body::before {
       content: "";
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: linear-gradient(-45deg, #1e1e1e, #2c2f34, #1e1e1e, #000000);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
+      width: 100vw; height: 100vh;
+      background: linear-gradient(120deg, #212529 0%, #23272b 60%, #181c20 100%);
       z-index: -1;
-      opacity: 0.4;
+      opacity: 0.56;
+      animation: gradientBG 12s ease-in-out infinite;
+      background-size: 200% 200%;
     }
-
     @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
     }
-
-    h4 {
-      color: #ffffff !important;
-    }
-
     .card {
-      background-color: rgba(33, 37, 41, 0.92);
-      border-radius: 14px;
+      background: rgba(28,31,34,0.95);
+      border-radius: 18px;
+      box-shadow: 0 4px 32px 0 rgba(0,0,0,0.25);
+      border: none;
     }
-
-    .form-control, .form-select {
-      background-color: #1e1e1e;
-      border-color: #444;
+    .btn-panel-dark {
+      background: #181c20;
+      color: #f0f4fa;
+      border: 2.2px solid #43464e;
+      border-radius: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      box-shadow: 0 1.5px 10px 0 rgba(0,0,0,0.10);
+      transition: background .21s, color .15s, border .2s, box-shadow .19s;
+      padding: 0.95rem 1.2rem;
+      font-size: 1.09rem;
+      width: 100%;
+      margin-bottom: 0 !important;
+    }
+    .btn-panel-dark:hover, .btn-panel-dark:focus {
+      background: #23272b;
+      color: #72e2ff;
+      border-color: #43b3fa;
+      box-shadow: 0 4px 20px 0 rgba(67,179,250,0.08);
+      outline: none;
+    }
+    .btn-panel-dark b {
       color: #fff;
+      font-weight: 900;
+      letter-spacing: 0.02em;
     }
-
+    .btn-panel-outline {
+      background: transparent;
+      color: #8ec9fd;
+      border: 2px solid #31353a;
+      border-radius: 10px;
+      font-weight: 700;
+      padding: 0.72rem 1.2rem;
+      font-size: 1.01rem;
+      margin-bottom: 2px;
+      width: 100%;
+      box-shadow: none;
+      transition: background 0.21s, color .15s, border .2s, box-shadow .17s;
+      opacity: 1;
+    }
+    .btn-panel-outline:hover, .btn-panel-outline:focus {
+      background: #222730;
+      color: #41d1ff;
+      border-color: #43b3fa;
+      outline: none;
+      opacity: 1;
+    }
+    .btn-custom-outline {
+      background: transparent;
+      border: 1.5px solid #50555c;
+      color: #c2c8d7;
+      border-radius: 8px;
+      transition: all .18s;
+    }
+    .btn-custom-outline:hover, .btn-custom-outline:focus {
+      background: #22262c;
+      color: #fff;
+      border-color: #2186eb;
+    }
+    .form-control, .form-select {
+      background: #23272b;
+      border: 1.5px solid #323740;
+      color: #e7eaf0;
+      border-radius: 8px;
+      transition: border .17s, box-shadow .17s;
+    }
     .form-control:focus, .form-select:focus {
-      background-color: #1e1e1e;
       border-color: #2186eb;
       color: #fff;
-      box-shadow: none;
+      background: #23272b;
+      box-shadow: 0 0 0 0.10rem #2186eb40;
+      outline: none;
     }
-
     .form-label {
-      color: #fff !important;
-      font-weight: 500;
+      color: #f0f0f2;
+      font-weight: 600;
+      font-size: 1rem;
     }
-
     .alert-secondary {
-      background-color: #2c2f34;
-      border-color: #3c3f46;
-      color: #ddd;
+      background: #23272b;
+      color: #c3cad8;
+      border: none;
+      border-radius: 8px;
     }
-
-    .btn-primary, .btn-secondary, .btn-warning, .btn-danger, .btn-success, .btn-info {
-      color: #fff;
-    }
-
-    .btn-outline-danger {
-      color: #dc3545;
-      border-color: #dc3545;
-    }
-
-    .btn-outline-danger:hover {
-      background-color: #dc3545;
-      color: #fff;
-    }
-
     .welcome-card {
-      background: linear-gradient(90deg, #2b2f41 0%, #1e1e1e 100%);
-      border-radius: 18px;
-      padding: 20px 28px 16px 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 18px 0 rgba(0,0,0,0.3);
+      background: linear-gradient(100deg, #242a2f 0%, #181c20 80%);
+      border-radius: 15px;
+      padding: 22px 26px 15px 18px;
+      margin-bottom: 22px;
+      box-shadow: 0 3px 18px 0 rgba(0,0,0,0.23);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-
-    .welcome-left {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-    }
-
     .welcome-icon {
-      font-size: 2.3rem;
+      font-size: 2.5rem;
       color: #2186eb;
-      margin-top: 2px;
+      margin-right: 13px;
+      margin-top: 3px;
     }
-
     .welcome-title {
-      font-weight: 700;
-      font-size: 1.2rem;
-      margin-bottom: 0.1rem;
+      font-weight: 800;
+      font-size: 1.16rem;
+      margin-bottom: 0.2rem;
       color: #fff;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.015em;
     }
-
     .welcome-desc {
-      font-size: 0.97rem;
-      color: #ccc;
+      font-size: 0.95rem;
+      color: #c5c8d4;
     }
-
     .welcome-balance {
-      font-size: 1.08rem;
+      font-size: 1.13rem;
       color: #fff;
-      font-weight: 600;
-      margin-bottom: 0.3rem;
+      font-weight: 700;
+      margin-bottom: 0.18rem;
       text-align: right;
     }
-
-    input[disabled] {
-      background-color: #2c2f34 !important;
-      color: #d6dce5 !important;
-      opacity: 1 !important;
+    .welcome-balance-label {
+      color: #fff !important;
+      font-weight: 900 !important;
+      letter-spacing: .01em;
     }
-
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
+    .welcome-balance-value {
+      color: #41b6ff !important;
+      font-weight: 900 !important;
+      letter-spacing: .01em;
+      font-size: 1.12em;
     }
-
-    input[type=number] {
+    /* YENİ SİPARİŞ BAŞLIĞI ORTALI FORM ÜSTÜNDE */
+    .order-title-center {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #22b3ff;
+      letter-spacing: .018em;
+      margin-bottom: 18px;
+      margin-top: 18px;
+      text-shadow: 0 4px 24px #22b3ff1a;
+      gap: 12px;
+      position: relative;
+      min-height: 54px;
+    }
+    .order-title-center .bi {
+      color: #22b3ff;
+      font-size: 1.45em;
+      margin-right: 7px;
+    }
+    @media (max-width: 767px) {
+      .order-title-center { font-size: 1.2rem; gap: 7px; min-height: 34px; }
+      .order-title-center .bi { font-size: 1.12em; }
+    }
+    /* Miktar kutusu number spinner kaldır */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] { 
       -moz-appearance: textfield;
+      appearance: textfield;
     }
-
+    /* Tutar alanı stil: miktar gibi koyu ve belirgin */
+    .form-total-custom {
+      background: #23272b !important;
+      border: 1.5px solid #323740 !important;
+      color: #4fe9ff !important;
+      border-radius: 8px !important;
+      font-size: 1.21em !important;
+      font-weight: 800 !important;
+      letter-spacing: .01em;
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+      transition: border .16s, box-shadow .15s;
+      box-shadow: none;
+      min-height: 44px;
+      text-align: left;
+    }
+    .form-total-custom:disabled {
+      background: #23272b !important;
+      color: #4fe9ff !important;
+      opacity: 1;
+    }
     @media (max-width: 575px) {
-      .welcome-card { flex-direction: column; align-items: flex-start; gap: 14px; }
+      .welcome-card { flex-direction: column; align-items: flex-start; gap: 12px; }
       .welcome-balance { text-align: left; }
+      .order-title-center { font-size: 1.05rem; gap: 6px; min-height: 27px; }
+      .form-total-custom { font-size: 1.06em !important; }
     }
   </style>
 </head>
-<body class="text-light">
+<body>
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
-
-      <!-- HOŞGELDİN ALANI -->
-      <div class="welcome-card">
-        <div class="welcome-left">
+      <!-- HOŞGELDİN -->
+      <div class="welcome-card mb-3">
+        <div class="d-flex align-items-center">
           <span class="welcome-icon"><i class="bi bi-person-circle"></i></span>
           <div>
-            <div class="welcome-title">Hoşgeldin, {{ current_user }}</div>
+            <div class="welcome-title">Hoşgeldin - {{ current_user }}</div>
             <div class="welcome-desc">Keyifli ve güvenli alışverişler dileriz.</div>
           </div>
         </div>
         <div>
-          <div class="welcome-balance">Bakiye: <span style="color:#4da3ff" id="balance">{{ balance }} TL</span></div>
-          <a href="{{ url_for('orders') }}" class="btn btn-sm btn-primary mt-1 w-100" style="min-width:148px;">
+          <div class="welcome-balance">
+            <span class="welcome-balance-label">Bakiye:</span>
+            <span class="welcome-balance-value" id="balance">{{ balance }} TL</span>
+          </div>
+          <a href="{{ url_for('orders') }}" class="btn btn-panel-outline btn-sm mt-1 w-100" style="min-width:146px;">
             <i class="bi bi-box-seam"></i> Geçmiş Siparişler
           </a>
         </div>
       </div>
-
-      <!-- ANA BUTONLAR -->
+      <!-- BUTONLAR -->
       <div class="d-grid gap-3 mb-3">
         {% if role == 'admin' %}
-          <a href="{{ url_for('manage_users') }}" class="btn btn-secondary py-2">Kullanıcı Yönetimi</a>
-          <a href="{{ url_for('balance_requests') }}" class="btn btn-warning py-2">Bakiye Talepleri</a>
-          <a href="{{ url_for('admin_tickets') }}" class="btn btn-danger py-2">Tüm Destek Talepleri</a>
-          <a href="{{ url_for('manage_services') }}" class="btn btn-info py-2">Servisleri Yönet</a>
+          <a href="{{ url_for('manage_users') }}" class="btn btn-panel-dark py-2"><b>Kullanıcı Yönetimi</b></a>
+          <a href="{{ url_for('balance_requests') }}" class="btn btn-panel-dark py-2">Bakiye Talepleri</a>
+          <a href="{{ url_for('admin_tickets') }}" class="btn btn-panel-dark py-2">Tüm Destek Talepleri</a>
+          <a href="{{ url_for('manage_services') }}" class="btn btn-panel-dark py-2">Servisleri Yönet</a>
         {% else %}
-          <a href="{{ url_for('user_balance') }}" class="btn btn-warning py-2">Bakiye Yükle</a>
-          <a href="{{ url_for('tickets') }}" class="btn btn-danger py-2">Destek & Canlı Yardım</a>
+          <a href="{{ url_for('user_balance') }}" class="btn btn-panel-dark py-2">Bakiye Yükle</a>
+          <a href="{{ url_for('tickets') }}" class="btn btn-panel-dark py-2">Destek & Canlı Yardım</a>
         {% endif %}
-        <a href="{{ url_for('watchads') }}" class="btn btn-success py-2">Reklam İzle – Bakiye Kazan</a>
+        <a href="{{ url_for('watchads') }}" class="btn btn-panel-dark py-2">Reklam İzle – Bakiye Kazan</a>
       </div>
-
-      <!-- SİPARİŞ FORMU -->
-      <h4 class="mb-3 mt-4">Yeni Sipariş</h4>
+      <!-- SİPARİŞ FORMU BAŞLIĞI -->
+      <div class="order-title-center">
+        <i class="bi bi-cart-check"></i> Yeni Sipariş
+      </div>
       <form id="orderForm" method="post" autocomplete="off">
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
           <select class="form-select" name="category" required>
-            <option value="instagram" selected>Instagram</option>
+            <option value="instagram" selected>INSTAGRAM</option>
           </select>
         </div>
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-box-seam"></i> Servis</label>
           <select class="form-select" name="service_id" id="service_id" required>
-            {% for s in services %}
-              <option value="{{ s.id }}" data-price="{{ s.price }}">
-                {{ s.name }} – {{ "%.2f"|format(s.price) }} TL
-              </option>
-            {% endfor %}
-          </select>
+  {% for s in services %}
+    <option value="{{ s.id }}" data-price="{{ s.price }}" data-min="{{ s.min_amount }}" data-max="{{ s.max_amount }}">
+      {{ s.name }} – {{ "%.2f"|format(s.price) }} TL
+    </option>
+  {% endfor %}
+</select>
         </div>
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-info-circle"></i> Açıklama</label>
-          <div class="alert alert-secondary" style="white-space: pre-line; display: flex; flex-direction: column; justify-content: center; min-height: 200px;">
+          <div class="alert alert-secondary" style="white-space: pre-line; display: flex; flex-direction: column; justify-content: center; min-height: 160px;">
             <b>LÜTFEN SİPARİŞ VERMEDEN ÖNCE BU KISMI OKU</b>
-
-            Sistem, gönderilecek takipçi sayısına göre en uygun şekilde çalışır.
-
+            Sistem, gönderilecek takipçi sayısına göre uygun şekilde çalışır.
             Örnek: 1000 Türk gerçek takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
-
-            <b>DİKKAT:</b> Takipçi gönderimi, organik hesaplardan ve gerçek Türk profillerden yapılır. 
-            Gizli (kapalı) hesaplara gönderim yapılmaz.
+            <b>DİKKAT:</b> Takipçi gönderimi organik hesaplardan ve gerçek Türk profillerden yapılır. Gizli hesaplara gönderim yapılmaz.
           </div>
         </div>
         <div class="mb-3">
@@ -1810,16 +1911,15 @@ HTML_PANEL = """
         </div>
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-currency-dollar"></i> Tutar</label>
-          <input type="text" class="form-control" id="total" placeholder="" disabled>
+          <input type="text" class="form-control form-total-custom" id="total" placeholder="" disabled>
         </div>
-        <button type="submit" class="btn btn-primary w-100" id="orderSubmitBtn">Siparişi Gönder</button>
+        <button type="submit" class="btn btn-panel-dark btn-lg w-100" id="orderSubmitBtn" style="margin-top:4px;margin-bottom:4px;"><b>Siparişi Gönder</b></button>
       </form>
-
       <script>
+        // Otomatik fiyat güncelleme
         const sel = document.getElementById('service_id'),
               amt = document.getElementById('amount'),
               tot = document.getElementById('total');
-
         function updateTotal(){
           const price = parseFloat(sel.selectedOptions[0].dataset.price)||0,
                 num   = parseInt(amt.value)||0;
@@ -1829,8 +1929,8 @@ HTML_PANEL = """
         }
         sel.addEventListener('change', updateTotal);
         amt.addEventListener('input', updateTotal);
+        document.addEventListener('DOMContentLoaded', updateTotal);
       </script>
-
       <script>
         document.getElementById('orderForm').addEventListener('submit', function(e){
           e.preventDefault();
@@ -1854,11 +1954,9 @@ HTML_PANEL = """
           .catch(()=>{ btn.disabled = false; alert('İstek başarısız'); });
         });
       </script>
-
       <div class="mt-3 text-end">
-        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Çıkış Yap</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-custom-outline btn-sm">Çıkış Yap</a>
       </div>
-
     </div>
   </div>
 </body>
@@ -1869,6 +1967,7 @@ HTML_ADS_MANAGE = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Reklam Videosu</title>
@@ -1944,6 +2043,7 @@ HTML_WATCH_ADS = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Reklam İzle – Bakiye Kazan</title>
@@ -2427,16 +2527,17 @@ def panel():
     user = User.query.get(session.get("user_id"))
     msg, error = "", ""
 
-    # 1) Yerel servisler (DB’daki Service tablosu)
+    # 1) Yerel servisler (DB’deki Service tablosu)
     local = Service.query.filter_by(active=True).all()
     local_ids = {s.id for s in local}
-    # 2) Seçili external servisler
+    # 2) Seçili external servisler (bunlarda min/max da olmalı!)
     external = fetch_selected_external_services()
     external = [s for s in external if s.id not in local_ids]
     # 3) Merge: yerel + sadece local’de olmayan external
     services = local + external
 
-    # Fiyat referansı
+    # *** SERVISLERIN min/max DEĞERLERİ HER SERVIS İÇİN VAR OLMALI ***
+    # Fiyat referansı sadece ilk servis için:
     price = services[0].price if services else SABIT_FIYAT
 
     if request.method == "POST":
@@ -2445,10 +2546,25 @@ def panel():
             amount = int(request.form.get("amount",""))
         except:
             amount = 0
+
+        # *** SERVIS ID'YI DOĞRU ÇEK ***
+        service_id = request.form.get("service_id", type=int)
+        service = next((s for s in services if s.id == service_id), None)
+
+        # Min/max değerini seçili servise göre kontrol et!
+        if service:
+            min_amt = getattr(service, "min_amount", 1)
+            max_amt = getattr(service, "max_amount", 1000000)
+            price = service.price
+        else:
+            min_amt, max_amt, price = 1, 1000000, SABIT_FIYAT
+
         total = amount * price
 
         if not target or amount <= 0:
             error = "Tüm alanları doğru doldurun!"
+        elif amount < min_amt or amount > max_amt:
+            error = f"Adet {min_amt}-{max_amt} arası olmalı."
         elif user.balance < total:
             error = "Yetersiz bakiye!"
         else:
@@ -2697,12 +2813,18 @@ def api_new_order():
     service_id = int(request.form.get("service_id") or 0)
     service = Service.query.filter_by(id=service_id).first()
     if not service:
-        return jsonify({"success":False, "error":"Servis bulunamadı."})
+        return jsonify({"success": False, "error": "Servis bulunamadı."})
+
     total = service.price * amount
-    if not username or amount < 10 or amount > 1000:
-        return jsonify({"success":False, "error":"Adet 10-1000 arası olmalı."})
+
+    # DİNAMİK MİN-MAX KONTROLÜ
+    min_amt = getattr(service, "min_amount", 10)
+    max_amt = getattr(service, "max_amount", 1000)
+    if not username or amount < min_amt or amount > max_amt:
+        return jsonify({"success": False, "error": f"Adet {min_amt}-{max_amt} arası olmalı."})
+
     if user.balance < total:
-        return jsonify({"success":False, "error":"Yetersiz bakiye!"})
+        return jsonify({"success": False, "error": "Yetersiz bakiye!"})
 
     # Varsayılanlar
     status = "pending"
@@ -2722,12 +2844,11 @@ def api_new_order():
             resp.raise_for_status()
             result = resp.json()
             if "order" not in result:
-                # HATA GELDİ, siparişi error statüsünde kaydet!
                 status = "error"
                 error = result.get("error", "Resellersmm sipariş hatası!")
         except Exception as e:
             status = "error"
-            error = "ResellersMM API bağlantı/yanıt hatası: "+str(e)
+            error = "ResellersMM API bağlantı/yanıt hatası: " + str(e)
 
     # Siparişi oluştur
     order = Order(
@@ -2744,9 +2865,10 @@ def api_new_order():
     db.session.commit()
 
     if status == "error":
-        return jsonify({"success":True, "new_balance": round(user.balance,2), "info":error})
+        return jsonify({"success": True, "new_balance": round(user.balance, 2), "info": error})
     else:
-        return jsonify({"success":True, "new_balance": round(user.balance,2)})
+        return jsonify({"success": True, "new_balance": round(user.balance, 2)})
+
 
 @app.route("/admin/order_resend/<int:order_id>", methods=["POST"])
 @login_required
@@ -2946,6 +3068,16 @@ def reset_registration():
     session.pop("register_sent", None)
     session.pop("register_temp_user", None)
     return redirect("/register")
+
+@app.route('/admin/service/<int:service_id>/update', methods=['POST'])
+@admin_required
+def update_service(service_id):
+    max_amount = int(request.form.get('max_amount', 1000))
+    service = Service.query.get_or_404(service_id)
+    service.max_amount = max_amount
+    db.session.commit()
+    flash('Servis ayarları güncellendi!', 'success')
+    return redirect(url_for('manage_services'))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
