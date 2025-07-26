@@ -1401,6 +1401,7 @@ HTML_ORDERS_SIMPLE = """
                             <th>Hedef Kullanıcı</th>
                             <th>Adet</th>
                             <th>Fiyat</th>
+                            <th>Servis ID</th>
                             <th>Durum</th>
                             {% if role == 'admin' %}
                               <th>Hata</th>
@@ -1418,6 +1419,7 @@ HTML_ORDERS_SIMPLE = """
                             <td>{{ o.username }}</td>
                             <td>{{ o.amount }}</td>
                             <td>{{ "%.2f"|format(o.total_price) }}</td>
+                            <td>{{ o.service_id }}</td>
                             <td>
                                 {% if role != 'admin' %}
                                     {% if o.status == 'pending' %}
@@ -1474,6 +1476,8 @@ HTML_ORDERS_SIMPLE = """
 </body>
 </html>
 """
+
+
 
 HTML_TICKETS = """
 <!DOCTYPE html>
@@ -1854,7 +1858,7 @@ HTML_PANEL = """
             <span class="welcome-balance-value" id="balance">{{ balance }} TL</span>
           </div>
           <a href="{{ url_for('orders') }}" class="btn btn-panel-outline btn-sm mt-1 w-100" style="min-width:146px;">
-            <i class="bi bi-box-seam"></i> Geçmiş Siparişler
+            <i class="bi bi-box-seam"></i> Siparişlerim
           </a>
         </div>
       </div>
