@@ -143,8 +143,8 @@ class BalanceRequest(db.Model):
 
 class Service(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True, nullable=False)
-    description = db.Column(db.String(256))
+    name = db.Column(db.String(255), unique=True, nullable=False)
+    description = db.Column(db.String(512))
     price = db.Column(db.Float, nullable=False)
     min_amount = db.Column(db.Integer, default=1)
     max_amount = db.Column(db.Integer, default=1000)
