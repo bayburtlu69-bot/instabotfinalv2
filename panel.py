@@ -1897,8 +1897,8 @@ HTML_PANEL = """
           <div class="alert alert-secondary" style="white-space: pre-line; display: flex; flex-direction: column; justify-content: center; min-height: 160px;">
             <b>LÜTFEN SİPARİŞ VERMEDEN ÖNCE BU KISMI OKU</b>
             Sistem, gönderilecek takipçi sayısına göre uygun şekilde çalışır.
-            Örnek: 1000 Türk gerçek takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
-            <b>DİKKAT:</b> Takipçi gönderimi organik hesaplardan ve gerçek Türk profillerden yapılır. Gizli hesaplara gönderim yapılmaz.
+            Örnek : Takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
+            <b>DİKKAT:</b> Takipçi gönderimi organik hesaplardan ve gerçek yapılır. Gizli hesaplara gönderim yapılmaz.
           </div>
         </div>
         <div class="mb-3">
