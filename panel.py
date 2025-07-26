@@ -3083,8 +3083,5 @@ def update_service(service_id):
     flash('Servis ayarları güncellendi!', 'success')
     return redirect(url_for('manage_services'))
 
-with app.app_context():
-    db.create_all()
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
