@@ -298,7 +298,7 @@ HTML_LOGIN = """
 </head>
 <body class="d-flex justify-content-center align-items-center">
   <div class="card shadow p-4" style="min-width:340px;">
-    <h3 class="mb-3 text-center">ınsprov</h3>
+    <h3 class="mb-3 text-center">insprov.uk</h3>
 
     {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -1937,6 +1937,69 @@ HTML_PANEL = """
       from { opacity: 0; transform: translateY(-18px);}
       to   { opacity: 1; transform: translateY(0);}
     }
+    /* Modern WhatsApp Butonu */
+    #whatsapp-float {
+      position: fixed;
+      right: 32px;
+      bottom: 42px;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #25D366 80%, #075E54 100%);
+      box-shadow: 0 6px 32px 0 #25d36648, 0 1.5px 10px 0 #00000020;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 11000;
+      cursor: pointer;
+      transition: transform .19s cubic-bezier(.27,1.4,.62,.97), box-shadow .22s;
+      border: none;
+      animation: whatsapp-float-pop .7s cubic-bezier(.21,1.4,.72,1) 1;
+      overflow: hidden;
+    }
+    #whatsapp-float:hover {
+      transform: scale(1.08) translateY(-3px);
+      box-shadow: 0 12px 48px 0 #25d36684, 0 3px 16px 0 #00000020;
+      color: #fff;
+      background: linear-gradient(135deg, #24ff7d 70%, #128C7E 100%);
+      text-decoration: none;
+    }
+    #whatsapp-float .bi-whatsapp {
+      font-size: 2.2em;
+      filter: drop-shadow(0 1px 7px #13f85d66);
+    }
+    #whatsapp-float-text {
+      position: absolute;
+      right: 74px;
+      bottom: 0px;
+      font-size: 1.08em;
+      background: #25d366;
+      color: #0b3e1b;
+      border-radius: 14px 0 0 14px;
+      padding: 10px 20px 10px 18px;
+      white-space: nowrap;
+      box-shadow: 0 4px 20px 0 #25d36626;
+      opacity: 0;
+      pointer-events: none;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      transition: opacity 0.23s;
+    }
+    #whatsapp-float:hover #whatsapp-float-text,
+    #whatsapp-float:focus #whatsapp-float-text {
+      opacity: 1;
+    }
+    @media (max-width:600px){
+      #whatsapp-float { right: 14px; bottom: 18px; width: 48px; height: 48px; }
+      #whatsapp-float .bi-whatsapp { font-size: 1.34em; }
+      #whatsapp-float-text { display: none; }
+    }
+    @keyframes whatsapp-float-pop {
+      0% {transform:scale(0.75) translateY(60px);}
+      70% {transform:scale(1.13) translateY(-12px);}
+      100% {transform:scale(1) translateY(0);}
+    }
   </style>
 </head>
 <body>
@@ -2083,6 +2146,12 @@ HTML_PANEL = """
       </div>
     </div>
   </div>
+  <!-- WhatsApp Sohbet Butonu BAŞLANGIÇ -->
+  <a href="https://wa.me/905301900969" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
+    <span id="whatsapp-float-text">WhatsApp ile Destek!</span>
+    <i class="bi bi-whatsapp"></i>
+  </a>
+  <!-- WhatsApp Sohbet Butonu BİTİŞ -->
 </body>
 </html>
 """
