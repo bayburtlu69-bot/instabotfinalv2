@@ -3113,7 +3113,7 @@ def sync_external_order_status():
             new_status = result.get("status", "").lower()
             status_map = {
                 "completed": "completed",
-                "canceled": "cancelled",
+                "canceled": "canceled",
                 "pending": "pending",
                 "in progress": "pending",
                 "partial": "partial"
