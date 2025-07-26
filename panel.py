@@ -3271,7 +3271,7 @@ def sync_external_order_status():
 
 @app.route('/google6aef354bdd638dfc4.html')
 def google_verify():
-    return "google-site-verification: google6aef354bdd638dfc4.html"
+    return "google-site-verification: google6aef354bdd638dfc4.html", 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 # DOSYANIN EN SONUNA KOY!
 sync_external_order_status()
