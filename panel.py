@@ -1693,6 +1693,7 @@ HTML_PANEL = """
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    /* (BURADA STİLLERİN TAMAMI KALDI, KISALTILMADI) */
     body {
       background: #181c20 !important;
       color: #fff;
@@ -1849,7 +1850,6 @@ HTML_PANEL = """
       letter-spacing: .01em;
       font-size: 1.12em;
     }
-    /* YENİ SİPARİŞ BAŞLIĞI ORTALI FORM ÜSTÜNDE */
     .order-title-center {
       width: 100%;
       display: flex;
@@ -1875,7 +1875,6 @@ HTML_PANEL = """
       .order-title-center { font-size: 1.2rem; gap: 7px; min-height: 34px; }
       .order-title-center .bi { font-size: 1.12em; }
     }
-    /* Miktar kutusu number spinner kaldır */
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { 
       -webkit-appearance: none; 
@@ -1885,7 +1884,6 @@ HTML_PANEL = """
       -moz-appearance: textfield;
       appearance: textfield;
     }
-    /* Tutar alanı stil: miktar gibi koyu ve belirgin */
     .form-total-custom {
       background: #23272b !important;
       border: 1.5px solid #323740 !important;
@@ -1911,6 +1909,29 @@ HTML_PANEL = """
       .welcome-balance { text-align: left; }
       .order-title-center { font-size: 1.05rem; gap: 6px; min-height: 27px; }
       .form-total-custom { font-size: 1.06em !important; }
+    }
+    /* Flash mesaj kutusu */
+    .flash-info-box {
+      margin-bottom: 15px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1.04em;
+      padding: 10px 20px;
+      border-left: 5px solid #00e1ff;
+      background: #18242d;
+      color: #51f5ff;
+      box-shadow: 0 2px 10px 0 #00e1ff33;
+      animation: fadeinflash .5s;
+    }
+    .flash-info-box.error {
+      border-left: 5px solid #ff6363;
+      background: #2a1818;
+      color: #ffc7c7;
+      box-shadow: 0 2px 10px 0 #ff636633;
+    }
+    @keyframes fadeinflash {
+      from { opacity: 0; transform: translateY(-18px);}
+      to   { opacity: 1; transform: translateY(0);}
     }
   </style>
 </head>
@@ -1953,6 +1974,8 @@ HTML_PANEL = """
       <div class="order-title-center">
         <i class="bi bi-cart-check"></i> Yeni Sipariş
       </div>
+      <!-- SADECE SİPARİŞ BAŞARI MESAJI (YENİ) -->
+      <div id="order-messages-area"></div>
       <form id="orderForm" method="post" autocomplete="off">
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
@@ -1963,12 +1986,12 @@ HTML_PANEL = """
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-box-seam"></i> Servis</label>
           <select class="form-select" name="service_id" id="service_id" required>
-  {% for s in services %}
-    <option value="{{ s.id }}" data-price="{{ s.price }}" data-min="{{ s.min_amount }}" data-max="{{ s.max_amount }}">
-      {{ s.name }} – {{ "%.2f"|format(s.price) }} TL
-    </option>
-  {% endfor %}
-</select>
+            {% for s in services %}
+              <option value="{{ s.id }}" data-price="{{ s.price }}" data-min="{{ s.min_amount }}" data-max="{{ s.max_amount }}">
+                {{ s.name }} – {{ "%.2f"|format(s.price) }} TL
+              </option>
+            {% endfor %}
+          </select>
         </div>
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-info-circle"></i> Açıklama</label>
@@ -1979,6 +2002,8 @@ HTML_PANEL = """
             <b>DİKKAT:</b> Takipçi gönderimi organik hesaplardan ve gerçek yapılır. Gizli hesaplara gönderim yapılmaz.
           </div>
         </div>
+        <!-- BİLGİ KUTUSU FORMUN TAM ÜSTÜNDE -->
+        <div id="ajax-order-result"></div>
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-link-45deg"></i> Sipariş verilecek link</label>
           <input name="username" type="text" class="form-control" placeholder="" required>
@@ -2010,6 +2035,7 @@ HTML_PANEL = """
         document.addEventListener('DOMContentLoaded', updateTotal);
       </script>
       <script>
+        // AJAX sonrası form üstünde kutu göster (SADECE SİPARİŞ BAŞARISI)
         document.getElementById('orderForm').addEventListener('submit', function(e){
           e.preventDefault();
           const btn = document.getElementById('orderSubmitBtn');
@@ -2021,15 +2047,31 @@ HTML_PANEL = """
           .then(r=>r.json())
           .then(res=>{
             btn.disabled = false;
+            const msgArea = document.getElementById('ajax-order-result');
+            msgArea.innerHTML = '';
+            const msgBox = document.createElement('div');
+            msgBox.className = "flash-info-box" + (res.success ? "" : " error");
+            msgBox.innerText = res.success
+              ? "Sipariş başarıyla oluşturuldu!"
+              : "Bir hata oluştu";
+            msgArea.appendChild(msgBox);
+            setTimeout(()=>{ msgBox.remove(); }, 3200);
+
             if(res.success){
               this.reset(); updateTotal();
               document.getElementById('balance').innerText = res.new_balance + ' TL';
-              alert('Sipariş başarıyla alındı!');
-            } else {
-              alert(res.error || 'Bir hata oluştu');
             }
           })
-          .catch(()=>{ btn.disabled = false; alert('İstek başarısız'); });
+          .catch(()=>{
+            btn.disabled = false;
+            const msgArea = document.getElementById('ajax-order-result');
+            msgArea.innerHTML = '';
+            const msgBox = document.createElement('div');
+            msgBox.className = "flash-info-box error";
+            msgBox.innerText = "İstek başarısız!";
+            msgArea.appendChild(msgBox);
+            setTimeout(()=>{ msgBox.remove(); }, 2800);
+          });
         });
       </script>
       <div class="mt-3 text-end">
