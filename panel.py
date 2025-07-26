@@ -215,7 +215,7 @@ SMTP_PORT = 587
 SMTP_ADDR = "kuzenlertv6996@gmail.com"
 SMTP_PASS = "nurkqldoqcaefqwk"
 def send_verification_mail(email, code):
-    subject = "insprov.uk Kayıt Doğrulama Kodunuz"
+    subject = "Kayıt Doğrulama Kodunuz"
     body = f"Merhaba,\n\nKayıt işlemini tamamlamak için doğrulama kodunuz: {code}\n\nİnsprov.uk Ekibi"
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
@@ -241,9 +241,9 @@ HTML_LOGIN = """
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ınsprov</title>
+  <title>Baybayim</title>
   <meta name="description" content="VİDEO İZLE 5 TL BAKİYE KAZAN TAKİPÇİ BEĞENİ İZLENME SİPARİŞİ VER">
-  <meta property="og:site_name" content="ınsprov">
+  <meta property="og:site_name" content="Baybayim">
   <meta property="og:title" content="ınsprov">
   <meta property="og:description" content="VİDEO İZLE 5 TL BAKİYE KAZAN TAKİPÇİ BEĞENİ İZLENME SİPARİŞİ VER">
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
@@ -298,7 +298,7 @@ HTML_LOGIN = """
 </head>
 <body class="d-flex justify-content-center align-items-center">
   <div class="card shadow p-4" style="min-width:340px;">
-    <h3 class="mb-3 text-center">insprov.uk</h3>
+    <h3 class="mb-3 text-center">Baybayim</h3>
 
     {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -387,7 +387,7 @@ HTML_REGISTER = """
 </head>
 <body class="d-flex justify-content-center align-items-center">
   <div class="card shadow p-4" style="min-width:370px;">
-    <h3 class="mb-3 text-center">insprov.uk <span class="text-primary">Kayıt</span></h3>
+    <h3 class="mb-3 text-center">Baybayim <span class="text-primary">Kayıt</span></h3>
 
     {% with messages = get_flashed_messages() %}
       {% if messages %}
