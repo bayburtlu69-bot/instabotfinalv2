@@ -3212,6 +3212,7 @@ def sync_external_order_status():
 
     threading.Timer(180, sync_external_order_status).start()
 
+sync_external_order_status()
+
 if __name__ == "__main__":
-    sync_external_order_status()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
