@@ -1365,7 +1365,7 @@ HTML_ORDERS_SIMPLE = """
           100% {background-position: 0% 50%;}
         }
         .container { margin-top: 60px; }
-        .table { background: #1f1f1f; color: #eaeaea; border-radius: 16px; }
+        .table { background: #1f1f1f; color: #eaeaea; border-radius: 16px; min-width: 950px; }
         .table th, .table td { vertical-align: middle; color: #fff; }
         .badge-warning { background: #ffc107; color: #000; }
         .badge-success { background: #28a745; }
@@ -1378,6 +1378,8 @@ HTML_ORDERS_SIMPLE = """
           box-shadow: 0 4px 24px rgba(0,0,0,0.5);
           padding: 40px;
           background: rgba(33, 37, 41, 0.95);
+          max-width: 1200px;
+          overflow-x: hidden;
         }
         .flash-msg { margin-bottom: 24px; }
         .btn-resend, .btn-complete, .btn-cancel {
@@ -1387,11 +1389,17 @@ HTML_ORDERS_SIMPLE = """
           color: #61dafb;
           text-shadow: 0 2px 16px #000a;
         }
+        /* YATAY SCROLL KESİNLİKLE OLMASIN! */
+        ::-webkit-scrollbar {
+          width: 0px;
+          height: 0px;
+          background: transparent;
+        }
     </style>
 </head>
 <body>
     <div class="container d-flex justify-content-center">
-        <div class="orders-card w-100" style="max-width: 1000px;">
+        <div class="orders-card w-100">
           <h1 class="mb-4 fw-bold text-center">Geçmiş Siparişler</h1>
             <div id="alert-area"></div>
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -1403,33 +1411,37 @@ HTML_ORDERS_SIMPLE = """
                 </div>
               {% endif %}
             {% endwith %}
-            <div class="table-responsive">
-                <table class="table table-dark table-bordered align-middle text-center">
+
+            {% if role == 'admin' %}
+            <form method="post" action="{{ url_for('delete_orders_bulk') }}" id="bulk-delete-form" onsubmit="return confirm('Seçili siparişleri silmek istediğine emin misin?')">
+                <input type="hidden" name="selected_ids" id="selected_ids">
+                <button type="submit" class="btn btn-danger mb-3">Seçili Siparişleri Sil</button>
+                <table class="table table-dark table-bordered align-middle text-center" style="margin-bottom:0;">
                     <thead>
                         <tr>
+                            <th>
+                                <input type="checkbox" id="select-all-orders" title="Tümünü seç/bırak" />
+                            </th>
                             <th>#</th>
-                            {% if role == 'admin' %}
-                              <th>Kullanıcı</th>
-                            {% endif %}
+                            <th>Kullanıcı</th>
                             <th>Hedef Kullanıcı</th>
                             <th>Adet</th>
                             <th>Fiyat</th>
                             <th>Servis ID</th>
                             <th>Durum</th>
-                            {% if role == 'admin' %}
-                              <th>Hata</th>
-                              <th>İşlem</th>
-                            {% endif %}
+                            <th>Hata</th>
+                            <th>İşlem</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for o in orders %}
                         <tr>
+                            <td>
+                                <input type="checkbox" name="order_ids" value="{{ o.id }}">
+                            </td>
                             <td>{{ loop.index }}</td>
-                            {% if role == 'admin' %}
-                              <td>{{ o.user.username }}</td>
-                            {% endif %}
-                            <td>{{ o.username }}</td>
+                            <td>{{ o.user.username }}</td>
+                            <td style="word-break:break-all;">{{ o.username }}</td>
                             <td>{{ o.amount }}</td>
                             <td>{{ "%.2f"|format(o.total_price) }}</td>
                             <td>{{ o.service_id }}</td>
@@ -1446,7 +1458,6 @@ HTML_ORDERS_SIMPLE = """
                                     <span class="badge badge-danger">HATA</span>
                                 {% endif %}
                             </td>
-                            {% if role == 'admin' %}
                             <td>{{ o.error if o.error else "-" }}</td>
                             <td>
                                 {% if o.error %}
@@ -1455,25 +1466,87 @@ HTML_ORDERS_SIMPLE = """
                                     </form>
                                 {% endif %}
                                 {% if o.status == 'pending' %}
-                                  <form method="post" style="display:inline;" action="{{ url_for('orders_complete', order_id=o.id) }}">
+                                  <form method="post" style="display:inline;" action="{{ url_for('order_complete', order_id=o.id) }}">
                                     <button class="btn btn-success btn-sm btn-complete" type="submit">Tamamlandı</button>
                                   </form>
                                 {% endif %}
-                                {% if o.status not in ['completed', 'canceled', 'cancelled'] %}
-                                  <form method="post" style="display:inline;" action="{{ url_for('orders_cancel', order_id=o.id) }}">
+                                {% if o.status not in ['completed', 'canceled', 'cancelled', 'partial'] %}
+                                  <form method="post" style="display:inline;" action="{{ url_for('order_cancel', order_id=o.id) }}">
                                     <button class="btn btn-danger btn-sm btn-cancel" type="submit">İptal & Bakiye İade</button>
                                   </form>
                                 {% endif %}
                             </td>
-                            {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
+            </form>
+            {% else %}
+            <table class="table table-dark table-bordered align-middle text-center" style="margin-bottom:0;">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Hedef Kullanıcı</th>
+                        <th>Adet</th>
+                        <th>Fiyat</th>
+                        <th>Servis ID</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td style="word-break:break-all;">{{ o.username }}</td>
+                        <td>{{ o.amount }}</td>
+                        <td>{{ "%.2f"|format(o.total_price) }}</td>
+                        <td>{{ o.service_id }}</td>
+                        <td>
+                            <span class="badge
+                                {% if o.status in ['canceled', 'cancelled'] %}badge-secondary
+                                {% elif o.status == 'completed' %}badge-success
+                                {% elif o.status == 'pending' %}badge-warning
+                                {% elif o.status == 'partial' %}badge-info
+                                {% else %}badge-dark{% endif %}">
+                                {{ durum_turkce(o.status) }}
+                            </span>
+                            {% if o.error %}
+                                <span class="badge badge-danger">HATA</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
             <a href="{{ url_for('panel') }}" class="btn btn-secondary w-100 mt-4" style="border-radius:12px;">Panele Dön</a>
         </div>
     </div>
+    {% if role == 'admin' %}
+    <script>
+    // Tümünü Seç
+    document.getElementById('select-all-orders').addEventListener('change', function(e) {
+        let checked = this.checked;
+        document.querySelectorAll('input[name="order_ids"]').forEach(function(cb) {
+            cb.checked = checked;
+        });
+    });
+
+    // Form submitte seçili id'leri gizli input'a yaz
+    document.getElementById('bulk-delete-form').addEventListener('submit', function(e) {
+        let selected = [];
+        document.querySelectorAll('input[name="order_ids"]:checked').forEach(function(cb) {
+            selected.push(cb.value);
+        });
+        document.getElementById('selected_ids').value = selected.join(',');
+        if(selected.length == 0){
+          alert("Lütfen en az bir sipariş seç!");
+          e.preventDefault();
+          return false;
+        }
+    });
+    </script>
+    {% endif %}
 </body>
 </html>
 """
@@ -1856,7 +1929,7 @@ HTML_PANEL = """
             <span class="welcome-balance-label">Bakiye:</span>
             <span class="welcome-balance-value" id="balance">{{ balance }} TL</span>
           </div>
-          <a href="{{ url_for('orders') }}" class="btn btn-panel-outline btn-sm mt-1 w-100" style="min-width:146px;">
+          <a href="{{ url_for('orders_page') }}" class="btn btn-panel-outline btn-sm mt-1 w-100" style="min-width:146px;">
             <i class="bi bi-box-seam"></i> Siparişlerim
           </a>
         </div>
@@ -2521,7 +2594,7 @@ def cancel_order(order_id):
             user.balance += order.total_price
         db.session.commit()
     # GÖNDEREN SAYFAYA GERİ DÖN
-    ref = request.referrer or url_for("orders")
+    ref = request.referrer or(url_for("orders_page"))
     return redirect(ref)
 
 @app.route("/panel", methods=["GET", "POST"])
@@ -2906,7 +2979,7 @@ def admin_order_resend(order_id):
             order.status = "waiting"
             order.error = "ResellersMM API bağlantı/yanıt hatası: "+str(e)
         db.session.commit()
-    return redirect(url_for("orders"))
+    return redirect(rl_for("orders_page"))
 
 @app.route("/api/orders/list")
 @login_required
@@ -3018,12 +3091,12 @@ def order_complete(order_id):
     order = Order.query.get(order_id)
     if not order:
         flash("Sipariş bulunamadı.", "danger")
-        return redirect(url_for("orders"))
+        return redirect(url_for("orders_page"))
     order.status = "completed"
     order.error = None
     db.session.commit()
     flash("Sipariş manuel tamamlandı.", "success")
-    return redirect(url_for("orders"))
+    return redirect(url_for("orders_page"))
 
 @app.route('/orders/cancel/<int:order_id>', methods=['POST'])
 @login_required
@@ -3036,17 +3109,17 @@ def order_cancel(order_id):
     order = Order.query.get(order_id)
     if not order:
         flash("Sipariş bulunamadı.", "danger")
-        return redirect(url_for("orders"))
+        return redirect(url_for("orders_page"))
 
     # Eğer sipariş zaten iptal edilmişse, tekrar iade etme!
     if order.status == "cancelled":
         flash("Sipariş zaten iptal edilmiş.", "warning")
-        return redirect(url_for("orders"))
+        return redirect(url_for("orders_page"))
 
     target_user = User.query.get(order.user_id)
     if not target_user:
         flash("Müşteri bulunamadı.", "danger")
-        return redirect(url_for("orders"))
+        return redirect(url_for("orders_page"))
 
     # Siparişi iptal et ve bakiyeyi iade et
     order.status = "cancelled"
@@ -3055,7 +3128,7 @@ def order_cancel(order_id):
 
     db.session.commit()
     flash("Sipariş iptal edildi ve bakiye iade edildi.", "success")
-    return redirect(url_for("orders"))
+    return redirect(url_for("orders_page"))
 
 @app.route('/api/order_status', methods=['POST'])
 def api_order_status():
@@ -3099,6 +3172,20 @@ def fetch_resellersmm_status(api_order_id):
     except Exception as e:
         print(f"Status API Hatası: {e}")
         return {}
+
+@app.route("/orders/bulk_delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_orders_bulk():
+    selected = request.form.get("selected_ids", "")
+    id_list = [int(i) for i in selected.split(",") if i.strip().isdigit()]
+    if id_list:
+        Order.query.filter(Order.id.in_(id_list)).delete(synchronize_session=False)
+        db.session.commit()
+        flash(f"{len(id_list)} sipariş silindi!", "success")
+    else:
+        flash("Hiçbir sipariş seçilmedi.", "warning")
+    return redirect(url_for("orders_page"))
 
 def sync_external_order_status():
     with app.app_context():
