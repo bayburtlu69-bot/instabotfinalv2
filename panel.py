@@ -43,7 +43,7 @@ EXTERNAL_API_KEY = "6b0e961c4a42155ba44bfd4384915c27"
 
 # --- Çekmek istediğimiz ResellersMM servis ID’leri ---
 
-EXT_SELECTED_IDS = [854, 827, 1588,]  # Örneğin sadece 1 ve 2 no’lu servisleri çek
+EXT_SELECTED_IDS = [1192, 1231, 1593, 1594, 831,]  # Örneğin sadece 1 ve 2 no’lu servisleri çek
 
 def fetch_selected_external_services():
     """Sadece EXT_SELECTED_IDS’deki ResellersMM servislerini çeker, hem dict hem list olanağı var."""
@@ -123,6 +123,29 @@ def admin_required(f):
             abort(403)
         return f(*args, **kwargs)
     return wrapper
+
+def sync_services_with_api(api_services):
+    """
+    api_services: API'den gelen tüm servis objeleri listesi (veya dict listesi)
+    Buradan servis ID'leri alınacak ve veri tabanında olmayanlar silinecek.
+    """
+    # Eğer api_services bir obje/dict ise id'leri çıkar:
+    if hasattr(api_services[0], "id"):
+        api_service_ids = set(s.id for s in api_services)
+    elif isinstance(api_services[0], dict):
+        api_service_ids = set(s["id"] for s in api_services)
+    else:
+        return  # Liste boşsa
+
+    db_services = Service.query.all()
+    db_service_ids = set(s.id for s in db_services)
+
+    # Sadece API'de olmayan (eski) servisleri bul
+    to_delete = db_service_ids - api_service_ids
+    if to_delete:
+        Service.query.filter(Service.id.in_(to_delete)).delete(synchronize_session=False)
+        db.session.commit()
+
 # --- /External servis seçim mekanizması ---
 
 app = Flask(__name__)
@@ -1065,76 +1088,76 @@ HTML_SERVICES_MANAGE = """
     <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
     <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
   </div>
-  <div class="container py-4">
-    <div class="card mx-auto" style="max-width:800px;">
-      <div class="card-body">
-        <h3>Servisleri Yönet</h3>
-        <form method="post" action="{{ url_for('manage_services') }}">
-          <table class="table table-dark table-striped align-middle">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Servis</th>
-                <th>Açıklama</th>
-                <th>Fiyat (TL)</th>
-                <th>Min</th>
-                <th>Max</th>
-                <th>Kaynak</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-            {% for s in services %}
-              <tr>
-                <td>{{ s.id }}</td>
-                <td>
-                  <input name="name_{{s.id}}" class="form-control form-control-sm"
-                         value="{{ s.name }}" {% if s.id not in local_ids %}readonly{% endif %}>
-                </td>
-                <td>
-                  <input name="desc_{{s.id}}" class="form-control form-control-sm"
-                         value="{{ s.description }}" {% if s.id not in local_ids %}readonly{% endif %}>
-                </td>
-                <td style="width:100px">
-                  <input name="price_{{s.id}}" type="number" step="0.01" min="0.01"
-                         class="form-control form-control-sm"
-                         value="{{ "%.2f"|format(s.price) }}" {% if s.id not in local_ids %}readonly{% endif %}>
-                </td>
-                <td>
-                  {{ s.min_amount }}
-                </td>
-                <td>
-                  <input name="max_{{s.id}}" type="number" min="{{ s.min_amount }}" class="form-control form-control-sm"
-                         value="{{ s.max_amount }}" {% if s.id not in local_ids %}readonly{% endif %}>
-                </td>
-                <td>
-                  {% if s.id in local_ids %}
-                    <span class="badge bg-success">Local</span>
-                  {% else %}
-                    <span class="badge bg-warning text-dark">External</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if s.id not in local_ids %}
-                  <button type="submit" name="add_external" value="{{ s.id }}" class="btn btn-sm btn-primary">
-                    Veritabanına Ekle
-                  </button>
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-          <div class="d-grid">
-            <button class="btn btn-success" type="submit">Düzenlemeleri Kaydet</button>
-          </div>
-        </form>
-        <div class="mt-3">
-          <a href="{{ url_for('panel') }}" class="btn btn-secondary w-100">Panele Dön</a>
+<div class="container py-4">
+  <div class="card mx-auto" style="max-width:800px;">
+    <div class="card-body">
+      <h3>Servisleri Yönet</h3>
+      <form method="post" action="{{ url_for('manage_services') }}">
+        <table class="table table-dark table-striped align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Servis</th>
+              <th>Açıklama</th>
+              <th>Fiyat (TL)</th>
+              <th>Min</th>
+              <th>Max</th>
+              <th>Kaynak</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for s in services %}
+            <tr>
+              <td>{{ s.id }}</td>
+              <td>
+                <input name="name_{{s.id}}" class="form-control form-control-sm"
+                       value="{{ s.name }}" {% if s.id not in local_ids %}readonly{% endif %}>
+              </td>
+              <td>
+                <input name="desc_{{s.id}}" class="form-control form-control-sm"
+                       value="{{ s.description }}" {% if s.id not in local_ids %}readonly{% endif %}>
+              </td>
+              <td style="width:100px">
+                <input type="number" step="any" min="0" name="price_{{ s.id }}"
+                       class="form-control form-control-sm"
+                       value="{{ '%.3f' % s.price if s.price is not none else '' }}"{{ s.name }}
+              </td>
+              <td>
+                {{ s.min_amount }}
+              </td>
+              <td>
+                <input name="max_{{s.id}}" type="number" min="{{ s.min_amount }}" class="form-control form-control-sm"
+                       value="{{ s.max_amount }}" {% if s.id not in local_ids %}readonly{% endif %}>
+              </td>
+              <td>
+                {% if s.id in local_ids %}
+                  <span class="badge bg-success">Local</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark">External</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if s.id not in local_ids %}
+                <button type="submit" name="add_external" value="{{ s.id }}" class="btn btn-sm btn-primary">
+                  Veritabanına Ekle
+                </button>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <div class="d-grid">
+          <button class="btn btn-success" type="submit">Düzenlemeleri Kaydet</button>
         </div>
+      </form>
+      <div class="mt-3">
+        <a href="{{ url_for('panel') }}" class="btn btn-secondary w-100">Panele Dön</a>
       </div>
     </div>
   </div>
+</div>
 </body>
 </html>
 """
@@ -3128,7 +3151,7 @@ HTML_PANEL = """
           <select class="form-select" name="service_id" id="service_id" required>
             {% for s in services %}
               <option value="{{ s.id }}" data-price="{{ s.price }}" data-min="{{ s.min_amount }}" data-max="{{ s.max_amount }}">
-                {{ s.name }} – {{ "%.2f"|format(s.price) }} TL
+                {{ s.name }} – {{ s.price }} TL
               </option>
             {% endfor %}
           </select>
@@ -4034,36 +4057,46 @@ def panel():
 def manage_services():
     user = User.query.get(session["user_id"])
 
-    # 1) Veritabanındaki (yerel) servisler
+    # 1) API'den servisleri çek (external_services)
+    external_services = fetch_selected_external_services()
+    if not external_services or len(external_services) == 0:
+        flash("API'den servis çekilemedi. Lütfen bağlantını ve API'yı kontrol et!", "danger")
+        # Yine de DB'dekileri göster
+        tüm_servisler = Service.query.order_by(Service.id).all()
+        return render_template_string(
+            HTML_SERVICES_MANAGE,
+            services=tüm_servisler,
+            local_ids={s.id for s in tüm_servisler}
+        )
+
+    # 2) Veritabanındaki servisleri çek
     local_services = Service.query.order_by(Service.id).all()
     local_ids = {s.id for s in local_services}
+    api_ids = {s.id for s in external_services}
 
-    # 2) Dış API’den seçili servisler
-    external_services = fetch_selected_external_services()
-    external_services = [s for s in external_services if s.id not in local_ids]
+    # 3) API'de olmayan servisleri DB'den sil
+    to_delete = local_ids - api_ids
+    if to_delete:
+        Service.query.filter(Service.id.in_(to_delete)).delete(synchronize_session=False)
+        db.session.commit()
 
-    # 3) External servisi veritabanına ekleme
-    if request.method == "POST" and "add_external" in request.form:
-        ext_id = int(request.form.get("add_external"))
-        ext_service = next((s for s in external_services if s.id == ext_id), None)
-        if ext_service:
-            # External servisten local'a kopyala ve kaydet
-            new_service = Service(
-                id = ext_service.id,
-                name = ext_service.name,
-                description = ext_service.description,
-                price = ext_service.price,
-                min_amount = ext_service.min_amount,
-                max_amount = ext_service.max_amount
-            )
-            db.session.add(new_service)
-            db.session.commit()
-            flash("Servis veritabanına eklendi ve artık düzenlenebilir!", "success")
-        return redirect(url_for("manage_services"))
+    # 4) API'den gelen ama DB'de olmayan servisleri DB'ye ekle
+    to_add = api_ids - local_ids
+    for s in external_services:
+        if s.id in to_add:
+            db.session.add(Service(
+                id = s.id,
+                name = s.name,
+                description = s.description,
+                price = s.price,
+                min_amount = s.min_amount,
+                max_amount = s.max_amount
+            ))
+    db.session.commit()
 
-    # 4) POST ile güncelleme:
-    if request.method == "POST" and "add_external" not in request.form:
-        for svc in local_services:
+    # 5) POST işlemleri (servis güncelleme)
+    if request.method == "POST":
+        for svc in Service.query.order_by(Service.id).all():
             nk = f"name_{svc.id}"
             dk = f"desc_{svc.id}"
             pk = f"price_{svc.id}"
@@ -4077,14 +4110,15 @@ def manage_services():
                 except:
                     pass
         db.session.commit()
-        flash("Yerel servisler başarıyla güncellendi.", "success")
+        flash("Servisler başarıyla güncellendi.", "success")
         return redirect(url_for("manage_services"))
 
-    tüm_servisler = local_services + external_services
+    # 6) Güncel DB'deki servisleri tekrar çek ve ekrana gönder
+    tüm_servisler = Service.query.order_by(Service.id).all()
     return render_template_string(
         HTML_SERVICES_MANAGE,
         services=tüm_servisler,
-        local_ids=local_ids
+        local_ids={s.id for s in tüm_servisler}
     )
 
 @app.route("/balance", methods=["GET", "POST"])
