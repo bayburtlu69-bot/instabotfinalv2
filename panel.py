@@ -1121,7 +1121,7 @@ HTML_SERVICES_MANAGE = """
               <td style="width:100px">
                 <input type="number" step="any" min="0" name="price_{{ s.id }}"
                        class="form-control form-control-sm"
-                       value="{{ '{:.6f}'.format(s.price) if s.price is not none else '' }}"
+                       value="{{ '{:.5f}'.format(s.price) if s.price is not none else '' }}"
               </td>
               <td>
                 {{ s.min_amount }}
