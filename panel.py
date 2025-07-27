@@ -13,6 +13,26 @@ from flask import (
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
+import requests
+
+TELEGRAM_BOT_TOKEN = "8340662506:AAHwcqKMsGlQ08mlOVTXT2xAUC6vjH3_r20"  # Başında 'bot' yok!
+TELEGRAM_CHAT_ID = "6744917275"
+
+def telegram_mesaj_gonder(mesaj):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": mesaj,
+        "parse_mode": "HTML"
+    }
+    try:
+        response = requests.post(url, data=payload)
+        print("Telegram response:", response.text)
+        return response.ok
+    except Exception as e:
+        print("Telegram Hatası:", e)
+        return False
+
 import requests  # ← Harici servis için
 import json
 from functools import wraps
@@ -1318,6 +1338,7 @@ HTML_BALANCE_REQUESTS = """
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bakiye Talepleri</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     body {
       margin: 0;
@@ -1334,63 +1355,25 @@ HTML_BALANCE_REQUESTS = """
       50% {background-position: 100% 50%;}
       100% {background-position: 0% 50%;}
     }
-    .card {
-      background-color: #1f1f1f;
-      color: #fff;
-      border-radius: 18px;
-      z-index: 2;
-      position: relative;
+    .card { background-color: #1f1f1f; color: #fff; border-radius: 18px; z-index: 2; position: relative; }
+    .form-control, .form-select { background-color: #2e2e2e; color: #fff; border: 1px solid #444; }
+    .form-control::placeholder, .form-select option { color: #aaa; }
+    .table-dark th, .table-dark td { color: #eee; }
+    .btn { font-weight: 500; }
+    .btn-delete {
+      font-weight: 600;
+      border-radius: 20px;
+      padding: 0.3em 0.9em;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
-    .form-control,
-    .form-select {
-      background-color: #2e2e2e;
-      color: #fff;
-      border: 1px solid #444;
-    }
-    .form-control::placeholder,
-    .form-select option {
-      color: #aaa;
-    }
-    .table-dark th, .table-dark td {
-      color: #eee;
-    }
-    .btn {
-      font-weight: 500;
-    }
-    a {
-      color: #8db4ff;
-    }
-    a:hover {
-      color: #fff;
-      text-decoration: underline;
-    }
-    .alert-info {
-      background-color: #1a2a3a;
-      color: #cce4ff;
-      border-color: #2a4d6b;
-    }
-    /* -- Sosyal medya hareketli arka plan -- */
-    .animated-social-bg {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-      user-select: none;
-    }
-    .bg-icon {
-      position: absolute;
-      width: 48px;
-      opacity: 0.13;
-      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
-      animation-duration: 18s;
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-in-out;
-      user-select: none;
-    }
-    /* 18 farklı pozisyon ve animasyon */
+    a { color: #8db4ff; }
+    a:hover { color: #fff; text-decoration: underline; }
+    .alert-info { background-color: #1a2a3a; color: #cce4ff; border-color: #2a4d6b; }
+    /* Sosyal medya hareketli arka plan */
+    .animated-social-bg { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; overflow: hidden; user-select: none; }
+    .bg-icon { position: absolute; width: 48px; opacity: 0.13; filter: blur(0.2px) drop-shadow(0 4px 24px #0008); animation-duration: 18s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; user-select: none; }
     .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
     .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
     .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
@@ -1466,7 +1449,15 @@ HTML_BALANCE_REQUESTS = """
       <table class="table table-dark table-bordered">
         <thead>
           <tr>
-            <th>#</th><th>Kullanıcı</th><th>Tutar</th><th>Tarih</th><th>Durum</th><th>Açıklama</th><th>Ret Sebebi</th><th>İşlem</th>
+            <th>#</th>
+            <th>Kullanıcı</th>
+            <th>Tutar</th>
+            <th>Tarih</th>
+            <th>Durum</th>
+            <th>Açıklama</th>
+            <th>Ret Sebebi</th>
+            <th>İşlem</th>
+            <th>Sil</th>
           </tr>
         </thead>
         <tbody>
@@ -1506,6 +1497,14 @@ HTML_BALANCE_REQUESTS = """
               {% else %}
                 <span class="text-muted">—</span>
               {% endif %}
+            </td>
+            <td>
+              <form method="post" style="display:inline-block;">
+                <input type="hidden" name="req_id" value="{{ req.id }}">
+                <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm btn-delete">
+                  <i class="bi bi-trash"></i> Sil
+                </button>
+              </form>
             </td>
           </tr>
         {% endfor %}
@@ -4088,37 +4087,15 @@ def user_balance():
             r = BalanceRequest(user_id=user.id, amount=amount)
             db.session.add(r)
             db.session.commit()
+            telegram_mesaj_gonder(
+                f"🟢 <b>Bakiye Yatırımı Talebi</b>\n"
+                f"Kullanıcı: <b>{user.username}</b>\n"
+                f"Tutar: <b>{amount} TL</b>\n"
+                f"Onay bekliyor."
+            )
             msg = "Başvuru başarıyla iletildi. Admin onayını bekleyiniz."
     requests = BalanceRequest.query.filter_by(user_id=user.id).order_by(BalanceRequest.created_at.desc()).all()
     return render_template_string(HTML_BALANCE, msg=msg, err=err, requests=requests)
-
-@app.route("/balance/requests", methods=["GET", "POST"])
-@login_required
-@admin_required
-def balance_requests():
-    if request.method == "POST":
-        req_id = int(request.form.get("req_id"))
-        action = request.form.get("action")
-        explanation = request.form.get("explanation", "")
-        reject_reason = request.form.get("reject_reason", "")
-        req = BalanceRequest.query.get(req_id)
-        if not req or req.status != "pending":
-            flash("İşlem yapılamadı.")
-            return redirect("/balance/requests")
-        if action == "approve":
-            req.status = "approved"
-            req.user.balance += req.amount
-            req.explanation = explanation
-            db.session.commit()
-            flash("Bakiye talebi onaylandı.")
-        elif action == "reject":
-            req.status = "rejected"
-            req.explanation = explanation
-            req.reject_reason = reject_reason
-            db.session.commit()
-            flash("Bakiye talebi reddedildi.")
-    reqs = BalanceRequest.query.order_by(BalanceRequest.created_at.desc()).all()
-    return render_template_string(HTML_BALANCE_REQUESTS, reqs=reqs)
 
 @app.route("/services", methods=["GET", "POST"])
 @login_required
@@ -4550,6 +4527,46 @@ def sync_external_order_status():
             print(f"[SYNC][ERROR] Genel hata: {e}", flush=True)
     # 180 saniye sonra tekrar çalıştır
     threading.Timer(60, sync_external_order_status).start()
+
+@app.route("/balance/requests", methods=["GET", "POST"])
+@login_required
+@admin_required
+def balance_requests():
+    if request.method == "POST":
+        req_id = int(request.form.get("req_id"))
+        action = request.form.get("action")
+        explanation = request.form.get("explanation", "")
+        reject_reason = request.form.get("reject_reason", "")
+        req = BalanceRequest.query.get(req_id)
+        if not req:
+            flash("İşlem yapılamadı.")
+            return redirect("/balance/requests")
+        if action == "approve":
+            if req.status == "pending":
+                req.status = "approved"
+                req.user.balance += req.amount
+                req.explanation = explanation
+                db.session.commit()
+                flash("Bakiye talebi onaylandı.")
+            else:
+                flash("Yalnızca bekleyen talepler onaylanabilir.")
+        elif action == "reject":
+            if req.status == "pending":
+                req.status = "rejected"
+                req.explanation = explanation
+                req.reject_reason = reject_reason
+                db.session.commit()
+                flash("Bakiye talebi reddedildi.")
+            else:
+                flash("Yalnızca bekleyen talepler reddedilebilir.")
+        elif action == "delete":
+            db.session.delete(req)
+            db.session.commit()
+            flash("Bakiye talebi silindi.")
+        return redirect("/balance/requests")
+
+    reqs = BalanceRequest.query.order_by(BalanceRequest.created_at.desc()).all()
+    return render_template_string(HTML_BALANCE_REQUESTS, reqs=reqs)
 
 @app.route('/google6aef354bdd638dfc4.html')
 def google_verify():
