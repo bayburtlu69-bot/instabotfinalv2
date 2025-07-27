@@ -1283,8 +1283,8 @@ HTML_BALANCE = """
       <h3>Bakiye Yükle</h3>
       <div class="alert alert-info">
         <b>Bakiye yükleme için banka bilgileri:</b><br>
-        IBAN: <b>TR70 0004 6008 7088 8000 1117 44</b><br>
-        Ad Soyad: <b>Mükail Aktaş</b><br>
+        IBAN: <b>TR97 0006 7010 0000 0076 9799 77</b><br>
+        Ad Soyad: <b>Mükail Aktaş - İsim doğrudur</b><br>
         <small>Açıklamaya <b>kullanıcı adınızı</b> yazmayı unutmayın!</small>
       </div>
       {% if msg %}<div class="alert alert-success">{{ msg }}</div>{% endif %}
