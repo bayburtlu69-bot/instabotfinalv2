@@ -261,9 +261,25 @@ HTML_LOGIN = """
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Baybayim</title>
+  <title>Baybayim - Sosyal Medya Hizmetleri</title>
+  <meta name="description" content="Baybayim ile Instagram, TikTok, YouTube gibi tüm platformlara hızlı ve güvenilir sosyal medya hizmetleri. Hemen kaydol, avantajları kaçırma!">
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Open Graph Meta -->
+  <meta property="og:title" content="Baybayim - Sosyal Medya Hizmetleri">
+  <meta property="og:description" content="Baybayim ile Instagram, TikTok, YouTube gibi tüm platformlara hızlı ve güvenilir sosyal medya hizmetleri. Hemen kaydol, avantajları kaçırma!">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://baybayim.com/">
+  <meta property="og:image" content="https://baybayim.com/static/logo.png"> <!-- LOGO YOLUNU KENDİNE GÖRE AYARLA -->
+  <meta property="og:locale" content="tr_TR">
+
+  <!-- Twitter Card Meta -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Baybayim - Sosyal Medya Hizmetleri">
+  <meta name="twitter:description" content="Baybayim ile Instagram, TikTok, YouTube gibi tüm platformlara hızlı ve güvenilir sosyal medya hizmetleri. Hemen kaydol, avantajları kaçırma!">
+  <meta name="twitter:image" content="https://baybayim.com/static/logo.png"> <!-- LOGO YOLUNU KENDİNE GÖRE AYARLA -->
+  <!-- <meta name="twitter:site" content="@baybayim"> -->
   <style>
     body {
       margin: 0;
@@ -4568,7 +4584,7 @@ def balance_requests():
     reqs = BalanceRequest.query.order_by(BalanceRequest.created_at.desc()).all()
     return render_template_string(HTML_BALANCE_REQUESTS, reqs=reqs)
 
-@app.route('/google6aef354bdd638dfc4.html')
+@app.route('/google6aef354bd638dfc4.html')
 def google_verify():
     return "google-site-verification: google6aef354bdd638dfc4.html", 200, {'Content-Type': 'text/html; charset=utf-8'}
 
