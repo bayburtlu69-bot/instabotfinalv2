@@ -4628,34 +4628,37 @@ from flask import request, abort
 
 @app.route("/shopier-callback", methods=["POST"])
 def shopier_callback():
-    # 1. Shopier'den gelen POST datasını al
+    # Shopier'den gelen tüm POST datasını logla
     data = request.form.to_dict()
-    
-    # 2. Güvenlik: OSB kullanıcı adı ve şifresini kontrol et
+    print("==== SHOPIER CALLBACK DATA ====")
+    print(data, flush=True)
+
+    # --- Güvenlik: OSB kullanıcı adı ve şifresini kontrol et ---
     osb_user = data.get("osb_user")
     osb_pass = data.get("osb_pass")
     if osb_user != "2d1edfa4b0d6cd48f1a3939a45e58c31" or osb_pass != "b9e330976d12ce8de97fa571ebb4c4da":
+        print("HATALI OSB USER/PASS", flush=True)
         abort(403)
-    
-    # 3. Sipariş ID'sini Shopier'den gelen veriden çek
-    # Shopier -> sen siparişi oluştururken kendi sipariş ID'ni "platform_order_id" olarak gönderiyorsun!
-    order_id = data.get("platform_order_id")   # BU ID'yi kendi sisteminden Shopier'e gönder!
-    payment_status = data.get("payment_status")  # 'success' = ödeme başarılı
-    
-    # 4. Eğer ödeme başarılıysa, siparişi bulup ilgili kullanıcının bakiyesini artır
+
+    # --- Sipariş ID ve ödeme durumu ---
+    order_id = data.get("platform_order_id")   # Kendi sistemine özel sipariş ID
+    payment_status = data.get("payment_status")  # success veya failed olabilir
+
+    print(f"Order ID: {order_id} / Status: {payment_status}", flush=True)
+
+    # --- Ödeme başarılıysa işlemleri yap ---
     if payment_status == "success" and order_id:
-        # ÖRNEK: Siparişten kullanıcıya ulaşmak (sipariş yapına göre değişir!)
+        # --- Siparişi bul ve işlemleri uygula (KENDİ MODELİNE GÖRE AYARLA) ---
         # order = Order.query.filter_by(id=order_id).first()
         # if order:
         #     user = User.query.get(order.user_id)
-        #     user.balance += order.total_price  # veya siparişten bağımsız bir tutar
+        #     user.balance += order.total_price
         #     order.status = "paid"
         #     db.session.commit()
-        #     # İstersen log da yazabilirsin
-        
-        # TODO: Burada kendi sisteminde siparişi ve kullanıcıyı bulup bakiyeyi güncelle!
+        #     print(f"{user.username} için {order.total_price} TL bakiye eklendi!", flush=True)
         pass
 
+    # Shopier'e cevap dön! (YANIT ŞART)
     return "OK", 200
 
 @app.route('/google6aef354bd638dfc4.html')
