@@ -1349,7 +1349,7 @@ HTML_BAKIYE_YUKLE = """
           </div>
           <button type="submit" class="btn btn-shopier w-100 mt-2">
   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fff" style="margin-right:8px;margin-top:-3px" viewBox="0 0 24 24"><path d="M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm2 0v2h16V5zm16 14v-8H4v8zm-4-3h-4a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2z"/></svg>
-  Shopier ile Öde
+  PayTR ile Öde
 </button>
         </form>
         <div class="mt-4 text-center small text-secondary">
@@ -4372,64 +4372,26 @@ import hmac
 import hashlib
 from flask import request, jsonify
 
-@app.route("/shopier-callback", methods=["POST"])
-def shopier_callback():
-    # Shopier OSB Bilgileri (Panelinden birebir kopyala)
-    OSB_USERNAME = "2d1edfa4b0d6cd48f1a3939a45e58c31"
-    OSB_PASSWORD = "b9e330976d12ce8de97fa571ebbd4cda"
-    
-    # Shopier gönderdiği veriler
+@app.route('/paytr_callback', methods=['POST'])
+def paytr_callback():
     data = request.form.to_dict()
-    res = data.get("res")
-    hash_ = data.get("hash")
+    merchant_oid = data.get("merchant_oid")
+    status = data.get("status")
+    total_amount = int(data.get("total_amount", "0")) / 100.0  # kuruş → TL
 
-    if not res or not hash_:
-        return "missing parameter", 400
+    # Güvenlik için hash kontrolü yapılabilir (dokümanlarda var)
+    # Basit haliyle örnek:
+    if status == "success":
+        # Burada merchant_oid ile ilgili user'ı bul ve bakiyesini güncelle!
+        # Örnek:
+        # user_id = ... (merchant_oid içinden ID parse et)
+        # user = User.query.get(user_id)
+        # if user:
+        #     user.balance += total_amount
+        #     db.session.commit()
+        pass
 
-    # Shopier HMAC kontrolü (Hash doğrulama)
-    control_hash = hmac.new(
-        OSB_PASSWORD.encode(),
-        (res + OSB_USERNAME).encode(),
-        hashlib.sha256
-    ).hexdigest()
-
-    if hash_ != control_hash:
-        return "hash error", 400
-
-    # Verileri decode et
-    try:
-        decoded = base64.b64decode(res + "=" * (-len(res) % 4)).decode("utf-8")
-        order_json = json.loads(decoded)
-    except Exception as e:
-        return "decode error", 400
-
-    # Shopier'in gönderdiği örnek veriler:
-    email         = order_json.get("email")
-    orderid       = order_json.get("orderid")
-    currency      = order_json.get("currency")   # 0:TL, 1:USD, 2:EUR
-    price         = float(order_json.get("price", 0))
-    buyername     = order_json.get("buyername")
-    buyersurname  = order_json.get("buyersurname")
-    productcount  = order_json.get("productcount")
-    productid     = order_json.get("productid")
-    productlist   = order_json.get("productlist")
-    chartdetails  = order_json.get("chartdetails")
-    customernote  = order_json.get("customernote")
-    istest        = order_json.get("istest")   # 0: canlı, 1: test
-
-    # Test isteği ise işleme alma (Shopier OSB testi gönderiyorsa sadece "success" dön)
-    if istest == 1:
-        return "success", 200
-
-    # Kullanıcıya bakiye yükle, siparişi kaydet, log tut vs. buraya ekle
-    # (örnek)
-    # user = User.query.filter_by(email=email).first()
-    # if user and price > 0:
-    #     user.balance += price
-    #     db.session.commit()
-
-    # Shopier’e "success" dönmek ZORUNLU, yoksa tekrar tekrar POST gelir!
-    return "success", 200
+    return "OK"
 
 import uuid
 
@@ -4437,30 +4399,66 @@ import uuid
 @login_required
 def bakiye_yukle():
     user = User.query.get(session.get("user_id"))
-    product_id = 37970543  # Kendi Shopier ürün ID’in!
-    amount = 1.00  # Test için 1 TL, ihtiyaca göre değiştirirsin
-
     if request.method == "POST":
-        return render_template_string("""
-        <html>
-        <body>
-            <form id="shopierForm" action="https://www.shopier.com/ShowProduct/api_pay4.php" method="POST">
-                <input type="hidden" name="product_id" value="{{ product_id }}">
-                <input type="hidden" name="product_name" value="Bakiye Yukleme">
-                <input type="hidden" name="product_price" value="{{ amount }}">
-                <input type="hidden" name="buyer_name" value="{{ user.username }}">
-                <input type="hidden" name="buyer_surname" value="{{ user.surname or 'Kullanıcı' }}">
-                <input type="hidden" name="buyer_email" value="{{ user.email }}">
-                <!-- Shopier'in dokümantasyonunda redirect_url varsa aşağıya ekle -->
-                <input type="hidden" name="redirect_url" value="{{ url_for('payment_success', _external=True) }}">
-            </form>
-            <script>document.getElementById('shopierForm').submit();</script>
-        </body>
-        </html>
-        """, product_id=product_id, amount=amount, user=user)
-    
-    # GET request'te sayfanın HTML'ini döndür
-    return render_template_string(HTML_BAKIYE_YUKLE)
+        amount = float(request.form.get("amount", 0))
+        if amount < 1:
+            return render_template_string(HTML_BAKIYE_YUKLE, msg="En az 1 TL yükleyebilirsin.")
+        user_ip = request.remote_addr
+        merchant_oid = f"ORDER{user.id}{int(time.time())}"
+        email = user.email
+        payment_amount = int(amount * 100)  # kuruş cinsinden
+        user_name = user.username
+        user_address = "Online"
+        user_phone = "5555555555"  # opsiyonel
+        
+        # İmza için veri hazırlama
+        token_str = (MERCHANT_ID +
+                     user_ip +
+                     merchant_oid +
+                     email +
+                     str(payment_amount) +
+                     user_name +
+                     user_address +
+                     user_phone +
+                     "30" +   # timeout_limit
+                     "TL" +   # currency
+                     "1")     # test_mode: 1 ise test, 0 ise canlı
+        paytr_token = base64.b64encode(
+            hashlib.sha256((token_str + MERCHANT_SALT).encode('utf-8')).digest()
+        ).decode('utf-8')
+
+        paytr_args = {
+            'merchant_id': MERCHANT_ID,
+            'user_ip': user_ip,
+            'merchant_oid': merchant_oid,
+            'email': email,
+            'payment_amount': payment_amount,
+            'paytr_token': paytr_token,
+            'user_name': user_name,
+            'user_address': user_address,
+            'user_phone': user_phone,
+            'debug_on': 1,  # Test: 1, Canlı: 0
+            'timeout_limit': 30,
+            'currency': "TL",
+            'test_mode': 1,  # Test: 1, Canlı: 0
+            'lang': "tr"
+        }
+
+        r = requests.post("https://www.paytr.com/odeme/api/get-token", data=paytr_args)
+        rj = r.json()
+        if rj.get("status") == "success":
+            iframe_token = rj["token"]
+            iframe_html = f"""
+            <div style='max-width:600px;margin:40px auto;box-shadow:0 2px 24px #0080ff22;padding:30px 8px;border-radius:20px;'>
+            <iframe src="https://www.paytr.com/odeme/guvenli/{iframe_token}" frameborder="0" width="100%" height="700px" style="border-radius:16px;"></iframe>
+            <p style="margin-top:18px;text-align:center;color:#fff">Ödeme işlemin bitince <a href='{url_for('bakiye_yukle')}' style="color:#8ecfff">tekrar yükleme ekranına dön</a></p>
+            </div>
+            """
+            return render_template_string(iframe_html)
+        else:
+            return render_template_string(HTML_BAKIYE_YUKLE, msg=f"PayTR Hatası: {rj.get('reason', 'Bilinmeyen hata')}")
+
+    return render_template_string(HTML_BAKIYE_YUKLE, msg=None)
 
 @app.route('/payment_success')
 def payment_success():
