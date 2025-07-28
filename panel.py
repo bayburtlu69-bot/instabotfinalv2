@@ -4366,31 +4366,70 @@ import base64
 import json
 from flask import request, abort
 
+import base64
+import json
+import hmac
+import hashlib
+from flask import request, jsonify
+
 @app.route("/shopier-callback", methods=["POST"])
 def shopier_callback():
-    print("RAW DATA:", request.form)
-    import base64, json
+    # Shopier OSB Bilgileri (Panelinden birebir kopyala)
     OSB_USERNAME = "2d1edfa4b0d6cd48f1a3939a45e58c31"
     OSB_PASSWORD = "b9e330976d12ce8de97fa571ebbd4cda"
+    
+    # Shopier gönderdiği veriler
     data = request.form.to_dict()
-    if data.get("osb_user") != OSB_USERNAME or data.get("osb_pass") != OSB_PASSWORD:
-        return "UNAUTHORIZED", 403
     res = data.get("res")
-    if not res:
-        return "NO RES", 400
+    hash_ = data.get("hash")
+
+    if not res or not hash_:
+        return "missing parameter", 400
+
+    # Shopier HMAC kontrolü (Hash doğrulama)
+    control_hash = hmac.new(
+        OSB_PASSWORD.encode(),
+        (res + OSB_USERNAME).encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    if hash_ != control_hash:
+        return "hash error", 400
+
+    # Verileri decode et
     try:
         decoded = base64.b64decode(res + "=" * (-len(res) % 4)).decode("utf-8")
         order_json = json.loads(decoded)
-    except Exception:
-        return "BAD RES", 400
+    except Exception as e:
+        return "decode error", 400
 
-    username = order_json.get("buyername")
-    amount = float(order_json.get("price", 0))
-    user = User.query.filter_by(username=username).first()
-    if user and amount > 0:
-        user.balance += amount
-        db.session.commit()
-    return "OK", 200
+    # Shopier'in gönderdiği örnek veriler:
+    email         = order_json.get("email")
+    orderid       = order_json.get("orderid")
+    currency      = order_json.get("currency")   # 0:TL, 1:USD, 2:EUR
+    price         = float(order_json.get("price", 0))
+    buyername     = order_json.get("buyername")
+    buyersurname  = order_json.get("buyersurname")
+    productcount  = order_json.get("productcount")
+    productid     = order_json.get("productid")
+    productlist   = order_json.get("productlist")
+    chartdetails  = order_json.get("chartdetails")
+    customernote  = order_json.get("customernote")
+    istest        = order_json.get("istest")   # 0: canlı, 1: test
+
+    # Test isteği ise işleme alma (Shopier OSB testi gönderiyorsa sadece "success" dön)
+    if istest == 1:
+        return "success", 200
+
+    # Kullanıcıya bakiye yükle, siparişi kaydet, log tut vs. buraya ekle
+    # (örnek)
+    # user = User.query.filter_by(email=email).first()
+    # if user and price > 0:
+    #     user.balance += price
+    #     db.session.commit()
+
+    # Shopier’e "success" dönmek ZORUNLU, yoksa tekrar tekrar POST gelir!
+    return "success", 200
 
 import uuid
 
