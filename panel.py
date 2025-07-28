@@ -4363,12 +4363,6 @@ def sync_external_order_status():
     # 180 saniye sonra tekrar çalıştır
     threading.Timer(60, sync_external_order_status).start()
 
-@app.route("/odeme", methods=["POST"])
-def odeme():
-    # Shopier ürününün linki:
-    shopier_link = "https://www.shopier.com/37967069"
-    return redirect(shopier_link)
-
 import base64
 import json
 from flask import request, abort
@@ -4429,7 +4423,7 @@ def shopier_callback():
 @app.route("/bakiye-yukle", methods=["GET", "POST"])
 @login_required
 def bakiye_yukle():
-    import uuid  # import eksikse ekle
+    import uuid
     user = User.query.get(session.get("user_id"))
     if request.method == "POST":
         amount = float(request.form.get("amount", 0))
@@ -4437,8 +4431,6 @@ def bakiye_yukle():
             return render_template_string(HTML_BAKIYE_YUKLE, msg="Geçersiz tutar!")
 
         my_order_id = str(uuid.uuid4())
-
-        # Panel sayfasına yönlendir (kendi route'unun adı ne ise onu gir)
         redirect_url = url_for("panel", _external=True)
 
         shopier_link = (
@@ -4451,7 +4443,8 @@ def bakiye_yukle():
             f"buyer_email={user.email}&"
             f"redirect_url={redirect_url}"
         )
-        return redirect(shopier_link)
+
+        return redirect(shopier_link)   # <-- Eksik olan return!
     return render_template_string(HTML_BAKIYE_YUKLE)
 
 @app.route('/google6aef354bd638dfc4.html')
