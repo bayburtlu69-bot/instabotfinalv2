@@ -2820,6 +2820,7 @@ HTML_PANEL = """
     @keyframes fadeinflash {
       from { opacity: 0; transform: translateY(-18px);}
       to   { opacity: 1; transform: translateY(0);}
+        /* Modern WhatsApp Butonu */
     }
     #whatsapp-float {
       position: fixed;
@@ -3052,6 +3053,14 @@ HTML_PANEL = """
 <div class="mt-3 text-end">
   <a href="{{ url_for('logout') }}" class="btn btn-custom-outline btn-sm">Çıkış Yap</a>
 </div>
+</div>
+</div>
+  <!-- WhatsApp Sohbet Butonu BAŞLANGIÇ -->
+  <a href="https://wa.me/905301900969" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
+    <span id="whatsapp-float-text">WhatsApp ile Destek!</span>
+    <i class="bi bi-whatsapp"></i>
+  </a>
+  <!-- WhatsApp Sohbet Butonu BİTİŞ -->
 """
 
 HTML_ADS_MANAGE = """
