@@ -4462,6 +4462,14 @@ def bakiye_yukle():
     # GET request'te sayfanın HTML'ini döndür
     return render_template_string(HTML_BAKIYE_YUKLE)
 
+@app.route('/payment_success')
+def payment_success():
+    return "Ödeme başarılı! 👏"
+
+@app.route('/payment_fail')
+def payment_fail():
+    return "Ödeme başarısız oldu! 😢"
+
 @app.route('/google6aef354bd638dfc4.html')
 def google_verify():
     return "google-site-verification: google6aef354bdd638dfc4.html", 200, {'Content-Type': 'text/html; charset=utf-8'}
