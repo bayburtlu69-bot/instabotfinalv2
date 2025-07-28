@@ -4624,41 +4624,48 @@ def odeme():
     shopier_link = "https://www.shopier.com/37967069"
     return redirect(shopier_link)
 
+import base64
+import json
 from flask import request, abort
 
 @app.route("/shopier-callback", methods=["POST"])
 def shopier_callback():
-    # Shopier'den gelen tüm POST datasını logla
     data = request.form.to_dict()
     print("==== SHOPIER CALLBACK DATA ====")
     print(data, flush=True)
 
-    # --- Güvenlik: OSB kullanıcı adı ve şifresini kontrol et ---
-    osb_user = data.get("osb_user")
-    osb_pass = data.get("osb_pass")
-    if osb_user != "2d1edfa4b0d6cd48f1a3939a45e58c31" or osb_pass != "b9e330976d12ce8de97fa571ebb4c4da":
-        print("HATALI OSB USER/PASS", flush=True)
-        abort(403)
+    # Shopier OSB: base64 ile kodlanmış JSON geliyor
+    res_data = data.get("res")
+    if not res_data:
+        print("res alanı yok!", flush=True)
+        return "No Data", 400
 
-    # --- Sipariş ID ve ödeme durumu ---
-    order_id = data.get("platform_order_id")   # Kendi sistemine özel sipariş ID
-    payment_status = data.get("payment_status")  # success veya failed olabilir
+    try:
+        decoded = base64.b64decode(res_data)
+        order_json = json.loads(decoded)
+        print("ÇÖZÜLMÜŞ ORDER JSON:", order_json, flush=True)
+    except Exception as e:
+        print("BASE64 veya JSON decode hatası:", str(e), flush=True)
+        return "Decode Error", 400
 
-    print(f"Order ID: {order_id} / Status: {payment_status}", flush=True)
+    # Shopier'de ödeme başarılıysa 'is_test' alanı olur, başka türlü 'status' vs kontrol gerekebilir
+    # Burada sipariş ID'si: order_json["orderid"] veya "order_id" olabilir. Shopier dökümanını kontrol et!
+    order_id = order_json.get("orderid") or order_json.get("order_id") or order_json.get("platform_order_id")
+    email = order_json.get("email")
+    price = order_json.get("price")
+    buyer_name = order_json.get("buyername") or order_json.get("buyer_name")
+    # Not: Alan isimleri Shopier entegrasyon ayarına göre farklı olabilir, terminalde print edilen json'dan bak!
 
-    # --- Ödeme başarılıysa işlemleri yap ---
-    if payment_status == "success" and order_id:
-        # --- Siparişi bul ve işlemleri uygula (KENDİ MODELİNE GÖRE AYARLA) ---
-        # order = Order.query.filter_by(id=order_id).first()
-        # if order:
-        #     user = User.query.get(order.user_id)
-        #     user.balance += order.total_price
-        #     order.status = "paid"
-        #     db.session.commit()
-        #     print(f"{user.username} için {order.total_price} TL bakiye eklendi!", flush=True)
-        pass
+    print(f"Shopier'den gelen sipariş: ID: {order_id} / Email: {email} / Fiyat: {price} / Ad: {buyer_name}", flush=True)
 
-    # Shopier'e cevap dön! (YANIT ŞART)
+    # -- Burada kendi sipariş/kullanıcı yapına göre işlemi tamamla! --
+    # Örneğin: order = Order.query.filter_by(id=order_id).first()
+    # if order:
+    #     user = User.query.get(order.user_id)
+    #     user.balance += float(price)
+    #     order.status = "paid"
+    #     db.session.commit()
+
     return "OK", 200
 
 @app.route('/google6aef354bd638dfc4.html')
