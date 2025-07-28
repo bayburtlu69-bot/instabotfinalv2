@@ -1,5 +1,4 @@
 import os
-import uuid
 import time
 import random
 import smtplib
@@ -4367,12 +4366,9 @@ import base64
 import json
 from flask import request, abort
 
-from flask import request, abort
-import base64
-import json
-
 @app.route("/shopier-callback", methods=["POST"])
 def shopier_callback():
+    print("RAW DATA:", request.form)
     import base64, json
     OSB_USERNAME = "2d1edfa4b0d6cd48f1a3939a45e58c31"
     OSB_PASSWORD = "b9e330976d12ce8de97fa571ebbd4cda"
@@ -4396,15 +4392,17 @@ def shopier_callback():
         db.session.commit()
     return "OK", 200
 
+import uuid
+
 @app.route("/bakiye-yukle", methods=["GET", "POST"])
 @login_required
 def bakiye_yukle():
     user = User.query.get(session.get("user_id"))
-    # Sabit fiyat! (örnek: 1.00 TL)
-    product_id = 37970543  # KENDİ Shopier ürün id'ni yaz!
+    product_id = 37970543
     amount = 1.00
 
     if request.method == "POST":
+        my_order_id = str(uuid.uuid4())  # Kendi sipariş numaran!
         redirect_url = url_for("panel", _external=True)
         shopier_link = (
             f"https://www.shopier.com/ShowProduct/api_pay4.php?"
@@ -4413,10 +4411,14 @@ def bakiye_yukle():
             f"product_price={amount}&"
             f"buyer_name={user.username}&"
             f"buyer_email={user.email}&"
+            f"platform_order_id={my_order_id}&"    # DİKKAT!
             f"redirect_url={redirect_url}"
         )
+        # Siparişi kendi veritabanına da kaydet, sonra takip edebil!
+        # ör: Order.create(shopier_id=my_order_id, user_id=user.id, amount=amount, ...)
         return redirect(shopier_link)
     return render_template_string(HTML_BAKIYE_YUKLE)
+
 
 @app.route('/google6aef354bd638dfc4.html')
 def google_verify():
