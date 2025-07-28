@@ -1166,19 +1166,203 @@ HTML_SERVICES_MANAGE = """
 """
 
 HTML_BAKIYE_YUKLE = """
-<div class="container py-4">
-  <div class="card p-4 mx-auto" style="max-width:500px;">
-    <div class="mb-3">
-      <h4 class="mb-2">Bakiye Yükle</h4>
-      <form method="POST">
-        <label class="form-label">Yüklemek istediğin tutar (TL):</label>
-        <input type="number" name="amount" class="form-control" min="1" required>
-        <button type="submit" class="btn btn-panel-dark w-100 mt-3">Shopier ile Öde</button>
-      </form>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bakiye Yükle</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    /* Sadece number inputlardaki okları kaldırır */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield; /* Firefox */
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .card {
+      background: rgba(20, 20, 20, 0.95);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      color: #f1f1f1;
+      z-index: 2;
+      position: relative;
+    }
+    h3 {
+      color: #fff;
+      font-weight: 600;
+    }
+    .form-label {
+      color: #b8d0ee;
+      font-weight: 500;
+    }
+    .form-control {
+      background-color: #1e1e1e;
+      border-color: #2186eb;
+      color: #fff;
+    }
+    .form-control:focus {
+      background-color: #1e1e1e;
+      border-color: #62b3ff;
+      color: #fff;
+      box-shadow: none;
+    }
+    .form-control::placeholder { color: #aaa; }
+    .btn-shopier {
+      background: linear-gradient(90deg,#1b56e4,#1db3ff);
+      color: #fff;
+      font-weight: 600;
+      border-radius: 8px;
+      box-shadow: 0 2px 16px #1264a966;
+      border: none;
+      padding: 10px 28px;
+      transition: background 0.2s, transform 0.1s;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+    }
+    .btn-shopier:hover {
+      background: linear-gradient(90deg,#1db3ff,#1b56e4);
+      color: #fff;
+      transform: scale(1.04);
+    }
+    .msgbox {
+      margin-bottom: 16px;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      background: rgba(0,150,255,0.10);
+      border-left: 4px solid #2186eb;
+      color: #8ecfff;
+      font-weight: 500;
+      box-shadow: 0 1px 6px #151a2266;
+    }
+    /* Sosyal medya hareketli arka plan aynen! */
+    .animated-social-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bg-icon {
+      position: absolute;
+      width: 48px;
+      opacity: 0.13;
+      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      user-select: none;
+    }
+    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
+    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
+    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
+    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
+    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
+    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
+    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
+    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
+    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
+    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
+    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
+    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
+    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
+    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
+    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
+    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
+    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
+    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
+    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
+    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
+    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
+    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
+    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
+    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
+    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
+    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
+    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
+    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
+    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
+    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+  </style>
+</head>
+
+<body>
+  <div class="animated-social-bg">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+  </div>
+  <div class="container py-5">
+    <div class="card mx-auto" style="max-width: 500px;">
+      <div class="card-body p-4">
+        <h3 class="mb-4 text-center">Bakiye Yükle</h3>
+        {% if msg %}
+          <div class="msgbox">{{ msg }}</div>
+        {% endif %}
+        <form method="post">
+          <div class="mb-3">
+            <label for="amount" class="form-label">Yüklemek istediğin tutar (₺):</label>
+            <input type="number" min="1" step="1" class="form-control" id="amount" name="amount" placeholder="100" required>
+          </div>
+          <button type="submit" class="btn btn-shopier w-100 mt-2">
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fff" style="margin-right:8px;margin-top:-3px" viewBox="0 0 24 24"><path d="M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm2 0v2h16V5zm16 14v-8H4v8zm-4-3h-4a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2z"/></svg>
+  Shopier ile Öde
+</button>
+        </form>
+        <div class="mt-4 text-center small text-secondary">
+          <span style="color:#8ecfff">⚡️ Bakiye yüklemelerin anında hesabına yansır.</span><br>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+</body>
+</html>
 """
+
 
 HTML_SERVICES = """
 <!DOCTYPE html>
@@ -4226,16 +4410,19 @@ def shopier_callback():
 @app.route("/bakiye-yukle", methods=["GET", "POST"])
 @login_required
 def bakiye_yukle():
+    import uuid  # import eksikse ekle
+
     user = User.query.get(session.get("user_id"))
     if request.method == "POST":
         amount = float(request.form.get("amount", 0))
         if amount <= 0:
             return render_template_string(HTML_BAKIYE_YUKLE, msg="Geçersiz tutar!")
-        
-        # Sipariş ID'sini üret (benzersiz, kendi platformunda kullanacağın sipariş id!)
+
         my_order_id = str(uuid.uuid4())
 
-        # Shopier ödeme linkini hazırla (gerekirse ek parametrelerle, platform_order_id vs)
+        # Ana menü ya da istediğin sayfa URL'si (örnek: ana panel)
+        redirect_url = url_for("panel", _external=True)
+
         shopier_link = (
             f"https://www.shopier.com/ShowProduct/api_pay4.php?"
             f"product_id=37967069&"
@@ -4243,12 +4430,10 @@ def bakiye_yukle():
             f"product_price={amount}&"
             f"buyer_name={user.username}&"
             f"platform_order_id={my_order_id}&"
-            f"buyer_email={user.email}"
+            f"buyer_email={user.email}&"
+            f"redirect_url={redirect_url}"
         )
-        # Sen kendi sisteminde siparişi DB'ye kaydedebilirsin (isteğe bağlı)
-        # db.session.add(Order(...))
-        # db.session.commit()
-        
+
         return redirect(shopier_link)
     return render_template_string(HTML_BAKIYE_YUKLE)
 
