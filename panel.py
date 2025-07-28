@@ -4374,50 +4374,26 @@ import json
 @app.route("/shopier-callback", methods=["POST"])
 def shopier_callback():
     import base64, json
-
-    # OSB Kullanıcı adı ve şifreni Shopier panelinden alıp buraya yaz!
-    OSB_USERNAME = "2d1edfa4b0d6cd48f1a3939a45e58c31"
-    OSB_PASSWORD = "b9e330976d12ce8de97fa571ebbd4cda"
-
-    # Shopier’in POST ile gönderdiği verileri oku
+    OSB_USERNAME = "senin_osb_kullanıcı_adın"
+    OSB_PASSWORD = "senin_osb_şifren"
     data = request.form.to_dict()
-    print("==== SHOPIER CALLBACK DATA ====")
-    print(data)
-
-    # OSB authentication kontrolü
-    if (
-        data.get("osb_user") != OSB_USERNAME or
-        data.get("osb_pass") != OSB_PASSWORD
-    ):
-        print("OSB auth failed!")
+    if data.get("osb_user") != OSB_USERNAME or data.get("osb_pass") != OSB_PASSWORD:
         return "UNAUTHORIZED", 403
-
-    # Shopier ödeme sonucu base64'lü olarak gelir
     res = data.get("res")
     if not res:
         return "NO RES", 400
-
     try:
         decoded = base64.b64decode(res + "=" * (-len(res) % 4)).decode("utf-8")
         order_json = json.loads(decoded)
-    except Exception as e:
-        print("Decode error:", e)
+    except Exception:
         return "BAD RES", 400
 
-    print("ÇÖZÜLMÜŞ ORDER JSON:", order_json)
-
-    username = order_json.get("buyername")    # Kullanıcı adı parametresi
+    username = order_json.get("buyername")
     amount = float(order_json.get("price", 0))
-
-    # Kullanıcıya bakiyesini ekle
     user = User.query.filter_by(username=username).first()
     if user and amount > 0:
         user.balance += amount
         db.session.commit()
-        print(f"{user.username} adlı kullanıcıya Shopier ile {amount} TL eklendi!")
-    else:
-        print("Kullanıcı bulunamadı veya tutar sıfır.")
-
     return "OK", 200
 
 @app.route("/bakiye-yukle", methods=["GET", "POST"])
@@ -4432,7 +4408,8 @@ def bakiye_yukle():
 
         my_order_id = str(uuid.uuid4())
         redirect_url = url_for("panel", _external=True)
-
+        
+        # Kullanıcıyı shopier ödeme ekranına gönder:
         shopier_link = (
             f"https://www.shopier.com/ShowProduct/api_pay4.php?"
             f"product_id=37967069&"
@@ -4443,8 +4420,8 @@ def bakiye_yukle():
             f"buyer_email={user.email}&"
             f"redirect_url={redirect_url}"
         )
+        return redirect(shopier_link)
 
-        return redirect(shopier_link)   # <-- Eksik olan return!
     return render_template_string(HTML_BAKIYE_YUKLE)
 
 @app.route('/google6aef354bd638dfc4.html')
