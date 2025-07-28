@@ -4399,29 +4399,23 @@ def shopier_callback():
 @app.route("/bakiye-yukle", methods=["GET", "POST"])
 @login_required
 def bakiye_yukle():
-    import uuid
     user = User.query.get(session.get("user_id"))
-    if request.method == "POST":
-        amount = float(request.form.get("amount", 0))
-        if amount <= 0:
-            return render_template_string(HTML_BAKIYE_YUKLE, msg="Geçersiz tutar!")
+    # Sabit fiyat! (örnek: 1.00 TL)
+    product_id = 37970543  # KENDİ Shopier ürün id'ni yaz!
+    amount = 1.00
 
-        my_order_id = str(uuid.uuid4())
+    if request.method == "POST":
         redirect_url = url_for("panel", _external=True)
-        
-        # Kullanıcıyı shopier ödeme ekranına gönder:
         shopier_link = (
             f"https://www.shopier.com/ShowProduct/api_pay4.php?"
-            f"product_id=37967069&"
+            f"product_id={product_id}&"
             f"product_name=Bakiye+Yukleme&"
             f"product_price={amount}&"
             f"buyer_name={user.username}&"
-            f"platform_order_id={my_order_id}&"
             f"buyer_email={user.email}&"
             f"redirect_url={redirect_url}"
         )
         return redirect(shopier_link)
-
     return render_template_string(HTML_BAKIYE_YUKLE)
 
 @app.route('/google6aef354bd638dfc4.html')
