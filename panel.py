@@ -4437,8 +4437,8 @@ import uuid
 @login_required
 def bakiye_yukle():
     user = User.query.get(session.get("user_id"))
-    product_id = 37970543
-    amount = 1.00
+    product_id = 37970543  # Kendi Shopier ürün ID’in!
+    amount = 1.00  # Test için 1 TL, ihtiyaca göre değiştirirsin
 
     if request.method == "POST":
         return render_template_string("""
@@ -4451,19 +4451,15 @@ def bakiye_yukle():
                 <input type="hidden" name="buyer_name" value="{{ user.username }}">
                 <input type="hidden" name="buyer_surname" value="{{ user.surname or 'Kullanıcı' }}">
                 <input type="hidden" name="buyer_email" value="{{ user.email }}">
-                <input type="hidden" name="buyer_id_nr" value="{{ user.id }}">
-                <input type="hidden" name="platform_order_id" value="{{ order_id }}">
-                <input type="hidden" name="success_url" value="{{ url_for('payment_success', _external=True) }}">
-                <input type="hidden" name="fail_url" value="{{ url_for('payment_fail', _external=True) }}">
-                <!-- Shopier API key gerekiyorsa buraya ekle! -->
-                <!-- <input type="hidden" name="API_key" value="..."> -->
+                <!-- Shopier'in dokümantasyonunda redirect_url varsa aşağıya ekle -->
+                <input type="hidden" name="redirect_url" value="{{ url_for('payment_success', _external=True) }}">
             </form>
             <script>document.getElementById('shopierForm').submit();</script>
         </body>
         </html>
-        """, product_id=product_id, amount=amount, user=user, order_id=create_order_id(user),  # create_order_id fonksiyonunu yaz!
-           )
-
+        """, product_id=product_id, amount=amount, user=user)
+    
+    # GET request'te sayfanın HTML'ini döndür
     return render_template_string(HTML_BAKIYE_YUKLE)
 
 @app.route('/google6aef354bd638dfc4.html')
