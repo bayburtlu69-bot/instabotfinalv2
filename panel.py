@@ -4374,8 +4374,8 @@ import json
 @app.route("/shopier-callback", methods=["POST"])
 def shopier_callback():
     import base64, json
-    OSB_USERNAME = "senin_osb_kullanıcı_adın"
-    OSB_PASSWORD = "senin_osb_şifren"
+    OSB_USERNAME = "2d1edfa4b0d6cd48f1a3939a45e58c31"
+    OSB_PASSWORD = "b9e330976d12ce8de97fa571ebbd4cda"
     data = request.form.to_dict()
     if data.get("osb_user") != OSB_USERNAME or data.get("osb_pass") != OSB_PASSWORD:
         return "UNAUTHORIZED", 403
