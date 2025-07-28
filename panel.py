@@ -13,6 +13,8 @@ from flask import (
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from flask import Flask, session, redirect, request, render_template_string
+
 import requests
 
 TELEGRAM_BOT_TOKEN = "8340662506:AAHwcqKMsGlQ08mlOVTXT2xAUC6vjH3_r20"  # Başında 'bot' yok!
@@ -3121,135 +3123,133 @@ HTML_PANEL = """
         </div>
       </div>
       <!-- BUTONLAR -->
-      <div class="d-grid gap-3 mb-3">
-        {% if role == 'admin' %}
-          <a href="{{ url_for('manage_users') }}" class="btn btn-panel-dark py-2"><b>Kullanıcı Yönetimi</b></a>
-          <a href="{{ url_for('balance_requests') }}" class="btn btn-panel-dark py-2">Bakiye Talepleri</a>
-          <a href="{{ url_for('admin_tickets') }}" class="btn btn-panel-dark py-2">Tüm Destek Talepleri</a>
-          <a href="{{ url_for('manage_services') }}" class="btn btn-panel-dark py-2">Servisleri Yönet</a>
-        {% else %}
-          <a href="{{ url_for('user_balance') }}" class="btn btn-panel-dark py-2">Bakiye Yükle</a>
-          <a href="{{ url_for('tickets') }}" class="btn btn-panel-dark py-2">Destek & Canlı Yardım</a>
-        {% endif %}
-        <a href="{{ url_for('watchads') }}" class="btn btn-panel-dark py-2">Reklam İzle – Bakiye Kazan</a>
-      </div>
-      <!-- SİPARİŞ FORMU BAŞLIĞI -->
-      <div class="order-title-center">
-        <i class="bi bi-cart-check"></i> Yeni Sipariş
-      </div>
-      <!-- SADECE SİPARİŞ BAŞARI MESAJI (YENİ) -->
-      <div id="order-messages-area"></div>
-      <form id="orderForm" method="post" autocomplete="off">
-        <div class="mb-3">
-          <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
-          <select class="form-select" name="category" required>
-            <option value="instagram" selected>INSTAGRAM</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label"><i class="bi bi-box-seam"></i> Servis</label>
-          <select class="form-select" name="service_id" id="service_id" required>
-            {% for s in services %}
-              <option value="{{ s.id }}" data-price="{{ s.price }}" data-min="{{ s.min_amount }}" data-max="{{ s.max_amount }}">
-                {{ s.name }} – {{ s.price }} TL
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label"><i class="bi bi-info-circle"></i> Açıklama</label>
-          <div class="alert alert-secondary" style="white-space: pre-line; display: flex; flex-direction: column; justify-content: center; min-height: 160px;">
-            <b>LÜTFEN SİPARİŞ VERMEDEN ÖNCE BU KISMI OKU</b>
-            Sistem, gönderilecek takipçi sayısına göre uygun şekilde çalışır.
-            Örnek : Takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
-            <b>DİKKAT:</b> Takipçi gönderimi organik hesaplardan ve gerçek yapılır. Gizli hesaplara gönderim yapılmaz.
-          </div>
-        </div>
-        <!-- BİLGİ KUTUSU FORMUN TAM ÜSTÜNDE -->
-        <div id="ajax-order-result"></div>
-        <div class="mb-3">
-          <label class="form-label"><i class="bi bi-link-45deg"></i> Sipariş verilecek link</label>
-          <input name="username" type="text" class="form-control" placeholder="" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label"><i class="bi bi-list-ol"></i> Miktar</label>
-          <input name="amount" id="amount" type="number" min="1" class="form-control" placeholder="" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label"><i class="bi bi-currency-dollar"></i> Tutar</label>
-          <input type="text" class="form-control form-total-custom" id="total" placeholder="" disabled>
-        </div>
-        <button type="submit" class="btn btn-panel-dark btn-lg w-100" id="orderSubmitBtn" style="margin-top:4px;margin-bottom:4px;"><b>Siparişi Gönder</b></button>
+<!-- BUTONLAR -->
+<div class="d-grid gap-3 mb-3">
+  {% if role == 'admin' %}
+    <a href="{{ url_for('manage_users') }}" class="btn btn-panel-dark py-2"><b>Kullanıcı Yönetimi</b></a>
+    <a href="{{ url_for('balance_requests') }}" class="btn btn-panel-dark py-2">Bakiye Talepleri</a>
+    <a href="{{ url_for('admin_tickets') }}" class="btn btn-panel-dark py-2">Tüm Destek Talepleri</a>
+    <a href="{{ url_for('manage_services') }}" class="btn btn-panel-dark py-2">Servisleri Yönet</a>
+  {% else %}
+    <a href="{{ url_for('user_balance') }}" class="btn btn-panel-dark py-2">Bakiye Yükle</a>
+    <a href="{{ url_for('tickets') }}" class="btn btn-panel-dark py-2">Destek & Canlı Yardım</a>
+    {% if role in ['user', 'viewer'] %}
+      <form action="{{ url_for('odeme') }}" method="post" style="margin-bottom:0;">
+        <button type="submit" class="btn btn-panel-outline py-2 w-100" style="font-weight:700;">
+          <i class="bi bi-credit-card-2-front-fill text-warning"></i> Shopier ile Öde
+        </button>
       </form>
-      <script>
-        // Otomatik fiyat güncelleme
-        const sel = document.getElementById('service_id'),
-              amt = document.getElementById('amount'),
-              tot = document.getElementById('total');
-        function updateTotal(){
-          const price = parseFloat(sel.selectedOptions[0].dataset.price)||0,
-                num   = parseInt(amt.value)||0;
-          tot.value = num>0
-            ? (num + " × " + price.toFixed(2) + " TL = " + (num*price).toFixed(2) + " TL")
-            : "";
-        }
-        sel.addEventListener('change', updateTotal);
-        amt.addEventListener('input', updateTotal);
-        document.addEventListener('DOMContentLoaded', updateTotal);
-      </script>
-      <script>
-        // AJAX sonrası form üstünde kutu göster (SADECE SİPARİŞ BAŞARISI)
-        document.getElementById('orderForm').addEventListener('submit', function(e){
-          e.preventDefault();
-          const btn = document.getElementById('orderSubmitBtn');
-          btn.disabled = true;
-          fetch('/api/new_order', {
-            method: 'POST',
-            body: new FormData(this)
-          })
-          .then(r=>r.json())
-          .then(res=>{
-            btn.disabled = false;
-            const msgArea = document.getElementById('ajax-order-result');
-            msgArea.innerHTML = '';
-            const msgBox = document.createElement('div');
-            msgBox.className = "flash-info-box" + (res.success ? "" : " error");
-            msgBox.innerText = res.success
-              ? "Sipariş başarıyla oluşturuldu!"
-              : "Bir hata oluştu";
-            msgArea.appendChild(msgBox);
-            setTimeout(()=>{ msgBox.remove(); }, 3200);
-
-            if(res.success){
-              this.reset(); updateTotal();
-              document.getElementById('balance').innerText = res.new_balance + ' TL';
-            }
-          })
-          .catch(()=>{
-            btn.disabled = false;
-            const msgArea = document.getElementById('ajax-order-result');
-            msgArea.innerHTML = '';
-            const msgBox = document.createElement('div');
-            msgBox.className = "flash-info-box error";
-            msgBox.innerText = "İstek başarısız!";
-            msgArea.appendChild(msgBox);
-            setTimeout(()=>{ msgBox.remove(); }, 2800);
-          });
-        });
-      </script>
-      <div class="mt-3 text-end">
-        <a href="{{ url_for('logout') }}" class="btn btn-custom-outline btn-sm">Çıkış Yap</a>
-      </div>
+    {% endif %}
+  {% endif %}
+  <a href="{{ url_for('watchads') }}" class="btn btn-panel-dark py-2">Reklam İzle – Bakiye Kazan</a>
+</div>
+<!-- SİPARİŞ FORMU BAŞLIĞI -->
+<div class="order-title-center">
+  <i class="bi bi-cart-check"></i> Yeni Sipariş
+</div>
+<!-- SADECE SİPARİŞ BAŞARI MESAJI (YENİ) -->
+<div id="order-messages-area"></div>
+<form id="orderForm" method="post" autocomplete="off">
+  <div class="mb-3">
+    <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
+    <select class="form-select" name="category" required>
+      <option value="instagram" selected>INSTAGRAM</option>
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label"><i class="bi bi-box-seam"></i> Servis</label>
+    <select class="form-select" name="service_id" id="service_id" required>
+      {% for s in services %}
+        <option value="{{ s.id }}" data-price="{{ s.price }}" data-min="{{ s.min_amount }}" data-max="{{ s.max_amount }}">
+          {{ s.name }} – {{ s.price }} TL
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label"><i class="bi bi-info-circle"></i> Açıklama</label>
+    <div class="alert alert-secondary" style="white-space: pre-line; display: flex; flex-direction: column; justify-content: center; min-height: 160px;">
+      <b>LÜTFEN SİPARİŞ VERMEDEN ÖNCE BU KISMI OKU</b>
+      Sistem, gönderilecek takipçi sayısına göre uygun şekilde çalışır.
+      Örnek : Takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
+      <b>DİKKAT:</b> Takipçi gönderimi organik hesaplardan ve gerçek yapılır. Gizli hesaplara gönderim yapılmaz.
     </div>
   </div>
-  <!-- WhatsApp Sohbet Butonu BAŞLANGIÇ -->
-  <a href="https://wa.me/905301900969" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
-    <span id="whatsapp-float-text">WhatsApp ile Destek!</span>
-    <i class="bi bi-whatsapp"></i>
-  </a>
-  <!-- WhatsApp Sohbet Butonu BİTİŞ -->
-</body>
-</html>
+  <!-- BİLGİ KUTUSU FORMUN TAM ÜSTÜNDE -->
+  <div id="ajax-order-result"></div>
+  <div class="mb-3">
+    <label class="form-label"><i class="bi bi-link-45deg"></i> Sipariş verilecek link</label>
+    <input name="username" type="text" class="form-control" placeholder="" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label"><i class="bi bi-list-ol"></i> Miktar</label>
+    <input name="amount" id="amount" type="number" min="1" class="form-control" placeholder="" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label"><i class="bi bi-currency-dollar"></i> Tutar</label>
+    <input type="text" class="form-control form-total-custom" id="total" placeholder="" disabled>
+  </div>
+  <button type="submit" class="btn btn-panel-dark btn-lg w-100" id="orderSubmitBtn" style="margin-top:4px;margin-bottom:4px;"><b>Siparişi Gönder</b></button>
+</form>
+<script>
+  // Otomatik fiyat güncelleme
+  const sel = document.getElementById('service_id'),
+        amt = document.getElementById('amount'),
+        tot = document.getElementById('total');
+  function updateTotal(){
+    const price = parseFloat(sel.selectedOptions[0].dataset.price)||0,
+          num   = parseInt(amt.value)||0;
+    tot.value = num>0
+      ? (num + " × " + price.toFixed(2) + " TL = " + (num*price).toFixed(2) + " TL")
+      : "";
+  }
+  sel.addEventListener('change', updateTotal);
+  amt.addEventListener('input', updateTotal);
+  document.addEventListener('DOMContentLoaded', updateTotal);
+</script>
+<script>
+  // AJAX sonrası form üstünde kutu göster (SADECE SİPARİŞ BAŞARISI)
+  document.getElementById('orderForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const btn = document.getElementById('orderSubmitBtn');
+    btn.disabled = true;
+    fetch('/api/new_order', {
+      method: 'POST',
+      body: new FormData(this)
+    })
+    .then(r=>r.json())
+    .then(res=>{
+      btn.disabled = false;
+      const msgArea = document.getElementById('ajax-order-result');
+      msgArea.innerHTML = '';
+      const msgBox = document.createElement('div');
+      msgBox.className = "flash-info-box" + (res.success ? "" : " error");
+      msgBox.innerText = res.success
+        ? "Sipariş başarıyla oluşturuldu!"
+        : "Bir hata oluştu";
+      msgArea.appendChild(msgBox);
+      setTimeout(()=>{ msgBox.remove(); }, 3200);
+
+      if(res.success){
+        this.reset(); updateTotal();
+        document.getElementById('balance').innerText = res.new_balance + ' TL';
+      }
+    })
+    .catch(()=>{
+      btn.disabled = false;
+      const msgArea = document.getElementById('ajax-order-result');
+      msgArea.innerHTML = '';
+      const msgBox = document.createElement('div');
+      msgBox.className = "flash-info-box error";
+      msgBox.innerText = "İstek başarısız!";
+      msgArea.appendChild(msgBox);
+      setTimeout(()=>{ msgBox.remove(); }, 2800);
+    });
+  });
+</script>
+<div class="mt-3 text-end">
+  <a href="{{ url_for('logout') }}" class="btn btn-custom-outline btn-sm">Çıkış Yap</a>
+</div>
 """
 
 HTML_ADS_MANAGE = """
@@ -4617,6 +4617,46 @@ def balance_requests():
 
     reqs = BalanceRequest.query.order_by(BalanceRequest.created_at.desc()).all()
     return render_template_string(HTML_BALANCE_REQUESTS, reqs=reqs)
+
+@app.route("/odeme", methods=["POST"])
+def odeme():
+    # Shopier ürününün linki:
+    shopier_link = "https://www.shopier.com/37967069"
+    return redirect(shopier_link)
+
+from flask import request, abort
+
+@app.route("/shopier-callback", methods=["POST"])
+def shopier_callback():
+    # 1. Shopier'den gelen POST datasını al
+    data = request.form.to_dict()
+    
+    # 2. Güvenlik: OSB kullanıcı adı ve şifresini kontrol et
+    osb_user = data.get("osb_user")
+    osb_pass = data.get("osb_pass")
+    if osb_user != "2d1edfa4b0d6cd48f1a3939a45e58c31" or osb_pass != "b9e330976d12ce8de97fa571ebb4c4da":
+        abort(403)
+    
+    # 3. Sipariş ID'sini Shopier'den gelen veriden çek
+    # Shopier -> sen siparişi oluştururken kendi sipariş ID'ni "platform_order_id" olarak gönderiyorsun!
+    order_id = data.get("platform_order_id")   # BU ID'yi kendi sisteminden Shopier'e gönder!
+    payment_status = data.get("payment_status")  # 'success' = ödeme başarılı
+    
+    # 4. Eğer ödeme başarılıysa, siparişi bulup ilgili kullanıcının bakiyesini artır
+    if payment_status == "success" and order_id:
+        # ÖRNEK: Siparişten kullanıcıya ulaşmak (sipariş yapına göre değişir!)
+        # order = Order.query.filter_by(id=order_id).first()
+        # if order:
+        #     user = User.query.get(order.user_id)
+        #     user.balance += order.total_price  # veya siparişten bağımsız bir tutar
+        #     order.status = "paid"
+        #     db.session.commit()
+        #     # İstersen log da yazabilirsin
+        
+        # TODO: Burada kendi sisteminde siparişi ve kullanıcıyı bulup bakiyeyi güncelle!
+        pass
+
+    return "OK", 200
 
 @app.route('/google6aef354bd638dfc4.html')
 def google_verify():
