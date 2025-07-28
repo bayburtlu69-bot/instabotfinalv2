@@ -4444,5 +4444,9 @@ def google_verify():
 # DOSYANIN EN SONUNA KOY!
 sync_external_order_status()
 
+@app.route('/robots.txt')
+def robots_txt():
+    return app.send_static_file('robots.txt')
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
