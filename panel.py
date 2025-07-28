@@ -4437,7 +4437,7 @@ import uuid
 @login_required
 def bakiye_yukle():
     user = User.query.get(session.get("user_id"))
-    product_id = 37970543  # Shopier ürün ID
+    product_id = 37970543
     amount = 1.00
 
     if request.method == "POST":
@@ -4448,15 +4448,22 @@ def bakiye_yukle():
                 <input type="hidden" name="product_id" value="{{ product_id }}">
                 <input type="hidden" name="product_name" value="Bakiye Yukleme">
                 <input type="hidden" name="product_price" value="{{ amount }}">
-                <input type="hidden" name="buyer_name" value="{{ username }}">
-                <input type="hidden" name="buyer_email" value="{{ email }}">
-                <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
+                <input type="hidden" name="buyer_name" value="{{ user.username }}">
+                <input type="hidden" name="buyer_surname" value="{{ user.surname or 'Kullanıcı' }}">
+                <input type="hidden" name="buyer_email" value="{{ user.email }}">
+                <input type="hidden" name="buyer_id_nr" value="{{ user.id }}">
+                <input type="hidden" name="platform_order_id" value="{{ order_id }}">
+                <input type="hidden" name="success_url" value="{{ url_for('payment_success', _external=True) }}">
+                <input type="hidden" name="fail_url" value="{{ url_for('payment_fail', _external=True) }}">
+                <!-- Shopier API key gerekiyorsa buraya ekle! -->
+                <!-- <input type="hidden" name="API_key" value="..."> -->
             </form>
             <script>document.getElementById('shopierForm').submit();</script>
         </body>
         </html>
-        """, product_id=product_id, amount=amount, username=user.username, email=user.email, redirect_url=url_for("panel", _external=True))
-    
+        """, product_id=product_id, amount=amount, user=user, order_id=create_order_id(user),  # create_order_id fonksiyonunu yaz!
+           )
+
     return render_template_string(HTML_BAKIYE_YUKLE)
 
 @app.route('/google6aef354bd638dfc4.html')
