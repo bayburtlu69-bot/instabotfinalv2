@@ -4379,17 +4379,30 @@ import json
 
 @app.route("/shopier-callback", methods=["POST"])
 def shopier_callback():
-    # Shopier callback ile POST gönderiyor!
+    import base64, json
+
+    # OSB Kullanıcı adı ve şifreni Shopier panelinden alıp buraya yaz!
+    OSB_USERNAME = "2d1edfa4b0d6cd48f1a3939a45e58c31"
+    OSB_PASSWORD = "b9e330976d12ce8de97fa571ebbd4cda"
+
+    # Shopier’in POST ile gönderdiği verileri oku
     data = request.form.to_dict()
     print("==== SHOPIER CALLBACK DATA ====")
     print(data)
 
-    # En önemli veri: "res" alanı (base64 json olarak gönderiliyor)
+    # OSB authentication kontrolü
+    if (
+        data.get("osb_user") != OSB_USERNAME or
+        data.get("osb_pass") != OSB_PASSWORD
+    ):
+        print("OSB auth failed!")
+        return "UNAUTHORIZED", 403
+
+    # Shopier ödeme sonucu base64'lü olarak gelir
     res = data.get("res")
     if not res:
         return "NO RES", 400
 
-    # Base64 decode et
     try:
         decoded = base64.b64decode(res + "=" * (-len(res) % 4)).decode("utf-8")
         order_json = json.loads(decoded)
@@ -4399,12 +4412,10 @@ def shopier_callback():
 
     print("ÇÖZÜLMÜŞ ORDER JSON:", order_json)
 
-    # Sipariş ID'ni çöz (shopier tarafındaki ID veya kendi gönderdiğin platform_order_id, yukarıda gönderdiysen)
-    my_order_id = order_json.get("platform_order_id")
-    username = order_json.get("buyername")    # YUKARIDA FORMDA KULLANICI ADI OLARAK GÖNDERDİK!
+    username = order_json.get("buyername")    # Kullanıcı adı parametresi
     amount = float(order_json.get("price", 0))
 
-    # Kullanıcıyı bul ve bakiyesini ekle
+    # Kullanıcıya bakiyesini ekle
     user = User.query.filter_by(username=username).first()
     if user and amount > 0:
         user.balance += amount
@@ -4419,7 +4430,6 @@ def shopier_callback():
 @login_required
 def bakiye_yukle():
     import uuid  # import eksikse ekle
-
     user = User.query.get(session.get("user_id"))
     if request.method == "POST":
         amount = float(request.form.get("amount", 0))
@@ -4428,7 +4438,7 @@ def bakiye_yukle():
 
         my_order_id = str(uuid.uuid4())
 
-        # Ana menü ya da istediğin sayfa URL'si (örnek: ana panel)
+        # Panel sayfasına yönlendir (kendi route'unun adı ne ise onu gir)
         redirect_url = url_for("panel", _external=True)
 
         shopier_link = (
@@ -4441,7 +4451,6 @@ def bakiye_yukle():
             f"buyer_email={user.email}&"
             f"redirect_url={redirect_url}"
         )
-
         return redirect(shopier_link)
     return render_template_string(HTML_BAKIYE_YUKLE)
 
