@@ -4437,27 +4437,27 @@ import uuid
 @login_required
 def bakiye_yukle():
     user = User.query.get(session.get("user_id"))
-    product_id = 37970543
+    product_id = 37970543  # Shopier ürün ID
     amount = 1.00
 
     if request.method == "POST":
-        my_order_id = str(uuid.uuid4())  # Kendi sipariş numaran!
-        redirect_url = url_for("panel", _external=True)
-        shopier_link = (
-            f"https://www.shopier.com/ShowProduct/api_pay4.php?"
-            f"product_id={product_id}&"
-            f"product_name=Bakiye+Yukleme&"
-            f"product_price={amount}&"
-            f"buyer_name={user.username}&"
-            f"buyer_email={user.email}&"
-            f"platform_order_id={my_order_id}&"    # DİKKAT!
-            f"redirect_url={redirect_url}"
-        )
-        # Siparişi kendi veritabanına da kaydet, sonra takip edebil!
-        # ör: Order.create(shopier_id=my_order_id, user_id=user.id, amount=amount, ...)
-        return redirect(shopier_link)
+        return render_template_string("""
+        <html>
+        <body>
+            <form id="shopierForm" action="https://www.shopier.com/ShowProduct/api_pay4.php" method="POST">
+                <input type="hidden" name="product_id" value="{{ product_id }}">
+                <input type="hidden" name="product_name" value="Bakiye Yukleme">
+                <input type="hidden" name="product_price" value="{{ amount }}">
+                <input type="hidden" name="buyer_name" value="{{ username }}">
+                <input type="hidden" name="buyer_email" value="{{ email }}">
+                <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
+            </form>
+            <script>document.getElementById('shopierForm').submit();</script>
+        </body>
+        </html>
+        """, product_id=product_id, amount=amount, username=user.username, email=user.email, redirect_url=url_for("panel", _external=True))
+    
     return render_template_string(HTML_BAKIYE_YUKLE)
-
 
 @app.route('/google6aef354bd638dfc4.html')
 def google_verify():
