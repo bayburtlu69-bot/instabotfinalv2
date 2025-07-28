@@ -1,4 +1,5 @@
 import os
+import uuid
 import time
 import random
 import smtplib
@@ -1164,398 +1165,19 @@ HTML_SERVICES_MANAGE = """
 </html>
 """
 
-HTML_BALANCE = """
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bakiye Yükle</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(-45deg, #1e1e1e, #2c2f34, #1e1e1e, #000000);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-      color: #fff;
-      overflow: hidden;
-      position: relative;
-    }
-    @keyframes gradientBG {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
-    .card {
-      background-color: #1f1f1f;
-      color: #fff;
-      border-radius: 18px;
-      z-index: 2;
-      position: relative;
-    }
-    .form-control, .form-select {
-      background-color: #2e2e2e !important;
-      color: #f1f1f1 !important;
-      border: 1px solid #444;
-    }
-    .form-control::placeholder,
-    .form-select::placeholder {
-      color: #aaa;
-    }
-    .form-control:focus, .form-select:focus {
-      background-color: #2e2e2e !important;
-      color: #fff !important;
-      border-color: #2186eb;
-      box-shadow: none !important;
-    }
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
-    .table-dark th, .table-dark td {
-      color: #eee;
-    }
-    .alert-info {
-      background-color: #1a2a3a;
-      color: #cce4ff;
-      border-color: #2a4d6b;
-    }
-    .btn {
-      font-weight: 500;
-    }
-    a {
-      color: #8db4ff;
-    }
-    a:hover {
-      color: #fff;
-      text-decoration: underline;
-    }
-    /* -- Sosyal medya hareketli arka plan -- */
-    .animated-social-bg {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-      user-select: none;
-    }
-    .bg-icon {
-      position: absolute;
-      width: 48px;
-      opacity: 0.13;
-      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
-      animation-duration: 18s;
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-in-out;
-      user-select: none;
-    }
-    /* 18 farklı pozisyon ve animasyon */
-    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
-    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
-    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
-    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
-    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
-    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
-    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
-    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
-    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
-    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
-    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
-    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
-    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
-    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
-    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
-    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
-    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
-    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
-    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
-    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
-    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
-    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
-    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
-    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
-    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
-    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
-    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
-    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
-    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
-    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
-    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
-    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
-    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
-    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
-    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
-    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
-  </style>
-</head>
-<body class="text-light">
-  <!-- Sosyal medya hareketli arka plan -->
-  <div class="animated-social-bg">
-    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
-    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
-    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
-    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
-    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
-    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
-    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
-    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
-    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
-    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
-    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
-    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
-    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
-    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
-    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
-    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
-    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
-    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
-  </div>
-  <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:500px;">
-      <h3>Bakiye Yükle</h3>
-      <div class="alert alert-info">
-        <b>Bakiye yükleme için banka bilgileri:</b><br>
-        IBAN: <b>TR97 0006 7010 0000 0076 9799 77</b><br>
-        Ad Soyad: <b>Mükail Aktaş - İsim doğrudur</b><br>
-        <small>Açıklamaya <b>kullanıcı adınızı</b> yazmayı unutmayın!</small>
-      </div>
-      {% if msg %}<div class="alert alert-success">{{ msg }}</div>{% endif %}
-      {% if err %}<div class="alert alert-danger">{{ err }}</div>{% endif %}
-      <form method="post" class="mb-4">
-        <label class="form-label">Tutar (TL):</label>
-        <input name="amount" type="number" step="0.01" min="1" class="form-control mb-2" placeholder="" required>
-        <button class="btn btn-primary w-100">Ödemeyi Yaptım</button>
+HTML_BAKIYE_YUKLE = """
+<div class="container py-4">
+  <div class="card p-4 mx-auto" style="max-width:500px;">
+    <div class="mb-3">
+      <h4 class="mb-2">Bakiye Yükle</h4>
+      <form method="POST">
+        <label class="form-label">Yüklemek istediğin tutar (TL):</label>
+        <input type="number" name="amount" class="form-control" min="1" required>
+        <button type="submit" class="btn btn-panel-dark w-100 mt-3">Shopier ile Öde</button>
       </form>
-      <h5>Geçmiş Bakiye Talepleriniz</h5>
-      <table class="table table-dark table-bordered table-sm">
-        <thead>
-          <tr>
-            <th>Tarih</th>
-            <th>Tutar</th>
-            <th>Durum</th>
-            <th>Açıklama</th>
-            <th>Ret Sebebi</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for req in requests %}
-          <tr>
-            <td>{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-            <td>{{ req.amount }}</td>
-            <td>
-              {% if req.status == "pending" %}<span class="badge bg-warning text-dark">Bekliyor</span>
-              {% elif req.status == "approved" %}<span class="badge bg-success">Onaylandı</span>
-              {% elif req.status == "rejected" %}<span class="badge bg-danger">Reddedildi</span>
-              {% endif %}
-            </td>
-            <td>{{ req.explanation or "" }}</td>
-            <td>{{ req.reject_reason or "" }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      <a href="/panel" class="btn btn-secondary btn-sm">Panele Dön</a>
     </div>
   </div>
-</body>
-</html>
-"""
-
-HTML_BALANCE_REQUESTS = """
-<!DOCTYPE html>
-<html lang="tr">
-  <head>
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bakiye Talepleri</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(-45deg, #1e1e1e, #2c2f34, #1e1e1e, #000000);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-      color: #fff;
-      overflow: hidden;
-      position: relative;
-    }
-    @keyframes gradientBG {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
-    .card { background-color: #1f1f1f; color: #fff; border-radius: 18px; z-index: 2; position: relative; }
-    .form-control, .form-select { background-color: #2e2e2e; color: #fff; border: 1px solid #444; }
-    .form-control::placeholder, .form-select option { color: #aaa; }
-    .table-dark th, .table-dark td { color: #eee; }
-    .btn { font-weight: 500; }
-    .btn-delete {
-      font-weight: 600;
-      border-radius: 20px;
-      padding: 0.3em 0.9em;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    a { color: #8db4ff; }
-    a:hover { color: #fff; text-decoration: underline; }
-    .alert-info { background-color: #1a2a3a; color: #cce4ff; border-color: #2a4d6b; }
-    /* Sosyal medya hareketli arka plan */
-    .animated-social-bg { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; overflow: hidden; user-select: none; }
-    .bg-icon { position: absolute; width: 48px; opacity: 0.13; filter: blur(0.2px) drop-shadow(0 4px 24px #0008); animation-duration: 18s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; user-select: none; }
-    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
-    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
-    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
-    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
-    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
-    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
-    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
-    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
-    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
-    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
-    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
-    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
-    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
-    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
-    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
-    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
-    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
-    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
-    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
-    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
-    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
-    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
-    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
-    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
-    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
-    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
-    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
-    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
-    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
-    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
-    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
-    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
-    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
-    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
-    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
-    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
-  </style>
-</head>
-<body class="text-light">
-  <!-- Sosyal medya hareketli arka plan -->
-  <div class="animated-social-bg">
-    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
-    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
-    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
-    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
-    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
-    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
-    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
-    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
-    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
-    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
-    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
-    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
-    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
-    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
-    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
-    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
-    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
-    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
-  </div>
-  <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:800px;">
-      <h3>Bakiye Talepleri</h3>
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <div class="alert alert-info p-2 small mb-2" role="alert">
-            {% for message in messages %}
-              {{ message }}<br>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
-      <table class="table table-dark table-bordered">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Kullanıcı</th>
-            <th>Tutar</th>
-            <th>Tarih</th>
-            <th>Durum</th>
-            <th>Açıklama</th>
-            <th>Ret Sebebi</th>
-            <th>İşlem</th>
-            <th>Sil</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for req in reqs %}
-          <tr>
-            <td>{{ req.id }}</td>
-            <td>{{ req.user.username }}</td>
-            <td>{{ req.amount }}</td>
-            <td>{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-            <td>
-              {% if req.status == "pending" %}<span class="badge bg-warning text-dark">Bekliyor</span>
-              {% elif req.status == "approved" %}<span class="badge bg-success">Onaylandı</span>
-              {% elif req.status == "rejected" %}<span class="badge bg-danger">Reddedildi</span>
-              {% endif %}
-            </td>
-            <td>{{ req.explanation or "" }}</td>
-            <td>{{ req.reject_reason or "" }}</td>
-            <td>
-              {% if req.status == "pending" %}
-              <form method="post" style="display:inline-block">
-                <input type="hidden" name="req_id" value="{{ req.id }}">
-                <input type="text" name="explanation" class="form-control form-control-sm mb-1" placeholder="Onay açıklama">
-                <button class="btn btn-success btn-sm" name="action" value="approve">Onayla</button>
-              </form>
-              <form method="post" style="display:inline-block">
-                <input type="hidden" name="req_id" value="{{ req.id }}">
-                <input type="text" name="explanation" class="form-control form-control-sm mb-1" placeholder="Ret açıklama (isteğe bağlı)">
-                <select name="reject_reason" class="form-select form-select-sm mb-1">
-                  <option value="">Ret sebebi seç</option>
-                  <option>BANKA HESABINA PARA AKTARILMAMIŞ</option>
-                  <option>HATALI İSİM SOYİSİM</option>
-                  <option>BAŞKA BİR KULLANICIDAN GELEN BİLDİRİM</option>
-                  <option>MANUEL RED (Açıklamada belirt)</option>
-                </select>
-                <button class="btn btn-danger btn-sm" name="action" value="reject">Reddet</button>
-              </form>
-              {% else %}
-                <span class="text-muted">—</span>
-              {% endif %}
-            </td>
-            <td>
-              <form method="post" style="display:inline-block;">
-                <input type="hidden" name="req_id" value="{{ req.id }}">
-                <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm btn-delete">
-                  <i class="bi bi-trash"></i> Sil
-                </button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      <a href="/panel" class="btn btn-secondary btn-sm">Panele Dön</a>
-    </div>
-  </div>
-</body>
-</html>
+</div>
 """
 
 HTML_SERVICES = """
@@ -3131,12 +2753,9 @@ HTML_PANEL = """
     <a href="{{ url_for('admin_tickets') }}" class="btn btn-panel-dark py-2">Tüm Destek Talepleri</a>
     <a href="{{ url_for('manage_services') }}" class="btn btn-panel-dark py-2">Servisleri Yönet</a>
   {% else %}
-    <a href="{{ url_for('user_balance') }}" class="btn btn-panel-dark py-2">Bakiye Yükle</a>
+    <a href="{{ url_for('bakiye_yukle') }}" class="btn btn-panel-dark py-2">Bakiye Yükle</a>
     <a href="{{ url_for('tickets') }}" class="btn btn-panel-dark py-2">Destek & Canlı Yardım</a>
     {% if role in ['user', 'viewer'] %}
-      <form action="{{ url_for('odeme') }}" method="post" style="margin-bottom:0;">
-        <button type="submit" class="btn btn-panel-outline py-2 w-100" style="font-weight:700;">
-          <i class="bi bi-credit-card-2-front-fill text-warning"></i> Shopier ile Öde
         </button>
       </form>
     {% endif %}
@@ -4121,32 +3740,6 @@ def manage_services():
         local_ids={s.id for s in tüm_servisler}
     )
 
-@app.route("/balance", methods=["GET", "POST"])
-@login_required
-def user_balance():
-    user = User.query.get(session.get("user_id"))
-    msg, err = "", ""
-    if request.method == "POST":
-        try:
-            amount = float(request.form.get("amount", 0))
-        except:
-            amount = 0
-        if amount <= 0:
-            err = "Tutar geçersiz."
-        else:
-            r = BalanceRequest(user_id=user.id, amount=amount)
-            db.session.add(r)
-            db.session.commit()
-            telegram_mesaj_gonder(
-                f"🟢 <b>Bakiye Yatırımı Talebi</b>\n"
-                f"Kullanıcı: <b>{user.username}</b>\n"
-                f"Tutar: <b>{amount} TL</b>\n"
-                f"Onay bekliyor."
-            )
-            msg = "Başvuru başarıyla iletildi. Admin onayını bekleyiniz."
-    requests = BalanceRequest.query.filter_by(user_id=user.id).order_by(BalanceRequest.created_at.desc()).all()
-    return render_template_string(HTML_BALANCE, msg=msg, err=err, requests=requests)
-
 @app.route("/services", methods=["GET", "POST"])
 @login_required
 def services():
@@ -4578,46 +4171,6 @@ def sync_external_order_status():
     # 180 saniye sonra tekrar çalıştır
     threading.Timer(60, sync_external_order_status).start()
 
-@app.route("/balance/requests", methods=["GET", "POST"])
-@login_required
-@admin_required
-def balance_requests():
-    if request.method == "POST":
-        req_id = int(request.form.get("req_id"))
-        action = request.form.get("action")
-        explanation = request.form.get("explanation", "")
-        reject_reason = request.form.get("reject_reason", "")
-        req = BalanceRequest.query.get(req_id)
-        if not req:
-            flash("İşlem yapılamadı.")
-            return redirect("/balance/requests")
-        if action == "approve":
-            if req.status == "pending":
-                req.status = "approved"
-                req.user.balance += req.amount
-                req.explanation = explanation
-                db.session.commit()
-                flash("Bakiye talebi onaylandı.")
-            else:
-                flash("Yalnızca bekleyen talepler onaylanabilir.")
-        elif action == "reject":
-            if req.status == "pending":
-                req.status = "rejected"
-                req.explanation = explanation
-                req.reject_reason = reject_reason
-                db.session.commit()
-                flash("Bakiye talebi reddedildi.")
-            else:
-                flash("Yalnızca bekleyen talepler reddedilebilir.")
-        elif action == "delete":
-            db.session.delete(req)
-            db.session.commit()
-            flash("Bakiye talebi silindi.")
-        return redirect("/balance/requests")
-
-    reqs = BalanceRequest.query.order_by(BalanceRequest.created_at.desc()).all()
-    return render_template_string(HTML_BALANCE_REQUESTS, reqs=reqs)
-
 @app.route("/odeme", methods=["POST"])
 def odeme():
     # Shopier ürününün linki:
@@ -4628,45 +4181,76 @@ import base64
 import json
 from flask import request, abort
 
+from flask import request, abort
+import base64
+import json
+
 @app.route("/shopier-callback", methods=["POST"])
 def shopier_callback():
+    # Shopier callback ile POST gönderiyor!
     data = request.form.to_dict()
     print("==== SHOPIER CALLBACK DATA ====")
-    print(data, flush=True)
+    print(data)
 
-    # Shopier OSB: base64 ile kodlanmış JSON geliyor
-    res_data = data.get("res")
-    if not res_data:
-        print("res alanı yok!", flush=True)
-        return "No Data", 400
+    # En önemli veri: "res" alanı (base64 json olarak gönderiliyor)
+    res = data.get("res")
+    if not res:
+        return "NO RES", 400
 
+    # Base64 decode et
     try:
-        decoded = base64.b64decode(res_data)
+        decoded = base64.b64decode(res + "=" * (-len(res) % 4)).decode("utf-8")
         order_json = json.loads(decoded)
-        print("ÇÖZÜLMÜŞ ORDER JSON:", order_json, flush=True)
     except Exception as e:
-        print("BASE64 veya JSON decode hatası:", str(e), flush=True)
-        return "Decode Error", 400
+        print("Decode error:", e)
+        return "BAD RES", 400
 
-    # Shopier'de ödeme başarılıysa 'is_test' alanı olur, başka türlü 'status' vs kontrol gerekebilir
-    # Burada sipariş ID'si: order_json["orderid"] veya "order_id" olabilir. Shopier dökümanını kontrol et!
-    order_id = order_json.get("orderid") or order_json.get("order_id") or order_json.get("platform_order_id")
-    email = order_json.get("email")
-    price = order_json.get("price")
-    buyer_name = order_json.get("buyername") or order_json.get("buyer_name")
-    # Not: Alan isimleri Shopier entegrasyon ayarına göre farklı olabilir, terminalde print edilen json'dan bak!
+    print("ÇÖZÜLMÜŞ ORDER JSON:", order_json)
 
-    print(f"Shopier'den gelen sipariş: ID: {order_id} / Email: {email} / Fiyat: {price} / Ad: {buyer_name}", flush=True)
+    # Sipariş ID'ni çöz (shopier tarafındaki ID veya kendi gönderdiğin platform_order_id, yukarıda gönderdiysen)
+    my_order_id = order_json.get("platform_order_id")
+    username = order_json.get("buyername")    # YUKARIDA FORMDA KULLANICI ADI OLARAK GÖNDERDİK!
+    amount = float(order_json.get("price", 0))
 
-    # -- Burada kendi sipariş/kullanıcı yapına göre işlemi tamamla! --
-    # Örneğin: order = Order.query.filter_by(id=order_id).first()
-    # if order:
-    #     user = User.query.get(order.user_id)
-    #     user.balance += float(price)
-    #     order.status = "paid"
-    #     db.session.commit()
+    # Kullanıcıyı bul ve bakiyesini ekle
+    user = User.query.filter_by(username=username).first()
+    if user and amount > 0:
+        user.balance += amount
+        db.session.commit()
+        print(f"{user.username} adlı kullanıcıya Shopier ile {amount} TL eklendi!")
+    else:
+        print("Kullanıcı bulunamadı veya tutar sıfır.")
 
     return "OK", 200
+
+@app.route("/bakiye-yukle", methods=["GET", "POST"])
+@login_required
+def bakiye_yukle():
+    user = User.query.get(session.get("user_id"))
+    if request.method == "POST":
+        amount = float(request.form.get("amount", 0))
+        if amount <= 0:
+            return render_template_string(HTML_BAKIYE_YUKLE, msg="Geçersiz tutar!")
+        
+        # Sipariş ID'sini üret (benzersiz, kendi platformunda kullanacağın sipariş id!)
+        my_order_id = str(uuid.uuid4())
+
+        # Shopier ödeme linkini hazırla (gerekirse ek parametrelerle, platform_order_id vs)
+        shopier_link = (
+            f"https://www.shopier.com/ShowProduct/api_pay4.php?"
+            f"product_id=37967069&"
+            f"product_name=Bakiye+Yukleme&"
+            f"product_price={amount}&"
+            f"buyer_name={user.username}&"
+            f"platform_order_id={my_order_id}&"
+            f"buyer_email={user.email}"
+        )
+        # Sen kendi sisteminde siparişi DB'ye kaydedebilirsin (isteğe bağlı)
+        # db.session.add(Order(...))
+        # db.session.commit()
+        
+        return redirect(shopier_link)
+    return render_template_string(HTML_BAKIYE_YUKLE)
 
 @app.route('/google6aef354bd638dfc4.html')
 def google_verify():
