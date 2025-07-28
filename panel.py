@@ -2933,7 +2933,6 @@ HTML_PANEL = """
 <div class="d-grid gap-3 mb-3">
   {% if role == 'admin' %}
     <a href="{{ url_for('manage_users') }}" class="btn btn-panel-dark py-2"><b>Kullanıcı Yönetimi</b></a>
-    <a href="{{ url_for('balance_requests') }}" class="btn btn-panel-dark py-2">Bakiye Talepleri</a>
     <a href="{{ url_for('admin_tickets') }}" class="btn btn-panel-dark py-2">Tüm Destek Talepleri</a>
     <a href="{{ url_for('manage_services') }}" class="btn btn-panel-dark py-2">Servisleri Yönet</a>
   {% else %}
