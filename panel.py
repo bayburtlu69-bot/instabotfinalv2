@@ -1311,9 +1311,33 @@ HTML_BAKIYE_YUKLE = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+    /* Panele Dön butonu custom */
+    .btn-paneldon {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px 0;
+      background: #757b80;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.08rem;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      transition: background 0.2s, transform 0.1s;
+      text-align: center;
+      text-decoration: none;
+      box-shadow: 0 2px 12px #0006;
+      cursor: pointer;
+    }
+    .btn-paneldon:hover {
+      background: #5b5e64;
+      color: #fff;
+      transform: scale(1.02);
+      text-decoration: none;
+    }
   </style>
 </head>
-
 <body>
   <div class="animated-social-bg">
     <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
@@ -1348,20 +1372,20 @@ HTML_BAKIYE_YUKLE = """
             <input type="number" min="1" step="1" class="form-control" id="amount" name="amount" placeholder="100" required>
           </div>
           <button type="submit" class="btn btn-shopier w-100 mt-2">
-  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fff" style="margin-right:8px;margin-top:-3px" viewBox="0 0 24 24"><path d="M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm2 0v2h16V5zm16 14v-8H4v8zm-4-3h-4a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2z"/></svg>
-  PayTR ile Öde
-</button>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fff" style="margin-right:8px;margin-top:-3px" viewBox="0 0 24 24"><path d="M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm2 0v2h16V5zm16 14v-8H4v8zm-4-3h-4a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2z"/></svg>
+            PayTR ile Öde
+          </button>
         </form>
         <div class="mt-4 text-center small text-secondary">
           <span style="color:#8ecfff">⚡️ Bakiye yüklemelerin anında hesabına yansır.</span><br>
         </div>
+        <a href="/panel" class="btn-paneldon mt-2">Panele Dön</a>
       </div>
     </div>
   </div>
 </body>
 </html>
 """
-
 
 HTML_SERVICES = """
 <!DOCTYPE html>
