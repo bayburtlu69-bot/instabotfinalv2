@@ -3079,7 +3079,7 @@ HTML_PANEL = """
 </div>
 </div>
   <!-- WhatsApp Sohbet Butonu BAŞLANGIÇ -->
-  <a href="https://wa.me/905301900969" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
+  <a href="https://wa.me/447927573543" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
     <span id="whatsapp-float-text">WhatsApp ile Destek!</span>
     <i class="bi bi-whatsapp"></i>
   </a>
