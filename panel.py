@@ -2248,12 +2248,12 @@ HTML_ORDERS_SIMPLE = """
                             <td>{{ o.error if o.error else "-" }}</td>
                             <td>
                                 {% if o.error %}
-                                    <form method="post" style="display:inline;" action="{{ url_for('orders_resend', order_id=o.id) }}">
+                                    <form method="post" style="display:inline;" action="{{ url_for('order_resend', order_id=o.id) }}">
                                         <button class="btn btn-warning btn-sm btn-resend" type="submit">Resend</button>
                                     </form>
                                 {% endif %}
                                 {% if o.status == 'pending' %}
-                                  <form method="post" style="display:inline;" action="{{ url_for('order_complete', order_id=o.id) }}">
+                                  <form method="post" style="display:inline;" action="{{ url_for('orders_complete', order_id=o.id) }}">
                                     <button class="btn btn-success btn-sm btn-complete" type="submit">Tamamlandı</button>
                                   </form>
                                 {% endif %}
@@ -4247,7 +4247,7 @@ def order_resend(order_id):
         db.session.commit()
         return jsonify({"success": False, "error": "API bağlantı/yanıt hatası: " + str(e)})
 
-@app.route('/orders/complete/<int:order_id>', methods=['POST'])
+@app.route('/order/complete/<int:order_id>', methods=['POST'])
 @login_required
 def order_complete(order_id):
     user = User.query.get(session.get("user_id"))
@@ -4263,7 +4263,7 @@ def order_complete(order_id):
     flash("Sipariş manuel tamamlandı.", "success")
     return redirect(url_for("orders_page"))
 
-@app.route('/orders/cancel/<int:order_id>', methods=['POST'])
+@app.route('/order/cancel/<int:order_id>', methods=['POST'])
 @login_required
 def order_cancel(order_id):
     user = User.query.get(session.get("user_id"))
