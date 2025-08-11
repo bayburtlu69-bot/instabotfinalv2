@@ -17,8 +17,27 @@ from flask import Flask, session, redirect, request, render_template_string
 
 import requests
 
-TELEGRAM_BOT_TOKEN = "8340662506:AAHwcqKMsGlQ08mlOVTXT2xAUC6vjH3_r20"  # Başında 'bot' yok!
-TELEGRAM_CHAT_ID = "6744917275"
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+def create_session():
+    session = requests.Session()
+    retry_strategy = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["HEAD", "GET", "OPTIONS", "POST"]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    return session
+
+http_session = create_session()
+
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Başında 'bot' yok!
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 def telegram_mesaj_gonder(mesaj):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -28,7 +47,7 @@ def telegram_mesaj_gonder(mesaj):
         "parse_mode": "HTML"
     }
     try:
-        response = requests.post(url, data=payload)
+        response = http_session.post(url, data=payload, timeout=10)
         print("Telegram response:", response.text)
         return response.ok
     except Exception as e:
@@ -40,8 +59,8 @@ import json
 from functools import wraps
 
 # --- Harici servis entegrasyonu (ResellersMM) ---
-EXTERNAL_API_URL = "https://resellersmm.com/api/v2/"
-EXTERNAL_API_KEY = "6b0e961c4a42155ba44bfd4384915c27"
+EXTERNAL_API_URL = os.getenv("EXTERNAL_API_URL", "https://resellersmm.com/api/v2/")
+EXTERNAL_API_KEY = os.getenv("EXTERNAL_API_KEY")
 
 # --- Çekmek istediğimiz ResellersMM servis ID’leri ---
 
@@ -50,7 +69,7 @@ EXT_SELECTED_IDS = [1192, 1231, 1593, 1594, 831,]  # Örneğin sadece 1 ve 2 no�
 def fetch_selected_external_services():
     """Sadece EXT_SELECTED_IDS’deki ResellersMM servislerini çeker, hem dict hem list olanağı var."""
     try:
-        resp = requests.get(
+        resp = http_session.get(
             EXTERNAL_API_URL,
             params={"key": EXTERNAL_API_KEY, "action": "services"},
             timeout=10
@@ -151,6 +170,11 @@ def sync_services_with_api(api_services):
 # --- /External servis seçim mekanizması ---
 
 app = Flask(__name__)
+
+@app.route("/.well-known/healthz")
+def healthz():
+    return "ok", 200
+
 app.url_map.strict_slashes = False
 app.secret_key = os.getenv("SECRET_KEY", "çok-gizli-bir-anahtar")
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://neondb_owner:npg_r0Vg1Gospfmt@ep-old-firefly-a23lm21m-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
@@ -4078,7 +4102,7 @@ def api_new_order():
     if service.id >= 100000:
         try:
             real_service_id = service.id - 100000
-            resp = requests.post(EXTERNAL_API_URL, data={
+            resp = http_session.post(EXTERNAL_API_URL, data={
                 "key": EXTERNAL_API_KEY,
                 "action": "add",
                 "service": real_service_id,
@@ -4125,7 +4149,7 @@ def admin_order_resend(order_id):
     if service and service.id >= 100000:
         try:
             real_service_id = service.id - 100000
-            resp = requests.post(EXTERNAL_API_URL, data={
+            resp = http_session.post(EXTERNAL_API_URL, data={
                 "key": EXTERNAL_API_KEY,
                 "action": "add",
                 "service": real_service_id,
@@ -4182,7 +4206,7 @@ def resend_order(order_id):
     if service and service.id >= 100000:
         try:
             real_service_id = service.id - 100000
-            resp = requests.post(EXTERNAL_API_URL, data={
+            resp = http_session.post(EXTERNAL_API_URL, data={
                 "key": EXTERNAL_API_KEY,
                 "action": "add",
                 "service": real_service_id,
@@ -4224,7 +4248,7 @@ def order_resend(order_id):
         return jsonify({"success": False, "error": "Bu sipariş Resellersmm servisi değil."})
     try:
         real_service_id = service.id - 100000
-        resp = requests.post(EXTERNAL_API_URL, data={
+        resp = http_session.post(EXTERNAL_API_URL, data={
             "key": EXTERNAL_API_KEY,
             "action": "add",
             "service": real_service_id,
@@ -4327,7 +4351,7 @@ def update_service(service_id):
 
 def fetch_resellersmm_status(api_order_id):
     try:
-        resp = requests.post(EXTERNAL_API_URL, data={
+        resp = http_session.post(EXTERNAL_API_URL, data={
             "key": EXTERNAL_API_KEY,
             "action": "status",
             "order": api_order_id
@@ -4468,7 +4492,7 @@ def bakiye_yukle():
             'lang': "tr"
         }
 
-        r = requests.post("https://www.paytr.com/odeme/api/get-token", data=paytr_args)
+        r = http_session.post("https://www.paytr.com/odeme/api/get-token", data=paytr_args, timeout=10)
         rj = r.json()
         if rj.get("status") == "success":
             iframe_token = rj["token"]
