@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: baybayim
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn panel:app
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # Neon bağlantını Render dashboard'da buraya ekle
