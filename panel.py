@@ -2253,7 +2253,7 @@ HTML_ORDERS_SIMPLE = """
                                     </form>
                                 {% endif %}
                                 {% if o.status == 'pending' %}
-                                  <form method="post" style="display:inline;" action="{{ url_for('order_complete', order_id=o.id) }}">
+                                  <form method="post" style="display:inline;" action="{{ url_for('orders_complete', order_id=o.id) }}">
                                     <button class="btn btn-success btn-sm btn-complete" type="submit">Tamamlandı</button>
                                   </form>
                                 {% endif %}
@@ -3079,7 +3079,7 @@ HTML_PANEL = """
 </div>
 </div>
   <!-- WhatsApp Sohbet Butonu BAŞLANGIÇ -->
-  <a href="https://wa.me/447927573543" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
+  <a href="https://wa.me/905301900969" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
     <span id="whatsapp-float-text">WhatsApp ile Destek!</span>
     <i class="bi bi-whatsapp"></i>
   </a>
@@ -4247,7 +4247,7 @@ def order_resend(order_id):
         db.session.commit()
         return jsonify({"success": False, "error": "API bağlantı/yanıt hatası: " + str(e)})
 
-@app.route('/orders/complete/<int:order_id>', methods=['POST'])
+@app.route('/order/complete/<int:order_id>', methods=['POST'])
 @login_required
 def order_complete(order_id):
     user = User.query.get(session.get("user_id"))
