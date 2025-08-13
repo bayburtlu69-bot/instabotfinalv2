@@ -1,4 +1,11 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+# PayTR credentials
+PAYTR_MERCHANT_ID = os.getenv("PAYTR_MERCHANT_ID", "")
+PAYTR_MERCHANT_KEY = os.getenv("PAYTR_MERCHANT_KEY", "")
+PAYTR_MERCHANT_SALT = os.getenv("PAYTR_MERCHANT_SALT", "")
+
 import time
 import random
 import smtplib
@@ -43,9 +50,27 @@ from functools import wraps
 EXTERNAL_API_URL = "https://resellersmm.com/api/v2/"
 EXTERNAL_API_KEY = "6b0e961c4a42155ba44bfd4384915c27"
 
+# --- Platform algılama & manuel override ---
+PLATFORM_OVERRIDES = {
+    # Ör: 100000 + SAĞLAYICI_SERVIS_ID : "tiktok" / "youtube"
+    # 100000 + 2273: "tiktok",
+    # 100000 + 2111: "tiktok",
+    # 100000 + 922: "youtube",
+    # 100000 + 942: "youtube",
+}
+
+def detect_platform(*parts: str) -> str:
+    t = (" ".join([p or "" for p in parts])).lower()
+    if any(k in t for k in ["tiktok", "tik tok", "tt ", "douyin"]):
+        return "tiktok"
+    if any(k in t for k in ["youtube", "yt ", " y.t", "shorts", "abon", "subscriber"]):
+        return "youtube"
+    return "instagram"
+
 # --- Çekmek istediğimiz ResellersMM servis ID’leri ---
 
-EXT_SELECTED_IDS = [1192, 1231, 1593, 1594, 831,]  # Örneğin sadece 1 ve 2 no’lu servisleri çek
+EXT_SELECTED_IDS = [1192, 1231, 1593, 1594, 831, 2273, 2111, 922, 942, ]  # Seçili servisleri çek
+  # Örneğin sadece 1 ve 2 no’lu servisleri çek
 
 def fetch_selected_external_services():
     """Sadece EXT_SELECTED_IDS’deki ResellersMM servislerini çeker, hem dict hem list olanağı var."""
@@ -82,6 +107,9 @@ def fetch_selected_external_services():
                 max_amount=int(item.get("max",1)),
                 active=True
             )
+            # platform belirle (override > otomatik tespit)
+            plat = PLATFORM_OVERRIDES.get(svc.id) or detect_platform(item.get("category",""), item.get("name",""))
+            setattr(svc, "platform", plat)
             services.append(svc)
 
         return services
@@ -3813,6 +3841,15 @@ def panel():
     external = [s for s in external if s.id not in local_ids]
     # 3) Merge: yerel + sadece local’de olmayan external
     services = local + external
+    # Platform alanı yoksa (local servisler) otomatik tahmin et
+    for s in services:
+        if not hasattr(s, "platform") or not getattr(s, "platform"):
+            setattr(s, "platform", detect_platform(getattr(s, "name", ""), getattr(s, "description", "")))
+    # Platforma göre grupla
+    grouped_services = {"instagram": [], "tiktok": [], "youtube": []}
+    for s in services:
+        grouped_services.get(getattr(s, "platform", "instagram"), grouped_services["instagram"]).append(s)
+
 
     # *** SERVISLERIN min/max DEĞERLERİ HER SERVIS İÇİN VAR OLMALI ***
     # Fiyat referansı sadece ilk servis için:
@@ -3882,6 +3919,7 @@ def panel():
         msg=msg,
         error=error,
         rolu_turkce=rolu_turkce,
+        grouped_services=grouped_services,
         services=services
     )
 
@@ -4399,12 +4437,14 @@ from flask import request, jsonify
 @app.route('/paytr_callback', methods=['POST'])
 def paytr_callback():
     data = request.form.to_dict()
-    merchant_oid = data.get("merchant_oid")
-    status = data.get("status")
-    total_amount = int(data.get("total_amount", "0")) / 100.0  # kuruş → TL
-
-    # Güvenlik için hash kontrolü yapılabilir (dokümanlarda var)
-    # Basit haliyle örnek:
+    merchant_oid = data.get("merchant_oid","")
+    status = data.get("status","")
+    total_amount = data.get("total_amount","")
+    cb_str = f"{merchant_oid}{PAYTR_MERCHANT_SALT}{status}{total_amount}"
+    remote_hash = data.get("hash","") or data.get("hash_str","")
+    my_hash = base64.b64encode(hmac.new(PAYTR_MERCHANT_KEY.encode(), cb_str.encode(), hashlib.sha256).digest()).decode()
+    if my_hash != remote_hash:
+        return "INVALID HASH", 400
     if status == "success":
         # Burada merchant_oid ile ilgili user'ı bul ve bakiyesini güncelle!
         # Örnek:
@@ -4436,28 +4476,62 @@ def bakiye_yukle():
         user_phone = "5555555555"  # opsiyonel
         
         # İmza için veri hazırlama
-        token_str = (MERCHANT_ID +
-                     user_ip +
-                     merchant_oid +
-                     email +
-                     str(payment_amount) +
-                     user_name +
-                     user_address +
-                     user_phone +
-                     "30" +   # timeout_limit
-                     "TL" +   # currency
-                     "1")     # test_mode: 1 ise test, 0 ise canlı
+        
+        # Resolve client IP (PayTR rejects localhost/private IPs)
+        def _get_client_ip():
+            xff = request.headers.get("X-Forwarded-For", "")
+            if xff:
+                return xff.split(",")[0].strip()
+            return request.remote_addr or "0.0.0.0"
+        def _resolve_user_ip():
+            force_ip = os.getenv("PAYTR_FORCE_IP")
+            if force_ip:
+                return force_ip.strip()
+            ip = _get_client_ip()
+            if ip.startswith(("127.", "10.", "192.168.", "172.16.")):
+                return os.getenv("PAYTR_FORCE_IP", "1.1.1.1")
+            return ip
+        user_ip = _resolve_user_ip()
+
+        # Basket
+        basket_list = [["Bakiye Yükleme", "1", f"{payment_amount/100:.2f}"]]
+        user_basket = base64.b64encode(json.dumps(basket_list, ensure_ascii=False).encode("utf-8")).decode("utf-8")
+
+        no_installment = "0"
+        max_installment = "0"
+        currency = "TL"
+        test_mode = "1"
+
+        token_str = (
+            PAYTR_MERCHANT_ID +
+            user_ip +
+            merchant_oid +
+            email +
+            str(payment_amount) +
+            user_basket +
+            no_installment +
+            max_installment +
+            currency +
+            test_mode +
+            PAYTR_MERCHANT_SALT
+        )
         paytr_token = base64.b64encode(
-            hashlib.sha256((token_str + MERCHANT_SALT).encode('utf-8')).digest()
-        ).decode('utf-8')
+            hmac.new(PAYTR_MERCHANT_KEY.encode("utf-8"), token_str.encode("utf-8"), hashlib.sha256).digest()
+        ).decode("utf-8")
 
         paytr_args = {
-            'merchant_id': MERCHANT_ID,
+    
+            'merchant_id': PAYTR_MERCHANT_ID,
             'user_ip': user_ip,
             'merchant_oid': merchant_oid,
             'email': email,
             'payment_amount': payment_amount,
             'paytr_token': paytr_token,
+            'user_basket': user_basket,
+            'no_installment': no_installment,
+            'max_installment': max_installment,
+            'merchant_ok_url': url_for('payment_success', _external=True),
+            'merchant_fail_url': url_for('payment_fail', _external=True),
             'user_name': user_name,
             'user_address': user_address,
             'user_phone': user_phone,
