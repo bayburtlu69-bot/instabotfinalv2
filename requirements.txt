@@ -4,3 +4,4 @@ Werkzeug>=2.0
 instagrapi>=1.19.0
 gunicorn>=20.0
 psycopg2-binary
+python-dotenv>=1.0.1
