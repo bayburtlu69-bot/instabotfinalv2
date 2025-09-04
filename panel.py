@@ -3007,7 +3007,7 @@ HTML_PANEL = """
   <div class="mb-3">
     <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
     <select class="form-select" name="category" required>
-      <option value="instagram" selected>INSTAGRAM</option>
+      <option value="GENEL HİZMETLER" selected>GENEL HİZMETLER</option>
     </select>
   </div>
   <div class="mb-3">
@@ -3107,7 +3107,7 @@ HTML_PANEL = """
 </div>
 </div>
   <!-- WhatsApp Sohbet Butonu BAŞLANGIÇ -->
-  <a href="https://wa.me/447927573543" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
+  <a href="https://wa.me/905301900969" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
     <span id="whatsapp-float-text">WhatsApp ile Destek!</span>
     <i class="bi bi-whatsapp"></i>
   </a>
