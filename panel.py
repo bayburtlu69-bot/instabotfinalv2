@@ -809,56 +809,35 @@ HTML_USERS = """
       border-color: #666;
       box-shadow: none;
     }
-    .form-control::placeholder {
-      color: #aaa;
-    }
+    .form-control::placeholder { color: #aaa; }
     input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-      appearance: textfield;
-    }
-    .table-dark {
-      background-color: #2c2c2c;
-    }
-    .table-dark th, .table-dark td {
-      color: #eee;
-    }
-    a {
-      color: #8db4ff;
-    }
-    a:hover {
-      color: #fff;
-      text-decoration: underline;
-    }
-    .btn {
-      font-weight: 500;
-    }
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+    .table-dark { background-color: #2c2c2c; }
+    .table-dark th, .table-dark td { color: #eee; }
+
+    a { color: #8db4ff; }
+    a:hover { color: #fff; text-decoration: underline; }
+    .btn { font-weight: 500; }
+
+    /* Pagination (dark) */
+    .pagination .page-link{background:#1e1e1e;border-color:#444;color:#e6e6e6}
+    .pagination .page-link:hover{background:#2a2a2a;color:#fff}
+    .pagination .page-item.active .page-link{background:#0ea5e9;border-color:#0ea5e9;color:#fff}
+    .pagination .page-item.disabled .page-link{background:#141414;color:#777;border-color:#333}
+
     /* -- Sosyal medya hareketli arka plan -- */
     .animated-social-bg {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-      user-select: none;
+      position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0;
+      pointer-events: none; overflow: hidden; user-select: none;
     }
     .bg-icon {
-      position: absolute;
-      width: 48px;
-      opacity: 0.13;
+      position: absolute; width: 48px; opacity: 0.13;
       filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
-      animation-duration: 18s;
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-in-out;
+      animation-duration: 18s; animation-iteration-count: infinite; animation-timing-function: ease-in-out;
       user-select: none;
     }
-    /* 18 farklı pozisyon ve animasyon */
     .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
     .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
     .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
@@ -935,7 +914,7 @@ HTML_USERS = """
       </form>
       <hr><h5>Mevcut Kullanıcılar</h5>
       <div class="table-responsive">
-        <table class="table table-dark table-striped table-bordered align-middle mb-4">
+        <table class="table table-dark table-striped table-bordered align-middle mb-3">
           <thead>
             <tr>
               <th>#</th><th>Kullanıcı</th><th>Rol</th><th>Bakiye</th><th>İşlem</th>
@@ -944,7 +923,7 @@ HTML_USERS = """
           <tbody>
             {% for usr in users %}
               <tr>
-                <td>{{ loop.index }}</td>
+                <td>{{ start_index + loop.index }}</td>
                 <td>{{ usr.username }}</td>
                 <td>{{ rolu_turkce(usr.role) }}</td>
                 <td>{{ usr.balance }}</td>
@@ -960,6 +939,43 @@ HTML_USERS = """
           </tbody>
         </table>
       </div>
+
+      {# ---- PAGINATION ---- #}
+      {% if total_pages > 1 %}
+      <nav aria-label="Sayfalar" class="mt-2">
+        <ul class="pagination justify-content-center">
+          <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page-1 }}">Önceki</a>
+          </li>
+
+          {% set s = 1 if page-2 < 1 else page-2 %}
+          {% set e = total_pages if page+2 > total_pages else page+2 %}
+
+          {% if s > 1 %}
+            <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+            {% if s > 2 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+          {% endif %}
+
+          {% for p in range(s, e + 1) %}
+            {% if p == page %}
+              <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+            {% endif %}
+          {% endfor %}
+
+          {% if e < total_pages %}
+            {% if e < total_pages - 1 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+            <li class="page-item"><a class="page-link" href="?page={{ total_pages }}">{{ total_pages }}</a></li>
+          {% endif %}
+
+          <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page+1 }}">Sonraki</a>
+          </li>
+        </ul>
+      </nav>
+      {% endif %}
+
       <h5>Bakiye Ekle</h5>
       <form method="post" action="/admin/add-balance" class="row g-2">
         <div class="col"><input name="username" class="form-control" placeholder="Kullanıcı adı"></div>
@@ -2142,33 +2158,25 @@ HTML_ORDERS_SIMPLE = """
           color: #61dafb;
           text-shadow: 0 2px 16px #000a;
         }
-        ::-webkit-scrollbar {
-          width: 0px;
-          height: 0px;
-          background: transparent;
-        }
+        ::-webkit-scrollbar { width: 0px; height: 0px; background: transparent; }
+
+        /* Pagination (dark) */
+        .pagination .page-link{background:#1e1e1e;border-color:#444;color:#e6e6e6}
+        .pagination .page-link:hover{background:#2a2a2a;color:#fff}
+        .pagination .page-item.active .page-link{background:#0ea5e9;border-color:#0ea5e9;color:#fff}
+        .pagination .page-item.disabled .page-link{background:#141414;color:#777;border-color:#333}
+
         /* -- Sosyal medya hareketli arka plan -- */
         .animated-social-bg {
-          position: fixed;
-          inset: 0;
-          width: 100vw;
-          height: 100vh;
-          z-index: 0;
-          pointer-events: none;
-          overflow: hidden;
-          user-select: none;
+          position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0;
+          pointer-events: none; overflow: hidden; user-select: none;
         }
         .bg-icon {
-          position: absolute;
-          width: 48px;
-          opacity: 0.13;
+          position: absolute; width: 48px; opacity: 0.13;
           filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
-          animation-duration: 18s;
-          animation-iteration-count: infinite;
-          animation-timing-function: ease-in-out;
+          animation-duration: 18s; animation-iteration-count: infinite; animation-timing-function: ease-in-out;
           user-select: none;
         }
-        /* 18 farklı pozisyon ve animasyon */
         .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
         .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
         .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
@@ -2250,9 +2258,7 @@ HTML_ORDERS_SIMPLE = """
                 <table class="table table-dark table-bordered align-middle text-center" style="margin-bottom:0;">
                     <thead>
                         <tr>
-                            <th>
-                                <input type="checkbox" id="select-all-orders" title="Tümünü seç/bırak" />
-                            </th>
+                            <th><input type="checkbox" id="select-all-orders" title="Tümünü seç/bırak" /></th>
                             <th>Sipariş No</th>
                             <th>Sağlayıcı No</th>
                             <th>Kullanıcı</th>
@@ -2267,9 +2273,7 @@ HTML_ORDERS_SIMPLE = """
                     <tbody>
                         {% for o in orders %}
                         <tr>
-                            <td>
-                                <input type="checkbox" name="order_ids" value="{{ o.id }}">
-                            </td>
+                            <td><input type="checkbox" name="order_ids" value="{{ o.id }}"></td>
                             <td>{{ o.id }}</td>
                             <td>{{ o.api_order_id if o.api_order_id else '-' }}</td>
                             <td>{{ o.user.username }}</td>
@@ -2348,19 +2352,60 @@ HTML_ORDERS_SIMPLE = """
                 </tbody>
             </table>
             {% endif %}
-            <a href="{{ url_for('panel') }}" class="btn btn-secondary w-100 mt-4" style="border-radius:12px;">Panele Dön</a>
+
+            {# ---- PAGINATION (her iki rol için de) ---- #}
+            {% if total_pages > 1 %}
+            <nav aria-label="Sayfalar" class="mt-3">
+              <ul class="pagination justify-content-center">
+                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                  <a class="page-link" href="?page={{ page-1 }}">Önceki</a>
+                </li>
+
+                {% set start = 1 if page-2 < 1 else page-2 %}
+                {% set end = total_pages if page+2 > total_pages else page+2 %}
+
+                {% if start > 1 %}
+                  <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                  {% if start > 2 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                  {% endif %}
+                {% endif %}
+
+                {% for p in range(start, end + 1) %}
+                  {% if p == page %}
+                    <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                  {% else %}
+                    <li class="page-item"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if end < total_pages %}
+                  {% if end < total_pages - 1 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                  {% endif %}
+                  <li class="page-item"><a class="page-link" href="?page={{ total_pages }}">{{ total_pages }}</a></li>
+                {% endif %}
+
+                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                  <a class="page-link" href="?page={{ page+1 }}">Sonraki</a>
+                </li>
+              </ul>
+            </nav>
+            {% endif %}
+
+            <a href="{{ url_for('panel') }}" class="btn btn-secondary w-100 mt-3" style="border-radius:12px;">Panele Dön</a>
         </div>
     </div>
+
     {% if role == 'admin' %}
     <script>
     // Tümünü Seç
-    document.getElementById('select-all-orders').addEventListener('change', function(e) {
+    document.getElementById('select-all-orders').addEventListener('change', function() {
         let checked = this.checked;
         document.querySelectorAll('input[name="order_ids"]').forEach(function(cb) {
             cb.checked = checked;
         });
     });
-
     // Form submitte seçili id'leri gizli input'a yaz
     document.getElementById('bulk-delete-form').addEventListener('submit', function(e) {
         let selected = [];
@@ -2427,48 +2472,22 @@ HTML_TICKETS = """
     textarea::placeholder {
       color: #bbb;
     }
-    .table-dark {
-      background-color: #1f1f1f;
-    }
-    .table-dark th, .table-dark td {
-      color: #e6e6e6;
-    }
-    .badge.bg-warning.text-dark {
-      color: #000 !important;
-    }
-    h3, h5 {
-      color: #61dafb;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.4);
-    }
-    a {
-      color: #8db4ff;
-    }
-    a:hover {
-      color: #fff;
-      text-decoration: underline;
-    }
+    .table-dark { background-color: #1f1f1f; }
+    .table-dark th, .table-dark td { color: #e6e6e6; }
+    .badge.bg-warning.text-dark { color: #000 !important; }
+    h3, h5 { color: #61dafb; text-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+    a { color: #8db4ff; }
+    a:hover { color: #fff; text-decoration: underline; }
+
+    /* Pagination - koyu tema */
+    .pagination .page-link{background:#1e1e1e;border-color:#444;color:#e6e6e6}
+    .pagination .page-link:hover{background:#2a2a2a;color:#fff}
+    .pagination .page-item.active .page-link{background:#0ea5e9;border-color:#0ea5e9;color:#fff}
+    .pagination .page-item.disabled .page-link{background:#141414;color:#777;border-color:#333}
+
     /* -- Sosyal medya hareketli arka plan -- */
-    .animated-social-bg {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-      user-select: none;
-    }
-    .bg-icon {
-      position: absolute;
-      width: 48px;
-      opacity: 0.13;
-      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
-      animation-duration: 18s;
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-in-out;
-      user-select: none;
-    }
-    /* 18 farklı pozisyon ve animasyon */
+    .animated-social-bg { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; overflow: hidden; user-select: none; }
+    .bg-icon { position: absolute; width: 48px; opacity: 0.13; filter: blur(0.2px) drop-shadow(0 4px 24px #0008); animation-duration: 18s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; user-select: none; }
     .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
     .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
     .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
@@ -2573,6 +2592,46 @@ HTML_TICKETS = """
           </tbody>
         </table>
       </div>
+
+      {# --- PAGINATION --- #}
+      {% if total_pages > 1 %}
+      <nav aria-label="Sayfalar" class="mt-2">
+        <ul class="pagination justify-content-center">
+          <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page-1 }}">Önceki</a>
+          </li>
+
+          {% set start = 1 if page-2 < 1 else page-2 %}
+          {% set end = total_pages if page+2 > total_pages else page+2 %}
+
+          {% if start > 1 %}
+            <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+            {% if start > 2 %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endif %}
+
+          {% for p in range(start, end + 1) %}
+            {% if p == page %}
+              <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+            {% endif %}
+          {% endfor %}
+
+          {% if end < total_pages %}
+            {% if end < total_pages - 1 %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+            <li class="page-item"><a class="page-link" href="?page={{ total_pages }}">{{ total_pages }}</a></li>
+          {% endif %}
+
+          <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page+1 }}">Sonraki</a>
+          </li>
+        </ul>
+      </nav>
+      {% endif %}
 
       <a href="/panel" class="btn btn-secondary btn-sm w-100 mt-3">Panele Dön</a>
     </div>
@@ -3567,8 +3626,8 @@ def logout():
 @admin_required
 def manage_users():
     if request.method == "POST":
-        u = request.form.get("u", "").strip()
-        p = request.form.get("pw", "")
+        u = (request.form.get("u") or "").strip()
+        p = request.form.get("pw") or ""
         r = request.form.get("role", "viewer")
         if u and p and not User.query.filter_by(username=u).first():
             db.session.add(User(
@@ -3580,12 +3639,29 @@ def manage_users():
                 is_verified=True
             ))
             db.session.commit()
-    users = User.query.order_by(User.username).all()
+        # PRG: refresh'te form tekrar gönderilmesin
+        return redirect(url_for("manage_users"))
+
+    # Paginasyon
+    page = max(1, request.args.get("page", default=1, type=int))
+    per_page = 10
+
+    q = User.query.order_by(User.username.asc())
+    total = q.count()
+    total_pages = max(1, ceil(total / per_page))
+    page = min(page, total_pages)  # aralık dışına çıkmasın
+
+    users = q.offset((page - 1) * per_page).limit(per_page).all()
+    current_u = User.query.get(session.get("user_id")).username
+
     return render_template_string(
         HTML_USERS,
         users=users,
-        current_user=User.query.get(session.get("user_id")).username,
-        rolu_turkce=rolu_turkce
+        current_user=current_u,
+        rolu_turkce=rolu_turkce,
+        page=page,
+        total_pages=total_pages,
+        start_index=(page - 1) * per_page
     )
 
 @app.route("/users/delete/<int:user_id>")
@@ -3805,19 +3881,47 @@ def manage_services():
         local_ids={s.id for s in tüm_servisler}
     )
 
+from math import ceil
+from flask import request, render_template_string, redirect, url_for
+
 @app.route("/tickets", methods=["GET", "POST"])
 @login_required
 def tickets():
     user = User.query.get(session.get("user_id"))
+
+    # POST: ticket oluştur + PRG (yenilemede form tekrar gönderilmesin)
     if request.method == "POST":
-        subject = request.form.get("subject", "").strip()
-        message = request.form.get("message", "").strip()
+        subject = (request.form.get("subject") or "").strip()
+        message = (request.form.get("message") or "").strip()
         if subject and message:
             ticket = Ticket(user_id=user.id, subject=subject, message=message)
             db.session.add(ticket)
             db.session.commit()
-    tickets = Ticket.query.filter_by(user_id=user.id).order_by(Ticket.created_at.desc()).all()
-    return render_template_string(HTML_TICKETS, tickets=tickets)
+        return redirect(url_for("tickets"))
+
+    # GET: paginasyon
+    page = max(1, request.args.get("page", default=1, type=int))
+    per_page = 10
+
+    q = (Ticket.query
+         .filter_by(user_id=user.id)
+         .order_by(Ticket.created_at.desc()))
+
+    total = q.count()
+    total_pages = max(1, ceil(total / per_page))
+    # istenen sayfa aralık dışındaysa sıkıştır
+    page = min(page, total_pages)
+
+    tickets = (q.offset((page - 1) * per_page)
+                .limit(per_page)
+                .all())
+
+    return render_template_string(
+        HTML_TICKETS,
+        tickets=tickets,
+        page=page,
+        total_pages=total_pages
+    )
 
 @app.route("/admin/tickets", methods=["GET", "POST"])
 @login_required
@@ -3866,17 +3970,42 @@ def services():
         user=user
     )
 
+from math import ceil
+from flask import request, render_template_string
+
 @app.route("/orders")
 @login_required
 def orders_page():
     user = User.query.get(session.get("user_id"))
-    if user.role == "admin":
-        orders = Order.query.order_by(Order.id.desc()).all()
-        role = "admin"
-    else:
-        orders = Order.query.filter_by(user_id=user.id).order_by(Order.id.desc()).all()
-        role = "user"
-    return render_template_string(HTML_ORDERS_SIMPLE, orders=orders, role=role, durum_turkce=durum_turkce)
+
+    # Rol belirle
+    role = "admin" if user.role == "admin" else "user"
+
+    # Paginasyon parametreleri
+    page = max(1, request.args.get("page", default=1, type=int))
+    per_page = 10
+
+    # Sorgu
+    q = Order.query.order_by(Order.id.desc())
+    if role != "admin":
+        q = q.filter_by(user_id=user.id)
+
+    # Sayfa hesapları
+    total = q.count()
+    total_pages = max(1, ceil(total / per_page))
+    page = min(page, total_pages)  # aralık dışına çıkmasın
+
+    # Kayıtları çek
+    orders = q.offset((page - 1) * per_page).limit(per_page).all()
+
+    return render_template_string(
+        HTML_ORDERS_SIMPLE,
+        orders=orders,
+        role=role,
+        page=page,
+        total_pages=total_pages,
+        durum_turkce=durum_turkce
+    )
 
 @app.route("/save_announcement", methods=["POST"])
 @login_required
