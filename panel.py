@@ -1413,6 +1413,14 @@ HTML_BAKIYE_YUKLE = """
   </div>
 </body>
 </html>
+<!-- İletişim ve adres bilgisi eklendi -->
+<div class="text-center mt-5" style="font-size: 0.9rem; color: #aaa;">
+  <hr style="border-color: #333;">
+  <p><strong>İletişim:</strong> kuzenlertv6996@gmail.com – 0530 190 09 69</p>
+  <p><strong>Adres:</strong> Mustafa Kemal Paşa Mahallesi, Lale Sokak No:110 D:1</p>
+</div>
+</body>
+</html>
 """
 
 HTML_SERVICES = """
@@ -3112,6 +3120,13 @@ HTML_PANEL = """
     <i class="bi bi-whatsapp"></i>
   </a>
   <!-- WhatsApp Sohbet Butonu BİTİŞ -->
+<div class="text-center mt-5" style="font-size: 0.9rem; color: #aaa;">
+  <hr style="border-color: #333;">
+  <p><strong>İletişim:</strong> kuzenlertv6996@gmail.com – 0530 190 09 69</p>
+  <p><strong>Adres:</strong> Mustafa Kemal Paşa Mahallesi, Lale Sokak No:110 D:1</p>
+</div>
+</body>
+</html>
 """
 
 HTML_ADS_MANAGE = """
