@@ -3015,7 +3015,7 @@ HTML_PANEL = """
   <div class="mb-3">
     <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
     <select class="form-select" name="category" required>
-      <option value="GENEL HİZMETLER" selected>GENEL HİZMETLER</option>
+      <option value="İhtiyacınız olan herşey." selected>İhtiyacınız olan herşey.</option>
     </select>
   </div>
   <div class="mb-3">
@@ -4515,7 +4515,7 @@ def bakiye_yukle():
         no_installment = "0"
         max_installment = "0"
         currency = "TL"
-        test_mode = "1"
+        test_mode = "0"
 
         token_str = (
             PAYTR_MERCHANT_ID +
@@ -4550,10 +4550,10 @@ def bakiye_yukle():
             'user_name': user_name,
             'user_address': user_address,
             'user_phone': user_phone,
-            'debug_on': 1,  # Test: 1, Canlı: 0
+            'debug_on': 0,  # Test: 0, Canlı: 1
             'timeout_limit': 30,
             'currency': "TL",
-            'test_mode': 1,  # Test: 1, Canlı: 0
+            'test_mode': 0,  # Test: 0, Canlı: 1
             'lang': "tr"
         }
 
