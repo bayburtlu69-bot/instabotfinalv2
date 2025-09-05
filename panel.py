@@ -3023,7 +3023,7 @@ HTML_PANEL = """
   <div class="mb-3">
     <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
     <select class="form-select" name="category" required>
-      <option value="İhtiyacınız olan herşey." selected>İhtiyacınız olan herşey.</option>
+      <option value="🌐 Tüm Sosyal Medya Servisleri 📱" selected>🌐 Tüm Sosyal Medya Servisleri 📱</option>
     </select>
   </div>
   <div class="mb-3">
