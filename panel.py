@@ -3805,6 +3805,35 @@ def manage_services():
         local_ids={s.id for s in tüm_servisler}
     )
 
+@app.route("/tickets", methods=["GET", "POST"])
+@login_required
+def tickets():
+    user = User.query.get(session.get("user_id"))
+    if request.method == "POST":
+        subject = request.form.get("subject", "").strip()
+        message = request.form.get("message", "").strip()
+        if subject and message:
+            ticket = Ticket(user_id=user.id, subject=subject, message=message)
+            db.session.add(ticket)
+            db.session.commit()
+    tickets = Ticket.query.filter_by(user_id=user.id).order_by(Ticket.created_at.desc()).all()
+    return render_template_string(HTML_TICKETS, tickets=tickets)
+
+@app.route("/admin/tickets", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_tickets():
+    if request.method == "POST":
+        ticket_id = int(request.form.get("ticket_id"))
+        response = request.form.get("response", "").strip()
+        ticket = Ticket.query.get(ticket_id)
+        if ticket and ticket.status == "open" and response:
+            ticket.response = response
+            ticket.status = "closed"
+            db.session.commit()
+    tickets = Ticket.query.order_by(Ticket.created_at.desc()).all()
+    return render_template_string(HTML_ADMIN_TICKETS, tickets=tickets)
+
 @app.route("/services", methods=["GET", "POST"])
 @login_required
 def services():
@@ -3836,35 +3865,6 @@ def services():
         servisler=servisler,
         user=user
     )
-
-@app.route("/tickets", methods=["GET", "POST"])
-@login_required
-def tickets():
-    user = User.query.get(session.get("user_id"))
-    if request.method == "POST":
-        subject = request.form.get("subject", "").strip()
-        message = request.form.get("message", "").strip()
-        if subject and message:
-            ticket = Ticket(user_id=user.id, subject=subject, message=message)
-            db.session.add(ticket)
-            db.session.commit()
-    tickets = Ticket.query.filter_by(user_id=user.id).order_by(Ticket.created_at.desc()).all()
-    return render_template_string(HTML_TICKETS, tickets=tickets)
-
-@app.route("/admin/tickets", methods=["GET", "POST"])
-@login_required
-@admin_required
-def admin_tickets():
-    if request.method == "POST":
-        ticket_id = int(request.form.get("ticket_id"))
-        response = request.form.get("response", "").strip()
-        ticket = Ticket.query.get(ticket_id)
-        if ticket and ticket.status == "open" and response:
-            ticket.response = response
-            ticket.status = "closed"
-            db.session.commit()
-    tickets = Ticket.query.order_by(Ticket.created_at.desc()).all()
-    return render_template_string(HTML_ADMIN_TICKETS, tickets=tickets)
 
 @app.route("/orders")
 @login_required
