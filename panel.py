@@ -209,6 +209,14 @@ class User(db.Model):
 
 from datetime import datetime
 
+class Payment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    merchant_oid = db.Column(db.String(128), unique=True, index=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount_kurus = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(32), default='pending')  # pending | success | failed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(128), nullable=False)
@@ -4452,23 +4460,48 @@ from flask import request, jsonify
 @app.route('/paytr_callback', methods=['POST'])
 def paytr_callback():
     data = request.form.to_dict()
+
     merchant_oid = data.get("merchant_oid","")
     status = data.get("status","")
-    total_amount = data.get("total_amount","")
-    cb_str = f"{merchant_oid}{PAYTR_MERCHANT_SALT}{status}{total_amount}"
+    total_amount = data.get("total_amount","")  # string, kuruş
     remote_hash = data.get("hash","") or data.get("hash_str","")
-    my_hash = base64.b64encode(hmac.new(PAYTR_MERCHANT_KEY.encode(), cb_str.encode(), hashlib.sha256).digest()).decode()
+
+    # 1) İmza doğrulama
+    cb_str = f"{merchant_oid}{PAYTR_MERCHANT_SALT}{status}{total_amount}"
+    my_hash = base64.b64encode(
+        hmac.new(PAYTR_MERCHANT_KEY.encode(), cb_str.encode(), hashlib.sha256).digest()
+    ).decode()
+
     if my_hash != remote_hash:
         return "INVALID HASH", 400
+
+    # 2) Ödeme kaydını bul
+    payment = Payment.query.filter_by(merchant_oid=merchant_oid).first()
+    if not payment:
+        # yoksa yine 200 dön; PayTR retry döngüsüne sokma
+        return "OK"
+
+    # 3) Duruma göre güncelle
     if status == "success":
-        # Burada merchant_oid ile ilgili user'ı bul ve bakiyesini güncelle!
-        # Örnek:
-        # user_id = ... (merchant_oid içinden ID parse et)
-        # user = User.query.get(user_id)
-        # if user:
-        #     user.balance += total_amount
-        #     db.session.commit()
-        pass
+        try:
+            # İsteğe göre iki kontrol:
+            # a) DB'deki beklenen tutar = PayTR total_amount?
+            if payment.amount_kurus != int(total_amount):
+                # Tutarsızlık varsa logla, gene de istersen DB tutarını baz al
+                pass
+
+            user = User.query.get(payment.user_id)
+            if user:
+                user.balance += payment.amount_kurus / 100.0  # TL
+            payment.status = "success"
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            # logla (hata olsa da PayTR’a OK dön; yoksa tekrarlar)
+            return "OK"
+    else:
+        payment.status = "failed"
+        db.session.commit()
 
     return "OK"
 
@@ -4482,17 +4515,8 @@ def bakiye_yukle():
         amount = float(request.form.get("amount", 0))
         if amount < 1:
             return render_template_string(HTML_BAKIYE_YUKLE, msg="En az 1 TL yükleyebilirsin.")
-        user_ip = request.remote_addr
-        merchant_oid = f"ORDER{user.id}{int(time.time())}"
-        email = user.email
-        payment_amount = int(amount * 100)  # kuruş cinsinden
-        user_name = user.username
-        user_address = "Online"
-        user_phone = "5555555555"  # opsiyonel
-        
-        # İmza için veri hazırlama
-        
-        # Resolve client IP (PayTR rejects localhost/private IPs)
+
+        # --- IP çözümleme (senin kodun) ---
         def _get_client_ip():
             xff = request.headers.get("X-Forwarded-For", "")
             if xff:
@@ -4508,14 +4532,34 @@ def bakiye_yukle():
             return ip
         user_ip = _resolve_user_ip()
 
-        # Basket
+        # --- Ödeme parametreleri (senin kodun) ---
+        merchant_oid = f"ORDER{user.id}{int(time.time())}"
+        email = user.email
+        payment_amount = int(amount * 100)  # kuruş
+        user_name = user.username
+        user_address = "Online"
+        user_phone = "5555555555"  # opsiyonel
+
+        # >>>>>>>>>>>> BURASI EKLEME YERİ <<<<<<<<<<<<
+        # Token almadan ÖNCE, isteği DB'ye 'pending' olarak kaydet
+        payment = Payment(
+            merchant_oid=merchant_oid,
+            user_id=user.id,
+            amount_kurus=payment_amount,
+            status='pending'
+        )
+        db.session.add(payment)
+        db.session.commit()
+        # >>>>>>>>>>>> EKLEME SONU <<<<<<<<<<<<
+
+        # --- Sepet & imza (senin kodun) ---
         basket_list = [["Bakiye Yükleme", "1", f"{payment_amount/100:.2f}"]]
         user_basket = base64.b64encode(json.dumps(basket_list, ensure_ascii=False).encode("utf-8")).decode("utf-8")
 
         no_installment = "0"
         max_installment = "0"
         currency = "TL"
-        test_mode = "0"
+        test_mode = "0"  # CANLI'da 0; istersen hiç gönderme + hash'ten çıkar
 
         token_str = (
             PAYTR_MERCHANT_ID +
@@ -4535,7 +4579,6 @@ def bakiye_yukle():
         ).decode("utf-8")
 
         paytr_args = {
-    
             'merchant_id': PAYTR_MERCHANT_ID,
             'user_ip': user_ip,
             'merchant_oid': merchant_oid,
@@ -4550,10 +4593,10 @@ def bakiye_yukle():
             'user_name': user_name,
             'user_address': user_address,
             'user_phone': user_phone,
-            'debug_on': 0,  # Test: 0, Canlı: 1
+            'debug_on': 0,     # CANLI
             'timeout_limit': 30,
             'currency': "TL",
-            'test_mode': 0,  # Test: 0, Canlı: 1
+            'test_mode': 0,    # CANLI
             'lang': "tr"
         }
 
@@ -4563,8 +4606,8 @@ def bakiye_yukle():
             iframe_token = rj["token"]
             iframe_html = f"""
             <div style='max-width:600px;margin:40px auto;box-shadow:0 2px 24px #0080ff22;padding:30px 8px;border-radius:20px;'>
-            <iframe src="https://www.paytr.com/odeme/guvenli/{iframe_token}" frameborder="0" width="100%" height="700px" style="border-radius:16px;"></iframe>
-            <p style="margin-top:18px;text-align:center;color:#fff">Ödeme işlemin bitince <a href='{url_for('bakiye_yukle')}' style="color:#8ecfff">tekrar yükleme ekranına dön</a></p>
+              <iframe src="https://www.paytr.com/odeme/guvenli/{iframe_token}" frameborder="0" width="100%" height="700px" style="border-radius:16px;"></iframe>
+              <p style="margin-top:18px;text-align:center;color:#fff">Ödeme işlemin bitince <a href='{url_for('bakiye_yukle')}' style="color:#8ecfff">tekrar yükleme ekranına dön</a></p>
             </div>
             """
             return render_template_string(iframe_html)
@@ -4575,11 +4618,42 @@ def bakiye_yukle():
 
 @app.route('/payment_success')
 def payment_success():
-    return "Ödeme başarılı! 👏"
+    # iFrame içinden gelirse, üst pencereyi yönlendir:
+    return """
+    <html><body style="background:#101214;color:#fff;font-family:sans-serif">
+      <script>
+        try {
+          if (window.top && window.top !== window) {
+            window.top.location.href = '/panel';
+          } else {
+            window.location.href = '/panel';
+          }
+        } catch (e) {
+          window.location.href = '/panel';
+        }
+      </script>
+      <p style="text-align:center;margin-top:40px">Ödeme işlemi tamamlandı, panele yönlendiriliyorsunuz...</p>
+    </body></html>
+    """
 
 @app.route('/payment_fail')
 def payment_fail():
-    return "Ödeme başarısız oldu! 😢"
+    return """
+    <html><body style="background:#101214;color:#fff;font-family:sans-serif">
+      <script>
+        try {
+          if (window.top && window.top !== window) {
+            window.top.location.href = '/bakiye-yukle';
+          } else {
+            window.location.href = '/bakiye-yukle';
+          }
+        } catch (e) {
+          window.location.href = '/bakiye-yukle';
+        }
+      </script>
+      <p style="text-align:center;margin-top:40px">Ödeme başarısız/iptal. Tekrar deneyin...</p>
+    </body></html>
+    """
 
 @app.route('/google6aef354bd638dfc4.html')
 def google_verify():
