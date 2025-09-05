@@ -1405,7 +1405,7 @@ HTML_BAKIYE_YUKLE = """
         <form method="post">
           <div class="mb-3">
             <label for="amount" class="form-label">Yüklemek istediğin tutar (₺):</label>
-            <input type="number" min="1" step="1" class="form-control" id="amount" name="amount" placeholder="100" required>
+            <input type="number" min="1" step="1" class="form-control" id="amount" name="amount" placeholder="" required>
           </div>
           <button type="submit" class="btn btn-shopier w-100 mt-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fff" style="margin-right:8px;margin-top:-3px" viewBox="0 0 24 24"><path d="M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm2 0v2h16V5zm16 14v-8H4v8zm-4-3h-4a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2z"/></svg>
@@ -2670,7 +2670,7 @@ HTML_PANEL = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
-    /* --- Senin diğer CSS kodların burada aynı şekilde devam ediyor --- */
+
     .card {
       background: rgba(28,31,34,0.95);
       border-radius: 18px;
@@ -2698,259 +2698,41 @@ HTML_PANEL = """
       box-shadow: 0 4px 20px 0 rgba(67,179,250,0.08);
       outline: none;
     }
-    .btn-panel-dark b {
-      color: #fff;
-      font-weight: 900;
-      letter-spacing: 0.02em;
-    }
-    .btn-panel-outline {
-      background: transparent;
-      color: #8ec9fd;
-      border: 2px solid #31353a;
-      border-radius: 10px;
-      font-weight: 700;
-      padding: 0.72rem 1.2rem;
-      font-size: 1.01rem;
-      margin-bottom: 2px;
-      width: 100%;
-      box-shadow: none;
-      transition: background 0.21s, color .15s, border .2s, box-shadow .17s;
-      opacity: 1;
-    }
-    .btn-panel-outline:hover, .btn-panel-outline:focus {
-      background: #222730;
-      color: #41d1ff;
-      border-color: #43b3fa;
-      outline: none;
-      opacity: 1;
-    }
-    .btn-custom-outline {
-      background: transparent;
-      border: 1.5px solid #50555c;
-      color: #c2c8d7;
-      border-radius: 8px;
-      transition: all .18s;
-    }
-    .btn-custom-outline:hover, .btn-custom-outline:focus {
-      background: #22262c;
-      color: #fff;
-      border-color: #2186eb;
-    }
-    .form-control, .form-select {
-      background: #23272b;
-      border: 1.5px solid #323740;
-      color: #e7eaf0;
-      border-radius: 8px;
-      transition: border .17s, box-shadow .17s;
-    }
-    .form-control:focus, .form-select:focus {
-      border-color: #2186eb;
-      color: #fff;
-      background: #23272b;
-      box-shadow: 0 0 0 0.10rem #2186eb40;
-      outline: none;
-    }
-    .form-label {
-      color: #f0f0f2;
-      font-weight: 600;
-      font-size: 1rem;
-    }
-    .alert-secondary {
-      background: #23272b;
-      color: #c3cad8;
-      border: none;
-      border-radius: 8px;
-    }
-    .welcome-card {
-      background: linear-gradient(100deg, #242a2f 0%, #181c20 80%);
-      border-radius: 15px;
-      padding: 22px 26px 15px 18px;
-      margin-bottom: 22px;
-      box-shadow: 0 3px 18px 0 rgba(0,0,0,0.23);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .welcome-icon {
-      font-size: 2.5rem;
-      color: #2186eb;
-      margin-right: 13px;
-      margin-top: 3px;
-    }
-    .welcome-title {
-      font-weight: 800;
-      font-size: 1.16rem;
-      margin-bottom: 0.2rem;
-      color: #fff;
-      letter-spacing: 0.015em;
-    }
-    .welcome-desc {
-      font-size: 0.95rem;
-      color: #c5c8d4;
-    }
-    .welcome-balance {
-      font-size: 1.13rem;
-      color: #fff;
-      font-weight: 700;
-      margin-bottom: 0.18rem;
-      text-align: right;
-    }
-    .welcome-balance-label {
-      color: #fff !important;
-      font-weight: 900 !important;
-      letter-spacing: .01em;
-    }
-    .welcome-balance-value {
-      color: #41b6ff !important;
-      font-weight: 900 !important;
-      letter-spacing: .01em;
-      font-size: 1.12em;
-    }
-    .order-title-center {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.6rem;
-      font-weight: 900;
-      color: #22b3ff;
-      letter-spacing: .018em;
-      margin-bottom: 18px;
-      margin-top: 18px;
-      text-shadow: 0 4px 24px #22b3ff1a;
-      gap: 12px;
-      position: relative;
-      min-height: 54px;
-    }
-    .order-title-center .bi {
-      color: #22b3ff;
-      font-size: 1.45em;
-      margin-right: 7px;
-    }
-    @media (max-width: 767px) {
-      .order-title-center { font-size: 1.2rem; gap: 7px; min-height: 34px; }
-      .order-title-center .bi { font-size: 1.12em; }
-    }
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0; 
-    }
-    input[type=number] { 
-      -moz-appearance: textfield;
-      appearance: textfield;
-    }
-    .form-total-custom {
-      background: #23272b !important;
-      border: 1.5px solid #323740 !important;
-      color: #4fe9ff !important;
-      border-radius: 8px !important;
-      font-size: 1.21em !important;
-      font-weight: 800 !important;
-      letter-spacing: .01em;
-      padding-left: 14px !important;
-      padding-right: 14px !important;
-      transition: border .16s, box-shadow .15s;
-      box-shadow: none;
-      min-height: 44px;
-      text-align: left;
-    }
-    .form-total-custom:disabled {
-      background: #23272b !important;
-      color: #4fe9ff !important;
-      opacity: 1;
-    }
-    @media (max-width: 575px) {
-      .welcome-card { flex-direction: column; align-items: flex-start; gap: 12px; }
-      .welcome-balance { text-align: left; }
-      .order-title-center { font-size: 1.05rem; gap: 6px; min-height: 27px; }
-      .form-total-custom { font-size: 1.06em !important; }
-    }
-    .flash-info-box {
-      margin-bottom: 15px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1.04em;
-      padding: 10px 20px;
-      border-left: 5px solid #00e1ff;
-      background: #18242d;
-      color: #51f5ff;
-      box-shadow: 0 2px 10px 0 #00e1ff33;
-      animation: fadeinflash .5s;
-    }
-    .flash-info-box.error {
-      border-left: 5px solid #ff6363;
-      background: #2a1818;
-      color: #ffc7c7;
-      box-shadow: 0 2px 10px 0 #ff636633;
-    }
-    @keyframes fadeinflash {
-      from { opacity: 0; transform: translateY(-18px);}
-      to   { opacity: 1; transform: translateY(0);}
-        /* Modern WhatsApp Butonu */
-    }
-    #whatsapp-float {
-      position: fixed;
-      right: 32px;
-      bottom: 42px;
-      width: 62px;
-      height: 62px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #25D366 80%, #075E54 100%);
-      box-shadow: 0 6px 32px 0 #25d36648, 0 1.5px 10px 0 #00000020;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 11000;
-      cursor: pointer;
-      transition: transform .19s cubic-bezier(.27,1.4,.62,.97), box-shadow .22s;
-      border: none;
-      animation: whatsapp-float-pop .7s cubic-bezier(.21,1.4,.72,1) 1;
-      overflow: hidden;
-    }
-    #whatsapp-float:hover {
-      transform: scale(1.08) translateY(-3px);
-      box-shadow: 0 12px 48px 0 #25d36684, 0 3px 16px 0 #00000020;
-      color: #fff;
-      background: linear-gradient(135deg, #24ff7d 70%, #128C7E 100%);
-      text-decoration: none;
-    }
-    #whatsapp-float .bi-whatsapp {
-      font-size: 2.2em;
-      filter: drop-shadow(0 1px 7px #13f85d66);
-    }
-    #whatsapp-float-text {
-      position: absolute;
-      right: 74px;
-      bottom: 0px;
-      font-size: 1.08em;
-      background: #25d366;
-      color: #0b3e1b;
-      border-radius: 14px 0 0 14px;
-      padding: 10px 20px 10px 18px;
-      white-space: nowrap;
-      box-shadow: 0 4px 20px 0 #25d36626;
-      opacity: 0;
-      pointer-events: none;
-      font-weight: 800;
-      letter-spacing: 0.02em;
-      transition: opacity 0.23s;
-    }
-    #whatsapp-float:hover #whatsapp-float-text,
-    #whatsapp-float:focus #whatsapp-float-text {
-      opacity: 1;
-    }
-    @media (max-width:600px){
-      #whatsapp-float { right: 14px; bottom: 18px; width: 48px; height: 48px; }
-      #whatsapp-float .bi-whatsapp { font-size: 1.34em; }
-      #whatsapp-float-text { display: none; }
-    }
-    @keyframes whatsapp-float-pop {
-      0% {transform:scale(0.75) translateY(60px);}
-      70% {transform:scale(1.13) translateY(-12px);}
-      100% {transform:scale(1) translateY(0);}
-    }
+    .btn-panel-dark b { color: #fff; font-weight: 900; letter-spacing: 0.02em; }
+    .btn-panel-outline { background: transparent; color: #8ec9fd; border: 2px solid #31353a; border-radius: 10px; font-weight: 700; padding: 0.72rem 1.2rem; font-size: 1.01rem; margin-bottom: 2px; width: 100%; box-shadow: none; transition: background 0.21s, color .15s, border .2s, box-shadow .17s; opacity: 1; }
+    .btn-panel-outline:hover, .btn-panel-outline:focus { background: #222730; color: #41d1ff; border-color: #43b3fa; outline: none; opacity: 1; }
+    .btn-custom-outline { background: transparent; border: 1.5px solid #50555c; color: #c2c8d7; border-radius: 8px; transition: all .18s; }
+    .btn-custom-outline:hover, .btn-custom-outline:focus { background: #22262c; color: #fff; border-color: #2186eb; }
+    .form-control, .form-select { background: #23272b; border: 1.5px solid #323740; color: #e7eaf0; border-radius: 8px; transition: border .17s, box-shadow .17s; }
+    .form-control:focus, .form-select:focus { border-color: #2186eb; color: #fff; background: #23272b; box-shadow: 0 0 0 0.10rem #2186eb40; outline: none; }
+    .form-label { color: #f0f0f2; font-weight: 600; font-size: 1rem; }
+    .alert-secondary { background: #23272b; color: #c3cad8; border: none; border-radius: 8px; }
+    .welcome-card { background: linear-gradient(100deg, #242a2f 0%, #181c20 80%); border-radius: 15px; padding: 22px 26px 15px 18px; margin-bottom: 22px; box-shadow: 0 3px 18px 0 rgba(0,0,0,0.23); display: flex; align-items: center; justify-content: space-between; }
+    .welcome-icon { font-size: 2.5rem; color: #2186eb; margin-right: 13px; margin-top: 3px; }
+    .welcome-title { font-weight: 800; font-size: 1.16rem; margin-bottom: 0.2rem; color: #fff; letter-spacing: 0.015em; }
+    .welcome-desc { font-size: 0.95rem; color: #c5c8d4; }
+    .welcome-balance { font-size: 1.13rem; color: #fff; font-weight: 700; margin-bottom: 0.18rem; text-align: right; }
+    .welcome-balance-label { color: #fff !important; font-weight: 900 !important; letter-spacing: .01em; }
+    .welcome-balance-value { color: #41b6ff !important; font-weight: 900 !important; letter-spacing: .01em; font-size: 1.12em; }
+    .order-title-center { width: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 900; color: #22b3ff; letter-spacing: .018em; margin-bottom: 18px; margin-top: 18px; text-shadow: 0 4px 24px #22b3ff1a; gap: 12px; position: relative; min-height: 54px; }
+    .order-title-center .bi { color: #22b3ff; font-size: 1.45em; margin-right: 7px; }
+    @media (max-width: 767px) { .order-title-center { font-size: 1.2rem; gap: 7px; min-height: 34px; } .order-title-center .bi { font-size: 1.12em; } }
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+    .form-total-custom { background: #23272b !important; border: 1.5px solid #323740 !important; color: #4fe9ff !important; border-radius: 8px !important; font-size: 1.21em !important; font-weight: 800 !important; letter-spacing: .01em; padding-left: 14px !important; padding-right: 14px !important; transition: border .16s, box-shadow .15s; box-shadow: none; min-height: 44px; text-align: left; }
+    .form-total-custom:disabled { background: #23272b !important; color: #4fe9ff !important; opacity: 1; }
+    @media (max-width: 575px) { .welcome-card { flex-direction: column; align-items: flex-start; gap: 12px; } .welcome-balance { text-align: left; } .order-title-center { font-size: 1.05rem; gap: 6px; min-height: 27px; } .form-total-custom { font-size: 1.06em !important; } }
+    .flash-info-box { margin-bottom: 15px; border-radius: 8px; font-weight: 600; font-size: 1.04em; padding: 10px 20px; border-left: 5px solid #00e1ff; background: #18242d; color: #51f5ff; box-shadow: 0 2px 10px 0 #00e1ff33; animation: fadeinflash .5s; }
+    .flash-info-box.error { border-left: 5px solid #ff6363; background: #2a1818; color: #ffc7c7; box-shadow: 0 2px 10px 0 #ff636633; }
+    @keyframes fadeinflash { from { opacity: 0; transform: translateY(-18px);} to   { opacity: 1; transform: translateY(0);} }
+    /* Modern WhatsApp Butonu */
+    #whatsapp-float { position: fixed; right: 32px; bottom: 42px; width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(135deg, #25D366 80%, #075E54 100%); box-shadow: 0 6px 32px 0 #25d36648, 0 1.5px 10px 0 #00000020; color: #fff; display: flex; align-items: center; justify-content: center; z-index: 11000; cursor: pointer; transition: transform .19s cubic-bezier(.27,1.4,.62,.97), box-shadow .22s; border: none; animation: whatsapp-float-pop .7s cubic-bezier(.21,1.4,.72,1) 1; overflow: hidden; }
+    #whatsapp-float:hover { transform: scale(1.08) translateY(-3px); box-shadow: 0 12px 48px 0 #25d36684, 0 3px 16px 0 #00000020; color: #fff; background: linear-gradient(135deg, #24ff7d 70%, #128C7E 100%); text-decoration: none; }
+    #whatsapp-float .bi-whatsapp { font-size: 2.2em; filter: drop-shadow(0 1px 7px #13f85d66); }
+    #whatsapp-float-text { position: absolute; right: 74px; bottom: 0px; font-size: 1.08em; background: #25d366; color: #0b3e1b; border-radius: 14px 0 0 14px; padding: 10px 20px 10px 18px; white-space: nowrap; box-shadow: 0 4px 20px 0 #25d36626; opacity: 0; pointer-events: none; font-weight: 800; letter-spacing: 0.02em; transition: opacity 0.23s; }
+    #whatsapp-float:hover #whatsapp-float-text, #whatsapp-float:focus #whatsapp-float-text { opacity: 1; }
+    @media (max-width:600px){ #whatsapp-float { right: 14px; bottom: 18px; width: 48px; height: 48px; } #whatsapp-float .bi-whatsapp { font-size: 1.34em; } #whatsapp-float-text { display: none; } }
+    @keyframes whatsapp-float-pop { 0% {transform:scale(0.75) translateY(60px);} 70% {transform:scale(1.13) translateY(-12px);} 100% {transform:scale(1) translateY(0);} }
   </style>
 </head>
 <body>
@@ -2975,6 +2757,7 @@ HTML_PANEL = """
     <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
     <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
   </div>
+
   <div class="container py-4">
     <div class="card p-4 mx-auto" style="max-width:800px;">
       <!-- HOŞGELDİN -->
@@ -2996,143 +2779,149 @@ HTML_PANEL = """
           </a>
         </div>
       </div>
+
       <!-- BUTONLAR -->
-<!-- BUTONLAR -->
-<div class="d-grid gap-3 mb-3">
-  {% if role == 'admin' %}
-    <a href="{{ url_for('manage_users') }}" class="btn btn-panel-dark py-2"><b>Kullanıcı Yönetimi</b></a>
-    <a href="{{ url_for('admin_tickets') }}" class="btn btn-panel-dark py-2">Tüm Destek Talepleri</a>
-    <a href="{{ url_for('manage_services') }}" class="btn btn-panel-dark py-2">Servisleri Yönet</a>
-  {% else %}
-    <a href="{{ url_for('bakiye_yukle') }}" class="btn btn-panel-dark py-2">Bakiye Yükle</a>
-    <a href="{{ url_for('tickets') }}" class="btn btn-panel-dark py-2">Destek & Canlı Yardım</a>
-    {% if role in ['user', 'viewer'] %}
-        </button>
+      <div class="d-grid gap-3 mb-3">
+        {% if role == 'admin' %}
+          <a href="{{ url_for('manage_users') }}" class="btn btn-panel-dark py-2"><b>Kullanıcı Yönetimi</b></a>
+          <a href="{{ url_for('admin_tickets') }}" class="btn btn-panel-dark py-2">Tüm Destek Talepleri</a>
+          <a href="{{ url_for('manage_services') }}" class="btn btn-panel-dark py-2">Servisleri Yönet</a>
+        {% else %}
+          <a href="{{ url_for('bakiye_yukle') }}" class="btn btn-panel-dark py-2">Bakiye Yükle</a>
+          <a href="{{ url_for('tickets') }}" class="btn btn-panel-dark py-2">Destek & Canlı Yardım</a>
+        {% endif %}
+        <a href="{{ url_for('watchads') }}" class="btn btn-panel-dark py-2">Reklam İzle – Bakiye Kazan</a>
+      </div>
+
+      <!-- SİPARİŞ FORMU BAŞLIĞI -->
+      <div class="order-title-center">
+        <i class="bi bi-cart-check"></i> Yeni Sipariş
+      </div>
+
+      <!-- SADECE SİPARİŞ BAŞARI MESAJI (YENİ) -->
+      <div id="order-messages-area"></div>
+
+      <form id="orderForm" method="post" autocomplete="off">
+        <!-- KATEGORİ: sabit metin, tıklanamaz -->
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
+          <!-- Form gönderiminde değerin gitmesi için hidden -->
+          <input type="hidden" name="category" value="🌐 Tüm Sosyal Medya Servisleri 📱">
+          <!-- Kullanıcıya sadece metin göster -->
+          <div class="form-control" aria-readonly="true" tabindex="-1" style="pointer-events:none; user-select:text;">
+            🌐 Tüm Sosyal Medya Servisleri 📱
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-box-seam"></i> Servis</label>
+          <select class="form-select" name="service_id" id="service_id" required>
+            {% for s in services %}
+              <option value="{{ s.id }}" data-price="{{ s.price }}" data-min="{{ s.min_amount }}" data-max="{{ s.max_amount }}">
+                {{ s.name }} – {{ s.price }} TL
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-info-circle"></i> Açıklama</label>
+          <div class="alert alert-secondary" style="white-space: pre-line; display: flex; flex-direction: column; justify-content: center; min-height: 160px;">
+            <b>LÜTFEN SİPARİŞ VERMEDEN ÖNCE BU KISMI OKU</b>
+            Sistem, gönderilecek takipçi sayısına göre uygun şekilde çalışır.
+            Örnek : Takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
+            <b>DİKKAT:</b> Takipçi gönderimi organik hesaplardan ve gerçek yapılır. Gizli hesaplara gönderim yapılmaz.
+          </div>
+        </div>
+
+        <!-- BİLGİ KUTUSU FORMUN TAM ÜSTÜNDE -->
+        <div id="ajax-order-result"></div>
+
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-link-45deg"></i> Sipariş verilecek link</label>
+          <input name="username" type="text" class="form-control" placeholder="" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-list-ol"></i> Miktar</label>
+          <input name="amount" id="amount" type="number" min="1" class="form-control" placeholder="" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-currency-dollar"></i> Tutar</label>
+          <input type="text" class="form-control form-total-custom" id="total" placeholder="" disabled>
+        </div>
+        <button type="submit" class="btn btn-panel-dark btn-lg w-100" id="orderSubmitBtn" style="margin-top:4px;margin-bottom:4px;"><b>Siparişi Gönder</b></button>
       </form>
-    {% endif %}
-  {% endif %}
-  <a href="{{ url_for('watchads') }}" class="btn btn-panel-dark py-2">Reklam İzle – Bakiye Kazan</a>
-</div>
-<!-- SİPARİŞ FORMU BAŞLIĞI -->
-<div class="order-title-center">
-  <i class="bi bi-cart-check"></i> Yeni Sipariş
-</div>
-<!-- SADECE SİPARİŞ BAŞARI MESAJI (YENİ) -->
-<div id="order-messages-area"></div>
-<form id="orderForm" method="post" autocomplete="off">
-  <div class="mb-3">
-    <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
-    <select class="form-select" name="category" required>
-      <option value="🌐 Tüm Sosyal Medya Servisleri 📱" selected>🌐 Tüm Sosyal Medya Servisleri 📱</option>
-    </select>
-  </div>
-  <div class="mb-3">
-    <label class="form-label"><i class="bi bi-box-seam"></i> Servis</label>
-    <select class="form-select" name="service_id" id="service_id" required>
-      {% for s in services %}
-        <option value="{{ s.id }}" data-price="{{ s.price }}" data-min="{{ s.min_amount }}" data-max="{{ s.max_amount }}">
-          {{ s.name }} – {{ s.price }} TL
-        </option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="mb-3">
-    <label class="form-label"><i class="bi bi-info-circle"></i> Açıklama</label>
-    <div class="alert alert-secondary" style="white-space: pre-line; display: flex; flex-direction: column; justify-content: center; min-height: 160px;">
-      <b>LÜTFEN SİPARİŞ VERMEDEN ÖNCE BU KISMI OKU</b>
-      Sistem, gönderilecek takipçi sayısına göre uygun şekilde çalışır.
-      Örnek : Takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
-      <b>DİKKAT:</b> Takipçi gönderimi organik hesaplardan ve gerçek yapılır. Gizli hesaplara gönderim yapılmaz.
+
+      <script>
+        // Otomatik fiyat güncelleme
+        const sel = document.getElementById('service_id'),
+              amt = document.getElementById('amount'),
+              tot = document.getElementById('total');
+        function updateTotal(){
+          const price = parseFloat(sel.selectedOptions[0].dataset.price)||0,
+                num   = parseInt(amt.value)||0;
+          tot.value = num>0
+            ? (num + " × " + price.toFixed(2) + " TL = " + (num*price).toFixed(2) + " TL")
+            : "";
+        }
+        sel.addEventListener('change', updateTotal);
+        amt.addEventListener('input', updateTotal);
+        document.addEventListener('DOMContentLoaded', updateTotal);
+      </script>
+      <script>
+        // AJAX sonrası form üstünde kutu göster (SADECE SİPARİŞ BAŞARISI)
+        document.getElementById('orderForm').addEventListener('submit', function(e){
+          e.preventDefault();
+          const btn = document.getElementById('orderSubmitBtn');
+          btn.disabled = true;
+          fetch('/api/new_order', { method: 'POST', body: new FormData(this) })
+            .then(r=>r.json())
+            .then(res=>{
+              btn.disabled = false;
+              const msgArea = document.getElementById('ajax-order-result');
+              msgArea.innerHTML = '';
+              const msgBox = document.createElement('div');
+              msgBox.className = "flash-info-box" + (res.success ? "" : " error");
+              msgBox.innerText = res.success ? "Sipariş başarıyla oluşturuldu!" : "Bir hata oluştu";
+              msgArea.appendChild(msgBox);
+              setTimeout(()=>{ msgBox.remove(); }, 3200);
+
+              if(res.success){
+                this.reset(); updateTotal();
+                document.getElementById('balance').innerText = res.new_balance + ' TL';
+              }
+            })
+            .catch(()=>{
+              btn.disabled = false;
+              const msgArea = document.getElementById('ajax-order-result');
+              msgArea.innerHTML = '';
+              const msgBox = document.createElement('div');
+              msgBox.className = "flash-info-box error";
+              msgBox.innerText = "İstek başarısız!";
+              msgArea.appendChild(msgBox);
+              setTimeout(()=>{ msgBox.remove(); }, 2800);
+            });
+        });
+      </script>
+
+      <div class="mt-3 text-end">
+        <a href="{{ url_for('logout') }}" class="btn btn-custom-outline btn-sm">Çıkış Yap</a>
+      </div>
     </div>
   </div>
-  <!-- BİLGİ KUTUSU FORMUN TAM ÜSTÜNDE -->
-  <div id="ajax-order-result"></div>
-  <div class="mb-3">
-    <label class="form-label"><i class="bi bi-link-45deg"></i> Sipariş verilecek link</label>
-    <input name="username" type="text" class="form-control" placeholder="" required>
-  </div>
-  <div class="mb-3">
-    <label class="form-label"><i class="bi bi-list-ol"></i> Miktar</label>
-    <input name="amount" id="amount" type="number" min="1" class="form-control" placeholder="" required>
-  </div>
-  <div class="mb-3">
-    <label class="form-label"><i class="bi bi-currency-dollar"></i> Tutar</label>
-    <input type="text" class="form-control form-total-custom" id="total" placeholder="" disabled>
-  </div>
-  <button type="submit" class="btn btn-panel-dark btn-lg w-100" id="orderSubmitBtn" style="margin-top:4px;margin-bottom:4px;"><b>Siparişi Gönder</b></button>
-</form>
-<script>
-  // Otomatik fiyat güncelleme
-  const sel = document.getElementById('service_id'),
-        amt = document.getElementById('amount'),
-        tot = document.getElementById('total');
-  function updateTotal(){
-    const price = parseFloat(sel.selectedOptions[0].dataset.price)||0,
-          num   = parseInt(amt.value)||0;
-    tot.value = num>0
-      ? (num + " × " + price.toFixed(2) + " TL = " + (num*price).toFixed(2) + " TL")
-      : "";
-  }
-  sel.addEventListener('change', updateTotal);
-  amt.addEventListener('input', updateTotal);
-  document.addEventListener('DOMContentLoaded', updateTotal);
-</script>
-<script>
-  // AJAX sonrası form üstünde kutu göster (SADECE SİPARİŞ BAŞARISI)
-  document.getElementById('orderForm').addEventListener('submit', function(e){
-    e.preventDefault();
-    const btn = document.getElementById('orderSubmitBtn');
-    btn.disabled = true;
-    fetch('/api/new_order', {
-      method: 'POST',
-      body: new FormData(this)
-    })
-    .then(r=>r.json())
-    .then(res=>{
-      btn.disabled = false;
-      const msgArea = document.getElementById('ajax-order-result');
-      msgArea.innerHTML = '';
-      const msgBox = document.createElement('div');
-      msgBox.className = "flash-info-box" + (res.success ? "" : " error");
-      msgBox.innerText = res.success
-        ? "Sipariş başarıyla oluşturuldu!"
-        : "Bir hata oluştu";
-      msgArea.appendChild(msgBox);
-      setTimeout(()=>{ msgBox.remove(); }, 3200);
 
-      if(res.success){
-        this.reset(); updateTotal();
-        document.getElementById('balance').innerText = res.new_balance + ' TL';
-      }
-    })
-    .catch(()=>{
-      btn.disabled = false;
-      const msgArea = document.getElementById('ajax-order-result');
-      msgArea.innerHTML = '';
-      const msgBox = document.createElement('div');
-      msgBox.className = "flash-info-box error";
-      msgBox.innerText = "İstek başarısız!";
-      msgArea.appendChild(msgBox);
-      setTimeout(()=>{ msgBox.remove(); }, 2800);
-    });
-  });
-</script>
-<div class="mt-3 text-end">
-  <a href="{{ url_for('logout') }}" class="btn btn-custom-outline btn-sm">Çıkış Yap</a>
-</div>
-</div>
-</div>
   <!-- WhatsApp Sohbet Butonu BAŞLANGIÇ -->
   <a href="https://wa.me/905301900969" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
     <span id="whatsapp-float-text">WhatsApp ile Destek!</span>
     <i class="bi bi-whatsapp"></i>
   </a>
   <!-- WhatsApp Sohbet Butonu BİTİŞ -->
-<div class="text-center mt-5" style="font-size: 0.9rem; color: #aaa;">
-  <hr style="border-color: #333;">
-  <p><strong>İletişim:</strong> kuzenlertv6996@gmail.com – 0530 190 09 69</p>
-  <p><strong>Adres:</strong> Mustafa Kemal Paşa Mahallesi, Lale Sokak No:110 D:1</p>
-</div>
+
+  <div class="text-center mt-5" style="font-size: 0.9rem; color: #aaa;">
+    <hr style="border-color: #333;">
+    <p><strong>İletişim:</strong> kuzenlertv6996@gmail.com – 0530 190 09 69</p>
+    <p><strong>Adres:</strong> Mustafa Kemal Paşa Mahallesi, Lale Sokak No:110 D:1</p>
+  </div>
 </body>
 </html>
 """
