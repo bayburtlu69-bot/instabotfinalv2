@@ -190,6 +190,37 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 
 db = SQLAlchemy(app)
 
+def delete_user_and_children(user_id: int) -> tuple[bool, str]:
+
+    u = User.query.get(user_id)
+    if not u:
+        return False, "Kullanıcı bulunamadı."
+
+    try:
+        with db.session.begin():
+            # 1) Bu kullanıcının cüzdan hareketleri (order'a da FK var)
+            WalletTransaction.query.filter_by(user_id=u.id).delete(synchronize_session=False)
+
+            # 2) Kullanıcının ödemeleri
+            Payment.query.filter_by(user_id=u.id).delete(synchronize_session=False)
+
+            # 3) Kullanıcının bakiye talepleri
+            BalanceRequest.query.filter_by(user_id=u.id).delete(synchronize_session=False)
+
+            # 4) Kullanıcının ticket'ları
+            Ticket.query.filter_by(user_id=u.id).delete(synchronize_session=False)
+
+            # 5) Kullanıcının siparişleri
+            Order.query.filter_by(user_id=u.id).delete(synchronize_session=False)
+
+            # 6) En son kullanıcıyı sil
+            db.session.delete(u)
+
+        return True, "Kullanıcı ve ilişkili tüm kayıtlar silindi."
+    except Exception as e:
+        db.session.rollback()
+        return False, f"Silme sırasında hata: {e}"
+
 SABIT_FIYAT = 0.5
 
 # --- MODELLER ---
@@ -216,6 +247,20 @@ class Payment(db.Model):
     amount_kurus = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(32), default='pending')  # pending | success | failed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class WalletTransaction(db.Model):
+    __tablename__ = "wallet_transaction"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    order_id = db.Column(db.Integer, db.ForeignKey("order.id"), nullable=True, index=True)
+    amount = db.Column(db.Float, nullable=False)  # +: yükleme/iadeler, -: harcama
+    type = db.Column(db.String(20), nullable=False)  # 'deposit' | 'order' | 'refund' | 'adjustment'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        # Aynı order için 2. kez refund gelmesin:
+        db.UniqueConstraint('order_id', 'type', name='uq_wallet_refund_per_order'),
+    )
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -263,6 +308,40 @@ class AdVideo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     embed_url = db.Column(db.String(256), default="https://www.youtube.com/embed/KzJk7e7XF3g")
 
+def _add_wallet_tx(user: User, amount: float, tx_type: str, order: Order | None = None):
+    tx = WalletTransaction(
+        user_id=user.id,
+        order_id=order.id if order else None,
+        amount=float(amount),
+        type=tx_type,
+    )
+    db.session.add(tx)
+    user.balance = float(user.balance or 0) + float(amount)
+
+def apply_refund(order_id: int, amount: float | None = None) -> bool:
+    """İdempotent refund: aynı order için refund varsa tekrar yazmaz; true=işledi, false=atlandı."""
+    order = Order.query.get(order_id)
+    if not order:
+        return False
+    user = User.query.get(order.user_id)
+    if not user:
+        return False
+
+    # Zaten refund iğnesi var mı?
+    exists = WalletTransaction.query.filter_by(order_id=order.id, type='refund').first()
+    if exists:
+        return False  # idempotent
+
+    # Tutar yoksa siparişin toplamını iade et
+    refund_amount = float(amount if amount is not None else order.total_price or 0)
+    if refund_amount <= 0:
+        return False
+
+    _add_wallet_tx(user, refund_amount, 'refund', order=order)
+    order.status = 'refunded'  # iç durum; listede yine 'İptal Edildi' gösterebilirsin
+    db.session.commit()
+    return True
+
 with app.app_context():
     db.create_all()
     # Admin, Service ve AdVideo başlangıç kayıtları
@@ -290,6 +369,108 @@ with app.app_context():
         db.session.add(AdVideo(embed_url="https://www.youtube.com/embed/KzJk7e7XF3g"))
         db.session.commit()
 
+from sqlalchemy import MetaData, text
+
+def force_delete_user_everywhere(user_id: int):
+    """
+    Bu fonksiyon, tüm şemayı yansıtır (reflect) ve aşağıdaki aday sütun adlarına bakarak
+    user_id'ye bağlı tüm kayıtları siler. En sonda users tablosundan kullanıcıyı da siler.
+    """
+    meta = MetaData()
+    meta.reflect(bind=db.engine)
+
+    candidate_cols = ('user_id', 'owner_id', 'created_by', 'updated_by', 'assigned_to')
+    # Çift uçlu kullanıcı referansları için de ek denemeler (takipçi/arkadaşlık vb.)
+    two_user_cols = (('follower_id',), ('followee_id',), ('target_user_id',), ('friend_id',))
+
+    with db.session.begin():
+        # 1) user_id vb. sütunları olan tablolardan sil
+        for t in meta.sorted_tables:
+            cols = t.c.keys()
+            match_cols = [c for c in candidate_cols if c in cols]
+            if match_cols:
+                for col in match_cols:
+                    db.session.execute(
+                        t.delete().where(getattr(t.c, col) == user_id)
+                    )
+
+        # 2) İki uçlu kullanıcı sütunları (varsa)
+        for t in meta.sorted_tables:
+            cols = set(t.c.keys())
+            for col_tuple in two_user_cols:
+                for col in col_tuple:
+                    if col in cols:
+                        db.session.execute(
+                            t.delete().where(getattr(t.c, col) == user_id)
+                        )
+
+        # 3) En sonda kullanıcıyı sil
+        users_table_name = User.__tablename__  # genelde "user" veya "users"
+        db.session.execute(
+            text(f"DELETE FROM {users_table_name} WHERE id = :uid"),
+            {"uid": user_id}
+        )
+
+# panel.py (uygun bir yere ekle)
+from sqlalchemy import MetaData, Table, inspect
+
+def force_delete_user_by_fk(user_id: int) -> int:
+    """
+    Users(id)'ye FK ile bağlı tüm tablolardaki satırları siler, en sonda kullanıcıyı siler.
+    Dönen değer toplam silinen satır sayısıdır (kullanıcı dahil).
+    """
+    meta = MetaData()
+    meta.reflect(bind=db.engine)
+
+    insp = inspect(db.engine)
+    users_t = Table(User.__tablename__, meta, autoload_with=db.engine)
+
+    # Users(id)'ye referans veren FK'leri yakala
+    refs = []  # (table, [local_cols])
+    for t in meta.sorted_tables:
+        for fk in t.foreign_key_constraints:
+            # fk.columns: local kolon(lar); fk.elements: remote eşleşmeler
+            for elem in fk.elements:
+                if elem.column.table.name == users_t.name and elem.column.name == 'id':
+                    local_cols = [c.name for c in fk.columns]  # genelde 1 kolon
+                    refs.append((t, local_cols))
+                    break
+
+    total_deleted = 0
+
+    # 1) FK ile bağlı çocukları (ve onların çocuklarını) defalarca geçerek sil
+    changed = True
+    while changed:
+        changed = False
+        for (t, local_cols) in refs:
+            if len(local_cols) != 1:
+                continue  # composite FK varsa atla (genelde yoktur)
+            col = getattr(t.c, local_cols[0])
+            res = db.session.execute(t.delete().where(col == user_id))
+            rc = res.rowcount or 0
+            if rc > 0:
+                total_deleted += rc
+                changed = True
+                print(f"[FORCE-DEL] {t.name}: {rc} satır silindi")
+
+    # 2) FK tanımlamamış ama user_id kolonlu tablolar varsa, ekstra süpür (opsiyonel)
+    for t in meta.sorted_tables:
+        if t.name != users_t.name and 'user_id' in t.c:
+            res = db.session.execute(t.delete().where(t.c.user_id == user_id))
+            rc = res.rowcount or 0
+            if rc > 0:
+                total_deleted += rc
+                print(f"[FORCE-DEL] {t.name} (user_id kolonu): {rc} satır silindi")
+
+    # 3) En sonda kullanıcıyı sil
+    res = db.session.execute(users_t.delete().where(users_t.c.id == user_id))
+    rc = res.rowcount or 0
+    total_deleted += rc
+    print(f"[FORCE-DEL] users: {rc} satır silindi")
+
+    db.session.commit()
+    return total_deleted
+
 # --- SMTP AYARLARI (mail ile ilgili) ---
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
@@ -297,7 +478,7 @@ SMTP_ADDR = "kuzenlertv6996@gmail.com"
 SMTP_PASS = "nurkqldoqcaefqwk"
 def send_verification_mail(email, code):
     subject = "Kayıt Doğrulama Kodunuz"
-    body = f"Merhaba,\n\nKayıt işlemini tamamlamak için doğrulama kodunuz: {code}\n\nİnsprov.uk Ekibi"
+    body = f"Merhaba,\n\nKayıt işlemini tamamlamak için doğrulama kodunuz: {code}\n\nbaybayim.com Ekibi"
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
     msg["From"] = SMTP_ADDR
@@ -928,11 +1109,11 @@ HTML_USERS = """
                 <td>{{ rolu_turkce(usr.role) }}</td>
                 <td>{{ usr.balance }}</td>
                 <td>
-                  {% if usr.username != current_user %}
-                    <a href="{{ url_for('delete_user', user_id=usr.id) }}" class="btn btn-danger btn-sm">Sil</a>
-                  {% else %}
-                    <span class="text-muted">–</span>
-                  {% endif %}
+<a href="{{ url_for('admin_force_delete_user', user_id=usr.id) }}"
+   class="btn btn-danger btn-sm"
+   onclick="return confirm('“{{ usr.username }}” ve bağlı TÜM veriler KALICI olarak silinsin mi? Bu işlem geri alınamaz!');">
+   Kalıcı Sil
+</a>
                 </td>
               </tr>
             {% endfor %}
@@ -2432,98 +2613,60 @@ HTML_TICKETS = """
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Destek Taleplerim</title>
+  <title>{{ 'Tüm Destek Talepleri' if is_admin else 'Destek Taleplerim' }}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
-      background-size: 400% 400%;
-      animation: gradientBG 12s ease infinite;
-      color: #fff;
-      overflow: hidden;
-      position: relative;
-    }
-    @keyframes gradientBG {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
-    .card {
-      background-color: rgba(0, 0, 0, 0.7);
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      z-index: 2;
-      position: relative;
-    }
-    .form-control, .form-select, textarea {
-      background-color: #1e1e1e;
-      border-color: #444;
-      color: #fff;
-    }
-    .form-control:focus, .form-select:focus, textarea:focus {
-      background-color: #1e1e1e;
-      border-color: #2186eb;
-      color: #fff;
-      box-shadow: none;
-    }
-    .form-control::placeholder,
-    textarea::placeholder {
-      color: #bbb;
-    }
-    .table-dark { background-color: #1f1f1f; }
-    .table-dark th, .table-dark td { color: #e6e6e6; }
-    .badge.bg-warning.text-dark { color: #000 !important; }
-    h3, h5 { color: #61dafb; text-shadow: 0 2px 12px rgba(0,0,0,0.4); }
-    a { color: #8db4ff; }
-    a:hover { color: #fff; text-decoration: underline; }
-
-    /* Pagination - koyu tema */
+    body{margin:0;min-height:100vh;background:linear-gradient(-45deg,#121212,#1e1e1e,#212121,#000);background-size:400% 400%;animation:gradientBG 12s ease infinite;color:#fff;overflow:hidden;position:relative}
+    @keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .card{background-color:rgba(0,0,0,.7);border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:2;position:relative}
+    .form-control,.form-select,textarea{background-color:#1e1e1e;border-color:#444;color:#fff}
+    .form-control:focus,.form-select:focus,textarea:focus{background-color:#1e1e1e;border-color:#2186eb;color:#fff;box-shadow:none}
+    .form-control::placeholder,textarea::placeholder{color:#bbb}
+    .table-dark{background-color:#1f1f1f}.table-dark th,.table-dark td{color:#e6e6e6}
+    .badge.bg-warning.text-dark{color:#000!important}
+    h3,h5{color:#61dafb;text-shadow:0 2px 12px rgba(0,0,0,.4)}
+    a{color:#8db4ff}a:hover{color:#fff;text-decoration:underline}
     .pagination .page-link{background:#1e1e1e;border-color:#444;color:#e6e6e6}
     .pagination .page-link:hover{background:#2a2a2a;color:#fff}
     .pagination .page-item.active .page-link{background:#0ea5e9;border-color:#0ea5e9;color:#fff}
     .pagination .page-item.disabled .page-link{background:#141414;color:#777;border-color:#333}
 
-    /* -- Sosyal medya hareketli arka plan -- */
-    .animated-social-bg { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; overflow: hidden; user-select: none; }
-    .bg-icon { position: absolute; width: 48px; opacity: 0.13; filter: blur(0.2px) drop-shadow(0 4px 24px #0008); animation-duration: 18s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; user-select: none; }
-    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
-    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
-    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
-    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
-    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
-    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
-    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
-    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
-    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
-    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
-    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
-    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
-    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
-    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
-    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
-    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
-    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
-    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
-    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
-    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
-    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
-    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
-    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
-    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
-    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
-    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
-    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
-    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
-    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
-    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
-    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
-    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
-    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
-    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
-    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
-    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+    /* Arka plan ikonları */
+    .animated-social-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden;user-select:none}
+    .bg-icon{position:absolute;width:48px;opacity:.13;filter:blur(.2px) drop-shadow(0 4px 24px #0008);animation-duration:18s;animation-iteration-count:infinite;animation-timing-function:ease-in-out;user-select:none}
+    .icon1{left:10vw;top:13vh;animation-name:float1}.icon2{left:72vw;top:22vh;animation-name:float2}.icon3{left:23vw;top:67vh;animation-name:float3}.icon4{left:70vw;top:75vh;animation-name:float4}.icon5{left:48vw;top:45vh;animation-name:float5}.icon6{left:81vw;top:15vh;animation-name:float6}.icon7{left:17vw;top:40vh;animation-name:float7}.icon8{left:61vw;top:55vh;animation-name:float8}.icon9{left:33vw;top:24vh;animation-name:float9}.icon10{left:57vw;top:32vh;animation-name:float10}.icon11{left:80vw;top:80vh;animation-name:float11}.icon12{left:8vw;top:76vh;animation-name:float12}.icon13{left:19vw;top:22vh;animation-name:float13}.icon14{left:38vw;top:18vh;animation-name:float14}.icon15{left:27vw;top:80vh;animation-name:float15}.icon16{left:45vw;top:82vh;animation-name:float16}.icon17{left:88vw;top:55vh;animation-name:float17}.icon18{left:89vw;top:28vh;animation-name:float18}
+    @keyframes float1{0%{transform:translateY(0)}50%{transform:translateY(-34px) scale(1.09)}100%{transform:translateY(0)}}
+    @keyframes float2{0%{transform:translateY(0)}50%{transform:translateY(20px) scale(.97)}100%{transform:translateY(0)}}
+    @keyframes float3{0%{transform:translateY(0)}50%{transform:translateY(-27px) scale(1.05)}100%{transform:translateY(0)}}
+    @keyframes float4{0%{transform:translateY(0)}50%{transform:translateY(-20px) scale(.95)}100%{transform:translateY(0)}}
+    @keyframes float5{0%{transform:translateY(0)}50%{transform:translateY(21px) scale(1.02)}100%{transform:translateY(0)}}
+    @keyframes float6{0%{transform:translateY(0)}50%{transform:translateY(-16px) scale(1.05)}100%{transform:translateY(0)}}
+    @keyframes float7{0%{transform:translateY(0)}50%{transform:translateY(18px) scale(.98)}100%{transform:translateY(0)}}
+    @keyframes float8{0%{transform:translateY(0)}50%{transform:translateY(-14px) scale(1.04)}100%{transform:translateY(0)}}
+    @keyframes float9{0%{transform:translateY(0)}50%{transform:translateY(24px) scale(1.06)}100%{transform:translateY(0)}}
+    @keyframes float10{0%{transform:translateY(0)}50%{transform:translateY(-22px) scale(1.01)}100%{transform:translateY(0)}}
+    @keyframes float11{0%{transform:translateY(0)}50%{transform:translateY(15px) scale(1.06)}100%{transform:translateY(0)}}
+    @keyframes float12{0%{transform:translateY(0)}50%{transform:translateY(-18px) scale(1.03)}100%{transform:translateY(0)}}
+    @keyframes float13{0%{transform:translateY(0)}50%{transform:translateY(24px) scale(1.04)}100%{transform:translateY(0)}}
+    @keyframes float14{0%{transform:translateY(0)}50%{transform:translateY(-20px) scale(1.07)}100%{transform:translateY(0)}}
+    @keyframes float15{0%{transform:translateY(0)}50%{transform:translateY(11px) scale(.94)}100%{transform:translateY(0)}}
+    @keyframes float16{0%{transform:translateY(0)}50%{transform:translateY(-19px) scale(1.03)}100%{transform:translateY(0)}}
+    @keyframes float17{0%{transform:translateY(0)}50%{transform:translateY(16px) scale(1.01)}100%{transform:translateY(0)}}
+    @keyframes float18{0%{transform:translateY(0)}50%{transform:translateY(-25px) scale(1.05)}100%{transform:translateY(0)}}
+
+    /* --- Tablo iyileştirmeleri --- */
+    .table-fixed{table-layout:fixed;width:100%}
+    .table-fixed th,.table-fixed td{white-space:normal;overflow-wrap:anywhere;vertical-align:middle}
+    .table-wrap{overflow-x:hidden} /* yatay kaydırma çubuğunu gizle */
+    .col-actions{width:320px}
+    .action-cell{display:flex;align-items:center;justify-content:center;gap:.5rem;flex-wrap:wrap}
+    .action-group{max-width:240px}
+    .action-input{max-width:160px}
+    .btn-pill{border-radius:9999px}
+    .btn-soft-danger{background:rgba(220,53,69,.12);border:1px solid rgba(220,53,69,.35);color:#ff7b86}
+    .btn-soft-danger:hover{background:rgba(220,53,69,.2);color:#fff}
+    .btn-soft-success{background:rgba(25,135,84,.12);border:1px solid rgba(25,135,84,.35);color:#63e6be}
+    .btn-soft-success:hover{background:rgba(25,135,84,.2);color:#fff}
   </style>
 </head>
 <body class="text-light">
@@ -2548,35 +2691,50 @@ HTML_TICKETS = """
     <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
     <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
   </div>
+
   <div class="container py-4">
-    <div class="card p-4 mx-auto" style="max-width:800px;">
-      <h3 class="mb-4 text-center">Destek & Canlı Yardım</h3>
+    <div class="card p-4 mx-auto" style="max-width:1000px;">
+      <h3 class="mb-4 text-center">{{ 'Tüm Destek Talepleri' if is_admin else 'Destek & Canlı Yardım' }}</h3>
+
+      {% if not is_admin %}
       <form method="post" class="mb-4">
-        <div class="mb-2">
-          <input name="subject" class="form-control" placeholder="Konu" required>
-        </div>
-        <div class="mb-2">
-          <textarea name="message" class="form-control" placeholder="Mesajınız" rows="3" required></textarea>
-        </div>
+        <div class="mb-2"><input name="subject" class="form-control" placeholder="Konu" required></div>
+        <div class="mb-2"><textarea name="message" class="form-control" placeholder="Mesajınız" rows="3" required></textarea></div>
         <button class="btn btn-primary w-100">Gönder</button>
       </form>
+      {% endif %}
 
-      <h5 class="mt-4">Geçmiş Talepleriniz</h5>
-      <div class="table-responsive">
-        <table class="table table-dark table-bordered table-sm text-center align-middle">
+      <h5 class="mt-4">{{ 'Tüm Talepler' if is_admin else 'Geçmiş Talepleriniz' }}</h5>
+      <div class="table-responsive table-wrap">
+        <table class="table table-dark table-bordered table-sm text-center align-middle table-fixed">
           <thead>
             <tr>
               <th>Konu</th>
+              {% if is_admin %}<th>Kullanıcı</th>{% endif %}
               <th>Mesaj</th>
               <th>Tarih</th>
               <th>Durum</th>
               <th>Yanıt</th>
+              {% if is_admin %}<th class="col-actions">İşlem</th>{% endif %}
             </tr>
           </thead>
           <tbody>
           {% for t in tickets %}
             <tr>
               <td>{{ t.subject }}</td>
+
+              {% if is_admin %}
+              <td>
+                {% if t.user and t.user.username %}
+                  {{ t.user.username }}
+                {% elif t.username %}
+                  {{ t.username }}
+                {% else %}
+                  {{ t.user_id }}
+                {% endif %}
+              </td>
+              {% endif %}
+
               <td>{{ t.message }}</td>
               <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
               <td>
@@ -2587,13 +2745,27 @@ HTML_TICKETS = """
                 {% endif %}
               </td>
               <td>{{ t.response or "-" }}</td>
+
+              {% if is_admin %}
+              <td class="action-cell">
+                <form action="{{ url_for('admin_ticket_reply', ticket_id=t.id) }}" method="post" class="d-inline-flex action-group">
+                  <input type="hidden" name="next" value="{{ request.full_path }}">
+                  <input name="response" class="form-control form-control-sm action-input" placeholder="Yanıt..." required>
+                  <button class="btn btn-soft-success btn-sm btn-pill" title="Yanıtla">✔ Yanıtla</button>
+                </form>
+                <a href="{{ url_for('admin_ticket_delete', ticket_id=t.id) }}"
+                   class="btn btn-soft-danger btn-sm btn-pill"
+                   onclick="return confirm('Ticket #{{ t.id }} silinsin mi? Bu işlem geri alınamaz.');">
+                  ✖ Sil
+                </a>
+              </td>
+              {% endif %}
             </tr>
           {% endfor %}
           </tbody>
         </table>
       </div>
 
-      {# --- PAGINATION --- #}
       {% if total_pages > 1 %}
       <nav aria-label="Sayfalar" class="mt-2">
         <ul class="pagination justify-content-center">
@@ -3664,26 +3836,6 @@ def manage_users():
         start_index=(page - 1) * per_page
     )
 
-@app.route("/users/delete/<int:user_id>")
-@admin_required
-def delete_user(user_id):
-    user = User.query.get_or_404(user_id)
-    
-    # Admin kendi kendini silmeye çalışmasın
-    if user.id == session.get("user_id"):
-        flash("Kendi hesabınızı silemezsiniz!")
-        return redirect(url_for("manage_users"))
-
-    try:
-        db.session.delete(user)
-        db.session.commit()
-        flash("Kullanıcı başarıyla silindi.")
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Hata oluştu: {str(e)}")
-
-    return redirect(url_for("manage_users"))
-
 @app.route("/admin/add-balance", methods=["POST"])
 @login_required
 @admin_required
@@ -3923,20 +4075,46 @@ def tickets():
         total_pages=total_pages
     )
 
-@app.route("/admin/tickets", methods=["GET", "POST"])
-@login_required
+# --- Admin: Ticket listesi ---
+@app.route("/admin/tickets")
 @admin_required
 def admin_tickets():
-    if request.method == "POST":
-        ticket_id = int(request.form.get("ticket_id"))
-        response = request.form.get("response", "").strip()
-        ticket = Ticket.query.get(ticket_id)
-        if ticket and ticket.status == "open" and response:
-            ticket.response = response
-            ticket.status = "closed"
-            db.session.commit()
-    tickets = Ticket.query.order_by(Ticket.created_at.desc()).all()
-    return render_template_string(HTML_ADMIN_TICKETS, tickets=tickets)
+    page = int(request.args.get("page", 1))
+    per_page = 50
+    pagination = Ticket.query.order_by(Ticket.id.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    tickets = pagination.items
+    total_pages = pagination.pages or 1
+
+    # user_id -> username sözlüğü (kullanıcı adını yazdırmak için)
+    users_map = {u.id: u.username for u in User.query.with_entities(User.id, User.username).all()}
+
+    return render_template_string(
+        HTML_TICKETS,
+        tickets=tickets,
+        page=page,
+        total_pages=total_pages,
+        is_admin=True,              # <-- BUNU GÖNDER!
+        users_map=users_map,
+    )
+
+# --- Admin: Ticket sil ---
+@app.route("/admin/tickets/delete/<int:ticket_id>", methods=["GET"], endpoint="admin_ticket_delete")
+@admin_required
+def admin_ticket_delete(ticket_id):
+    t = db.session.get(Ticket, ticket_id)
+    if not t:
+        flash("Ticket bulunamadı.", "warning")
+        return redirect(request.referrer or url_for("admin_tickets"))
+    try:
+        db.session.delete(t)
+        db.session.commit()
+        flash("Ticket silindi.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Silme hatası: {e}", "danger")
+    return redirect(request.referrer or url_for("admin_tickets"))
 
 @app.route("/services", methods=["GET", "POST"])
 @login_required
@@ -4242,51 +4420,139 @@ def order_complete(order_id):
     flash("Sipariş manuel tamamlandı.", "success")
     return redirect(url_for("orders_page"))
 
+from sqlalchemy.exc import IntegrityError
+
+# panel.py
+@app.route('/admin/users/force-delete/<int:user_id>', methods=['GET'], endpoint='admin_force_delete_user')
+@admin_required
+def admin_force_delete_user(user_id):
+    # İstersen kendi kendini silmeyi engelle
+    if session.get("user_id") == user_id:
+        flash("Kendi hesabını silemezsin.", "warning")
+        return redirect(url_for('manage_users'))
+
+    # Varsa yoksa diye hafif kontrol
+    u = db.session.get(User, user_id)
+    if not u:
+        flash("Kullanıcı bulunamadı ya da zaten silinmiş.", "info")
+        return redirect(url_for('manage_users'))
+
+    try:
+        deleted = force_delete_user_by_fk(user_id)
+        if deleted > 0:
+            flash("Kullanıcı ve tüm bağlı verileri KÖKÜNDEN silindi.", "success")
+        else:
+            flash("Hiçbir şey silinmedi (kullanıcı bulunamadı).", "warning")
+    except Exception as e:
+        db.session.rollback()
+        print("[FORCE-DEL][HATA]", e)
+        flash(f"Silme hatası: {e}", "danger")
+    return redirect(url_for('manage_users'))
+
 @app.route('/order/cancel/<int:order_id>', methods=['POST'])
 @login_required
+@admin_required
 def order_cancel(order_id):
-    user = User.query.get(session.get("user_id"))
-    # Sadece admin iptal edebilir:
-    if not user or user.role != "admin":
-        abort(403)
-
     order = Order.query.get(order_id)
     if not order:
         flash("Sipariş bulunamadı.", "danger")
         return redirect(url_for("orders_page"))
 
-    # Eğer sipariş zaten iptal edilmişse, tekrar iade etme!
-    if order.status == "cancelled":
-        flash("Sipariş zaten iptal edilmiş.", "warning")
+    # Daha önce iade yazılmış mı? (idempotent koruması)
+    already_refunded = WalletTransaction.query.filter_by(order_id=order.id, type='refund').first() is not None
+
+    if order.status in ("canceled", "cancelled") and already_refunded:
+        flash("Sipariş zaten iptal/iade edilmiş.", "warning")
         return redirect(url_for("orders_page"))
 
-    target_user = User.query.get(order.user_id)
-    if not target_user:
-        flash("Müşteri bulunamadı.", "danger")
-        return redirect(url_for("orders_page"))
+    try:
+        # Durumu iptal’e çek
+        order.status = "canceled"
+        db.session.flush()
 
-    # Siparişi iptal et ve bakiyeyi iade et
-    order.status = "cancelled"
-    order.error = None
-    target_user.balance += order.total_price   # --- BAKİYE İADE!
+        # İade daha önce yazılmadıysa şimdi yaz
+        did_refund = False
+        if not already_refunded:
+            did_refund = apply_refund(order_id=order.id, amount=order.total_price)
 
-    db.session.commit()
-    flash("Sipariş iptal edildi ve bakiye iade edildi.", "success")
+        db.session.commit()
+
+        if did_refund:
+            flash("Sipariş iptal edildi ve bakiye iade edildi.", "success")
+        else:
+            flash("Sipariş iptal edildi (iade daha önce işlenmiş).", "info")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"İşlem başarısız: {e}", "danger")
+
     return redirect(url_for("orders_page"))
 
 @app.route('/api/order_status', methods=['POST'])
+@login_required
+@admin_required
 def api_order_status():
-    if not (session.get("user_id") and User.query.get(session["user_id"]).role == "admin"):
-        return {"success": False, "error": "Yetkisiz işlem"}
-    data = request.get_json()
-    order = Order.query.get(data.get("order_id"))
+    data = request.get_json(force=True, silent=True) or {}
+
+    order_id = data.get("order_id")
+    if not order_id:
+        return {"success": False, "error": "order_id zorunlu"}
+
+    order = Order.query.get(order_id)
     if not order:
         return {"success": False, "error": "Sipariş bulunamadı"}
-    if data.get("status") not in ["pending", "started", "complete", "cancelled"]:
+
+    status_in = (data.get("status") or "").lower().strip()
+
+    # Gelen durumları normalize et
+    normalize = {
+        "complete":   "completed",
+        "completed":  "completed",
+        "cancel":     "canceled",
+        "canceled":   "canceled",
+        "cancelled":  "canceled",
+        "pending":    "pending",
+        "started":    "started",
+        "processing": "started",
+        "partial":    "partial",
+        "refunded":   "canceled",  # “refunded” → bizde canceled + refund olarak işlenir
+    }
+    status = normalize.get(status_in)
+    if not status:
         return {"success": False, "error": "Geçersiz durum"}
-    order.status = data.get("status")
-    db.session.commit()
-    return {"success": True}
+
+    try:
+        order.status = status
+        db.session.flush()
+
+        # İade gereken durumlar: canceled/cancelled/refunded/partial
+        if status in ("canceled", "partial"):
+            # Sağlayıcıdan gelen opsiyonel iade tutarı:
+            refund_amount = (
+                data.get("refunded_amount") or
+                data.get("refund_amount") or
+                data.get("refund")
+            )
+            if refund_amount is not None:
+                try:
+                    refund_amount = float(refund_amount)
+                except Exception:
+                    refund_amount = None
+
+            # CANCELED ise sağlayıcı tutar vermediyse full iade yap
+            if refund_amount is None and status == "canceled":
+                refund_amount = float(order.total_price or 0)
+
+            # PARTIAL’da tutar gelmediyse iade yazma (sağlayıcı ne kadar iade ettiğini söylemeli)
+            if refund_amount and refund_amount > 0:
+                apply_refund(order_id=order.id, amount=refund_amount)
+
+        db.session.commit()
+        return {"success": True, "order_id": order.id, "status": order.status}
+
+    except Exception as e:
+        db.session.rollback()
+        return {"success": False, "error": str(e)}
 
 @app.route("/reset-registration", methods=["POST"])
 def reset_registration():
@@ -4316,6 +4582,19 @@ def fetch_resellersmm_status(api_order_id):
     except Exception as e:
         print(f"Status API Hatası: {e}")
         return {}
+
+@app.route("/admin/tickets/reply/<int:ticket_id>", methods=["POST"], endpoint="admin_ticket_reply")
+@admin_required
+def admin_ticket_reply(ticket_id):
+    t = db.session.get(Ticket, ticket_id)
+    if not t:
+        flash("Ticket bulunamadı.", "warning")
+        return redirect(url_for("admin_tickets"))
+    t.response = request.form.get("response", "").strip()
+    t.status = request.form.get("status", "answered")
+    db.session.commit()
+    flash("Yanıt kaydedildi.", "success")
+    return redirect(request.referrer or url_for("admin_tickets"))
 
 @app.route("/orders/bulk_delete", methods=["POST"])
 @login_required
