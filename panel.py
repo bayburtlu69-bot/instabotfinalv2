@@ -478,7 +478,7 @@ HTML_LOGIN = """
 <html lang="tr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Baybayim - Sosyal Medya Hizmetleri</title>
   <meta name="description" content="Baybayim ile Instagram, TikTok, YouTube gibi tüm platformlara hızlı ve güvenilir sosyal medya hizmetleri. Hemen kaydol, avantajları kaçırma!">
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
@@ -499,6 +499,9 @@ HTML_LOGIN = """
   <meta name="twitter:image" content="https://baybayim.com/static/logo.png"> <!-- LOGO YOLUNU KENDİNE GÖRE AYARLA -->
   <!-- <meta name="twitter:site" content="@baybayim"> -->
   <style>
+    /* ----- Mobil iyileştirme: metin ölçeği ----- */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
       height: 100vh;
@@ -509,6 +512,11 @@ HTML_LOGIN = """
       overflow: hidden;
       position: relative;
     }
+    @supports (height: 100dvh) {
+      /* Mobil tarayıcılarda toolbar dalgalanmasına karşı daha sağlam yükseklik */
+      body { min-height: 100dvh; height: auto; }
+    }
+
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
@@ -627,6 +635,37 @@ HTML_LOGIN = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      /* Taşmayı engelle, güvenli alan ver, klavye açılınca kaydırılsın */
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+      }
+      /* Dikey ortalama yerine yukarıdan başla (klavye çakışmasını azaltır) */
+      body.d-flex { align-items: flex-start !important; }
+
+      /* iPhone SE (320px) dahil tüm küçük ekranlarda kartı sığdır */
+      .card {
+        width: 100%;
+        max-width: 420px;
+        min-width: 0 !important; /* inline min-width:340px'i geçersiz kıl */
+        margin: 10vh auto 0;
+      }
+
+      /* Başlık telefonda daha akışkan */
+      .modern-title { font-size: clamp(1.6rem, 8vw, 2.2rem); }
+
+      /* Arka plan ikonları biraz küçülsün */
+      .bg-icon { width: 36px; opacity: 0.12; }
+    }
+
+    /* Çok kısa ekranlarda (küçük yükseklik) üst boşluğu azalt */
+    @media (max-height: 640px) and (orientation: portrait) {
+      .card { margin-top: 24px; }
+    }
   </style>
 </head>
 <body class="d-flex justify-content-center align-items-center">
@@ -689,10 +728,13 @@ HTML_REGISTER = """
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Kayıt Ol</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    /* Mobil metin ölçekleme */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
       height: 100vh;
@@ -703,6 +745,11 @@ HTML_REGISTER = """
       overflow: hidden;
       position: relative;
     }
+    @supports (height: 100dvh) {
+      /* Mobil toolbar dalgalanmasına dayanıklı yükseklik */
+      body { min-height: 100dvh; height: auto; }
+    }
+
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
@@ -846,6 +893,38 @@ HTML_REGISTER = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      /* Taşma önle + güvenli alan */
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+      }
+      /* Klavye açılınca üstten başlasın, çakışma olmasın */
+      body.d-flex { align-items: flex-start !important; }
+
+      /* Kart küçük ekranlara sığsın (min-width inline override) */
+      .card {
+        width: 100%;
+        max-width: 420px;
+        min-width: 0 !important;
+        margin: 8vh auto 0;
+      }
+
+      /* Başlıklar telefonda akışkan boyut */
+      .modern-title,
+      .modern-title-register { font-size: clamp(1.6rem, 8vw, 2.2rem); }
+
+      /* Arka plan ikonlarını küçült */
+      .bg-icon { width: 36px; opacity: 0.12; }
+    }
+
+    /* Çok kısa ekranlarda üst boşluğu kıs */
+    @media (max-height: 640px) and (orientation: portrait) {
+      .card { margin-top: 24px; }
+    }
   </style>
 </head>
 <body class="d-flex justify-content-center align-items-center">
@@ -928,10 +1007,13 @@ HTML_USERS = """
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Kullanıcı Yönetimi</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    /* Mobilde metin ölçekleme tutarlı olsun */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -942,6 +1024,11 @@ HTML_USERS = """
       overflow: hidden;
       position: relative;
     }
+    @supports (height: 100dvh) {
+      /* Mobil toolbar dalgalanmasına karşı daha stabil yükseklik */
+      body { min-height: 100dvh; }
+    }
+
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
@@ -973,6 +1060,9 @@ HTML_USERS = """
 
     .table-dark { background-color: #2c2c2c; }
     .table-dark th, .table-dark td { color: #eee; }
+
+    /* Uzun içerikler telefonda taşmasın */
+    table.table th, table.table td { word-break: break-word; }
 
     a { color: #8db4ff; }
     a:hover { color: #fff; text-decoration: underline; }
@@ -1031,6 +1121,41 @@ HTML_USERS = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      /* Scroll kilidini kaldır + notch güvenli alan ver */
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+      }
+
+      /* Kartı küçük ekranlarda nefes aldır */
+      .container { padding-left: 0; padding-right: 0; }
+      .card { border-radius: 16px; margin-top: 10vh; }
+
+      /* Üst form ve 'Bakiye Ekle' formları: kolonlar alt alta gelsin */
+      .card form.row.g-2 > .col,
+      .card form.row.g-2 > [class^="col-"]:not(.col-auto) {
+        flex: 0 0 100%;
+        max-width: 100%;
+      }
+      .card form.row.g-2 .btn { width: 100%; }
+
+      /* Tablo daha rahat aksın */
+      .table-responsive { margin: 0 -6px; padding-bottom: 6px; }
+      .table-dark th, .table-dark td { font-size: 0.92rem; }
+      .pagination .page-link { padding: .5rem .65rem; }
+
+      /* Arka plan ikonlarını küçült */
+      .bg-icon { width: 36px; opacity: 0.12; }
+    }
+
+    /* Çok kısa ekranlarda üst boşluğu azalt */
+    @media (max-height: 640px) and (orientation: portrait) {
+      .card { margin-top: 24px; }
+    }
   </style>
 </head>
 <body class="text-light">
@@ -1153,10 +1278,13 @@ HTML_SERVICES_MANAGE = """
 <html lang="tr">
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Servisleri Yönet</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
+    /* Mobil metin ölçekleme tutarlılığı */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -1167,6 +1295,11 @@ HTML_SERVICES_MANAGE = """
       overflow: hidden;
       position: relative;
     }
+    @supports (height: 100dvh) {
+      /* Mobil toolbar dalgalanmasına dayanıklı */
+      body { min-height: 100dvh; }
+    }
+
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
@@ -1198,25 +1331,17 @@ HTML_SERVICES_MANAGE = """
     .table-dark th, .table-dark td {
       color: #eee;
     }
-    .btn {
-      font-weight: 500;
-    }
-    a {
-      color: #8db4ff;
-    }
-    a:hover {
-      color: #fff;
-      text-decoration: underline;
-    }
+    /* Uzun içeriklerin taşmasını engelle */
+    table.table th, table.table td { word-break: break-word; }
+
+    .btn { font-weight: 500; }
+    a { color: #8db4ff; }
+    a:hover { color: #fff; text-decoration: underline; }
+
     input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-      appearance: textfield;
-    }
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
     /* -- Sosyal medya hareketli arka plan -- */
     .animated-social-bg {
       position: fixed;
@@ -1275,6 +1400,42 @@ HTML_SERVICES_MANAGE = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      /* Scroll aktif + notch güvenli alan */
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+      }
+
+      .container { padding-left: 0; padding-right: 0; }
+      .card { margin-top: 10vh; border-radius: 16px; }
+
+      /* Tabloyu kendi içinde yatay kaydırılabilir yap */
+      .card .table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap; /* sıkışmayı azalt */
+      }
+      .card .table thead th,
+      .card .table tbody td { white-space: nowrap; }
+
+      /* Input’lar ve dokunma hedefleri daha ferah */
+      .form-control-sm { padding: .7rem .9rem; font-size: 1rem; }
+      .btn { min-height: 44px; }
+
+      /* Arka plan ikonlarını küçült */
+      .bg-icon { width: 36px; opacity: 0.12; }
+    }
+
+    /* Kısa ekranlarda üst boşluğu azalt */
+    @media (max-height: 640px) and (orientation: portrait) {
+      .card { margin-top: 24px; }
+    }
   </style>
 </head>
 <body class="text-light">
@@ -1378,10 +1539,13 @@ HTML_BAKIYE_YUKLE = """
 <html lang="tr">
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Bakiye Yükle</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
+    /* Tutarlı mobil metin ölçekleme */
+    html { -webkit-text-size-adjust: 100%; }
+
     /* Sadece number inputlardaki okları kaldırır */
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
@@ -1402,6 +1566,11 @@ HTML_BAKIYE_YUKLE = """
       overflow: hidden;
       position: relative;
     }
+    @supports (height: 100dvh) {
+      /* Mobil toolbar dalgalanmasına dayanıklı yükseklik */
+      body { min-height: 100dvh; }
+    }
+
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
@@ -1545,6 +1714,32 @@ HTML_BAKIYE_YUKLE = """
       transform: scale(1.02);
       text-decoration: none;
     }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      /* Scroll aktif + notch güvenli alan */
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+      }
+      .container { padding-left: 0; padding-right: 0; }
+      .card { margin-top: 10vh; border-radius: 16px; }
+      .card .card-body { padding: 1.1rem; }
+
+      /* Başlık ve kontroller akışkan boyutta */
+      h3 { font-size: clamp(1.2rem, 6vw, 1.5rem); }
+      .form-control { min-height: 44px; font-size: 1rem; }
+      .btn-shopier { min-height: 44px; font-size: 1rem; }
+
+      /* Arka plan ikonlarını küçült */
+      .bg-icon { width: 36px; opacity: 0.12; }
+    }
+
+    /* Kısa ekranlarda üst boşluğu azalt */
+    @media (max-height: 640px) and (orientation: portrait) {
+      .card { margin-top: 24px; }
+    }
   </style>
 </head>
 <body>
@@ -1609,10 +1804,13 @@ HTML_SERVICES = """
 <html lang="tr">
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Servisler & Fiyat Listesi</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
+    /* Tutarlı mobil metin ölçekleme */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -1623,6 +1821,11 @@ HTML_SERVICES = """
       overflow: hidden;
       position: relative;
     }
+    @supports (height: 100dvh) {
+      /* Mobil toolbar dalgalanmasına dayanıklı yükseklik */
+      body { min-height: 100dvh; }
+    }
+
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
@@ -1746,6 +1949,51 @@ HTML_SERVICES = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      /* Scroll aktif + notch güvenli alan */
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+      }
+
+      .container { padding-left: 0; padding-right: 0; }
+      .card { margin-top: 10vh; border-radius: 16px; }
+      .card .card-body { padding: 1.1rem; }
+
+      /* Başlık ve arama satırı dikey stacksin */
+      .card .d-flex.justify-content-between { 
+        flex-direction: column; 
+        align-items: stretch !important; 
+        gap: .5rem; 
+      }
+      .card .d-flex.justify-content-between .d-flex { gap: .5rem; }
+      #search { width: 100%; min-height: 44px; font-size: 1rem; }
+      #editBtn { width: 100%; min-height: 44px; }
+
+      /* Tablo kendi içinde yatay kaydırılabilir olsun */
+      #tbl {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+      }
+      #tbl thead th, #tbl tbody td { white-space: nowrap; }
+
+      /* Arka plan ikonlarını küçült */
+      .bg-icon { width: 36px; opacity: 0.12; }
+      
+      /* H3 akışkan boyut */
+      h3 { font-size: clamp(1.2rem, 6vw, 1.5rem); }
+    }
+
+    /* Kısa ekranlarda üst boşluğu azalt */
+    @media (max-height: 640px) and (orientation: portrait) {
+      .card { margin-top: 24px; }
+    }
   </style>
 </head>
 <body>
@@ -1895,10 +2143,13 @@ HTML_ADMIN_TICKETS = """
 <html lang="tr">
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Ticket Yönetimi (Admin)</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    /* Tutarlı mobil metin ölçekleme */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -1908,6 +2159,10 @@ HTML_ADMIN_TICKETS = """
       color: #fff;
       overflow: hidden;
       position: relative;
+    }
+    @supports (height: 100dvh) {
+      /* Mobil toolbar dalgalanmasına dayanıklı yükseklik */
+      body { min-height: 100dvh; }
     }
 
     @keyframes gradientBG {
@@ -1938,26 +2193,14 @@ HTML_ADMIN_TICKETS = """
       box-shadow: none;
     }
 
-    .form-control::placeholder {
-      color: #aaa;
-    }
+    .form-control::placeholder { color: #aaa; }
 
-    .table-dark {
-      background-color: #1f1f1f;
-    }
+    .table-dark { background-color: #1f1f1f; }
+    .table-dark td, .table-dark th { color: #e6e6e6; }
 
-    .table-dark td, .table-dark th {
-      color: #e6e6e6;
-    }
+    .btn-success, .btn-secondary { font-weight: 500; }
+    .text-muted { color: #bbb !important; }
 
-    .btn-success,
-    .btn-secondary {
-      font-weight: 500;
-    }
-
-    .text-muted {
-      color: #bbb !important;
-    }
     /* -- Sosyal medya hareketli arka plan -- */
     .animated-social-bg {
       position: fixed;
@@ -2016,6 +2259,55 @@ HTML_ADMIN_TICKETS = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      /* Scroll aktif + notch güvenli alan */
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+      }
+      .container { padding-left: 0; padding-right: 0; }
+      .card { margin-top: 10vh; border-radius: 16px; }
+
+      /* Tabloyu yatay kaydırılabilir yap */
+      .card .table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .card .table thead th,
+      .card .table tbody td { white-space: nowrap; }
+
+      /* Uzun metinler sarılsın: Konu(4), Mesaj(5), Yanıt(7) */
+      .card .table th:nth-child(4),
+      .card .table td:nth-child(4),
+      .card .table th:nth-child(5),
+      .card .table td:nth-child(5),
+      .card .table th:nth-child(7),
+      .card .table td:nth-child(7) {
+        white-space: normal;
+        word-break: break-word;
+        min-width: 220px; /* okunabilirlik */
+      }
+
+      /* Form elemanları ve butonlar rahat dokunulsun */
+      .form-control { min-height: 44px; font-size: 1rem; }
+      .btn { min-height: 44px; }
+
+      /* Başlık akışkan boyut */
+      h2 { font-size: clamp(1.25rem, 6vw, 1.75rem); }
+
+      /* Arka plan ikonlarını küçült */
+      .bg-icon { width: 36px; opacity: 0.12; }
+    }
+
+    /* Kısa ekranlarda üst boşluğu azalt */
+    @media (max-height: 640px) and (orientation: portrait) {
+      .card { margin-top: 24px; }
+    }
   </style>
 </head>
 <body>
@@ -2100,9 +2392,13 @@ HTML_EXTERNAL_MANAGE = """
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Dış Servis Seçimi</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
+    /* Tutarlı mobil metin ölçekleme */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -2113,11 +2409,16 @@ HTML_EXTERNAL_MANAGE = """
       overflow: hidden;
       position: relative;
     }
+    @supports (height: 100dvh) {
+      /* Mobil toolbar dalgalanmasına dayanıklı yükseklik */
+      body { min-height: 100dvh; }
+    }
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
       100% {background-position: 0% 50%;}
     }
+
     .card, .table {
       background-color: rgba(20, 20, 20, 0.9) !important;
       border-radius: 12px;
@@ -2136,40 +2437,21 @@ HTML_EXTERNAL_MANAGE = """
       color: #fff;
       box-shadow: none;
     }
-    .form-control::placeholder {
-      color: #aaa;
-    }
-    .table-dark {
-      background-color: #1f1f1f;
-    }
-    .table-dark td, .table-dark th {
-      color: #e6e6e6;
-    }
-    .btn {
-      font-weight: 500;
-    }
-    h3 {
-      color: #f8f9fa;
-    }
+    .form-control::placeholder { color: #aaa; }
+    .table-dark { background-color: #1f1f1f; }
+    .table-dark td, .table-dark th { color: #e6e6e6; }
+    .btn { font-weight: 500; }
+    h3 { color: #f8f9fa; }
+
     /* -- Sosyal medya hareketli arka plan -- */
     .animated-social-bg {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-      user-select: none;
+      position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0;
+      pointer-events: none; overflow: hidden; user-select: none;
     }
     .bg-icon {
-      position: absolute;
-      width: 48px;
-      opacity: 0.13;
+      position: absolute; width: 48px; opacity: 0.13;
       filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
-      animation-duration: 18s;
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-in-out;
+      animation-duration: 18s; animation-iteration-count: infinite; animation-timing-function: ease-in-out;
       user-select: none;
     }
     /* 18 farklı pozisyon ve animasyon */
@@ -2209,6 +2491,60 @@ HTML_EXTERNAL_MANAGE = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      /* Scroll aktif + notch güvenli alan */
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+      }
+      .container { padding-left: 0; padding-right: 0; }
+      .card { margin-top: 10vh; border-radius: 16px; }
+
+      /* Tablo kendi içinde yatay kaydırılabilir */
+      .card .table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+      }
+      .card .table thead th,
+      .card .table tbody td { white-space: nowrap; }
+
+      /* Servis adı okunabilir kalsın (wrap + min-width) */
+      .card .table th:nth-child(2),
+      .card .table td:nth-child(2) {
+        white-space: normal;
+        word-break: break-word;
+        min-width: 240px;
+      }
+
+      /* Checkbox ve butonlar rahat dokunulsun */
+      input[type="checkbox"] { width: 22px; height: 22px; }
+      .btn { min-height: 44px; }
+
+      /* Alt buton grubu stack */
+      .d-flex.justify-content-start.gap-2.mt-3 {
+        flex-direction: column;
+      }
+      .d-flex.justify-content-start.gap-2.mt-3 > * {
+        width: 100%;
+      }
+
+      /* Başlık akışkan boyut */
+      h3 { font-size: clamp(1.2rem, 6vw, 1.5rem); }
+
+      /* Arka plan ikonlarını küçült */
+      .bg-icon { width: 36px; opacity: 0.12; }
+    }
+
+    /* Kısa ekranlarda üst boşluğu azalt */
+    @media (max-height: 640px) and (orientation: portrait) {
+      .card { margin-top: 24px; }
+    }
   </style>
 </head>
 <body>
@@ -2270,9 +2606,13 @@ HTML_ORDERS_SIMPLE = """
 <head>
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Geçmiş Siparişler</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Tutarlı mobil metin ölçekleme */
+        html { -webkit-text-size-adjust: 100%; }
+
         body {
           margin: 0;
           min-height: 100vh;
@@ -2282,6 +2622,10 @@ HTML_ORDERS_SIMPLE = """
           color: #fff;
           overflow: hidden;
           position: relative;
+        }
+        @supports (height: 100dvh) {
+          /* Mobil toolbar dalgalanmasına dayanıklı yükseklik */
+          body { min-height: 100dvh; }
         }
         @keyframes gradientBG {
           0% {background-position: 0% 50%;}
@@ -2370,6 +2714,61 @@ HTML_ORDERS_SIMPLE = """
         @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
         @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
         @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+
+        /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+        @media (max-width: 575.98px) {
+          /* Scroll aktif + notch güvenli alan */
+          body {
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+          }
+
+          .container { padding-left: 0; padding-right: 0; margin-top: 40px; }
+
+          /* Kartı mobilde daha ferah yap + yatay kaydırma izni */
+          .orders-card {
+            padding: 16px;
+            border-radius: 16px;
+            overflow-x: auto; /* tabloda x-scroll */
+            -webkit-overflow-scrolling: touch;
+          }
+
+          /* Tabloyu kendi içinde yatay kaydırılabilir yap */
+          .orders-card .table {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+          }
+          .orders-card .table thead th,
+          .orders-card .table tbody td { white-space: nowrap; }
+
+          /* Hata vb. uzun metinlerin sarılacağı kolonlar (admin görünümünde 9. sütun) */
+          .orders-card .table th:nth-child(9),
+          .orders-card .table td:nth-child(9) {
+            white-space: normal;
+            word-break: break-word;
+            min-width: 220px;
+          }
+
+          /* Dokunma hedefleri */
+          .btn { min-height: 44px; }
+          .btn-sm { min-height: 40px; }
+          input[type="checkbox"] { width: 20px; height: 20px; }
+
+          /* Başlık akışkan boyut */
+          h1 { font-size: clamp(1.25rem, 6vw, 1.75rem); }
+
+          /* Arka plan ikonlarını küçült */
+          .bg-icon { width: 36px; opacity: 0.12; }
+        }
+
+        /* Kısa ekranlarda üst boşluğu azalt */
+        @media (max-height: 640px) and (orientation: portrait) {
+          .container { margin-top: 24px; }
+        }
     </style>
 </head>
 <body>
@@ -2557,14 +2956,14 @@ HTML_ORDERS_SIMPLE = """
     {% if role == 'admin' %}
     <script>
     // Tümünü Seç
-    document.getElementById('select-all-orders').addEventListener('change', function() {
+    document.getElementById('select-all-orders')?.addEventListener('change', function() {
         let checked = this.checked;
         document.querySelectorAll('input[name="order_ids"]').forEach(function(cb) {
             cb.checked = checked;
         });
     });
     // Form submitte seçili id'leri gizli input'a yaz
-    document.getElementById('bulk-delete-form').addEventListener('submit', function(e) {
+    document.getElementById('bulk-delete-form')?.addEventListener('submit', function(e) {
         let selected = [];
         document.querySelectorAll('input[name="order_ids"]:checked').forEach(function(cb) {
             selected.push(cb.value);
@@ -2588,11 +2987,15 @@ HTML_TICKETS = """
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{{ 'Tüm Destek Talepleri' if is_admin else 'Destek Taleplerim' }}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
+    /* Tutarlı mobil metin ölçekleme */
+    html { -webkit-text-size-adjust: 100%; }
+
     body{margin:0;min-height:100vh;background:linear-gradient(-45deg,#121212,#1e1e1e,#212121,#000);background-size:400% 400%;animation:gradientBG 12s ease infinite;color:#fff;overflow:hidden;position:relative}
+    @supports (height: 100dvh) { body{ min-height:100dvh; } }
     @keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     .card{background-color:rgba(0,0,0,.7);border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:2;position:relative}
     .form-control,.form-select,textarea{background-color:#1e1e1e;border-color:#444;color:#fff}
@@ -2633,7 +3036,7 @@ HTML_TICKETS = """
     /* --- Tablo iyileştirmeleri --- */
     .table-fixed{table-layout:fixed;width:100%}
     .table-fixed th,.table-fixed td{white-space:normal;overflow-wrap:anywhere;vertical-align:middle}
-    .table-wrap{overflow-x:hidden} /* yatay kaydırma çubuğunu gizle */
+    .table-wrap{overflow-x:hidden} /* varsayılan: yatay çubuğu gizle */
     .col-actions{width:320px}
     .action-cell{display:flex;align-items:center;justify-content:center;gap:.5rem;flex-wrap:wrap}
     .action-group{max-width:240px}
@@ -2643,6 +3046,51 @@ HTML_TICKETS = """
     .btn-soft-danger:hover{background:rgba(220,53,69,.2);color:#fff}
     .btn-soft-success{background:rgba(25,135,84,.12);border:1px solid rgba(25,135,84,.35);color:#63e6be}
     .btn-soft-success:hover{background:rgba(25,135,84,.2);color:#fff}
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      /* Scroll + notch-safe */
+      body{
+        overflow-x:hidden;
+        overflow-y:auto;
+        padding:16px 12px calc(16px + env(safe-area-inset-bottom));
+      }
+      .container{padding-left:0;padding-right:0}
+      .card{border-radius:16px}
+
+      /* Başlıklar akışkan boyut */
+      h3{font-size:clamp(1.2rem,6vw,1.5rem)}
+      h5{font-size:clamp(1rem,5.2vw,1.25rem)}
+
+      /* Tabloyu yatay kaydırılabilir yap */
+      .table-wrap{
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+      }
+      .table-fixed{
+        display:block;
+        width:100%;
+        min-width:720px; /* içerik rahat sığsın, x-scroll aktif olsun */
+      }
+
+      /* Admin aksiyon hücresi: dikey stack + tam genişlik input */
+      .action-cell{flex-direction:column;align-items:stretch;gap:.5rem}
+      .action-group{max-width:none;width:100%}
+      .action-input{max-width:none;width:100%}
+
+      /* Dokunma hedefleri */
+      .btn{min-height:44px}
+      .btn-sm{min-height:40px}
+      input,select,textarea{min-height:44px}
+
+      /* Arka plan ikonlarını küçült */
+      .bg-icon{width:36px;opacity:.12}
+    }
+
+    /* Kısa ekran portre */
+    @media (max-height:640px) and (orientation:portrait){
+      .card{margin-top:12px}
+    }
   </style>
 </head>
 <body class="text-light">
@@ -2794,15 +3242,21 @@ HTML_PANEL = """
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Sipariş Paneli</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    /* Tutarlı mobil metin ölçekleme + iOS zoom fix */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       background: #181c20 !important;
       color: #fff;
       font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    @supports (height: 100dvh) {
+      body { min-height: 100dvh; }
     }
     body::before {
       content: "";
@@ -2940,6 +3394,36 @@ HTML_PANEL = """
     #whatsapp-float:hover #whatsapp-float-text, #whatsapp-float:focus #whatsapp-float-text { opacity: 1; }
     @media (max-width:600px){ #whatsapp-float { right: 14px; bottom: 18px; width: 48px; height: 48px; } #whatsapp-float .bi-whatsapp { font-size: 1.34em; } #whatsapp-float-text { display: none; } }
     @keyframes whatsapp-float-pop { 0% {transform:scale(0.75) translateY(60px);} 70% {transform:scale(1.13) translateY(-12px);} 100% {transform:scale(1) translateY(0);} }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+      }
+      .container { padding-left: 0; padding-right: 0; }
+      .card.p-4 { padding: 16px !important; border-radius: 16px; }
+
+      /* Dokunma hedefleri ve iOS zoom önleme */
+      input, select, textarea { min-height: 44px; font-size: 16px; }
+      .btn, .btn-lg, .btn-sm { min-height: 44px; touch-action: manipulation; }
+
+      /* Açıklama kutusu küçük ekranda daha kompakt */
+      .alert.alert-secondary { min-height: unset; padding: 12px; font-size: .95rem; }
+
+      /* Arka plan ikonlarını küçült/soluklaştır */
+      .bg-icon { width: 34px; opacity: 0.10; }
+
+      /* WhatsApp butonu safe-area üstünde */
+      #whatsapp-float { right: 14px; bottom: calc(18px + env(safe-area-inset-bottom)); }
+    }
+
+    /* Kısa ekran (yüksekliği dar) portrelerde üst boşluğu azalt */
+    @media (max-height: 640px) and (orientation: portrait) {
+      .container { padding-top: 8px !important; }
+      .order-title-center { margin-top: 10px; margin-bottom: 10px; }
+    }
   </style>
 </head>
 <body>
@@ -3142,23 +3626,31 @@ HTML_ADS_MANAGE = """
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Reklam Videosu</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    /* iOS metin ölçek ve zoom davranışı için */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
       background-size: 400% 400%;
       animation: gradientBG 12s ease infinite;
       color: #fff;
     }
+    @supports (height: 100dvh) {
+      body { min-height: 100dvh; }
+    }
+
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
       100% {background-position: 0% 50%;}
     }
+
     /* --- Sosyal medya hareketli arka plan ikonları --- */
     .animated-social-bg {
       position: fixed;
@@ -3216,6 +3708,7 @@ HTML_ADS_MANAGE = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+
     .card {
       background: rgba(0,0,0,0.6);
       border-radius: 14px;
@@ -3239,6 +3732,23 @@ HTML_ADS_MANAGE = """
     }
     .btn-success, .btn-secondary {
       color: #fff;
+    }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
+    @media (max-width: 575.98px) {
+      body {
+        overflow-x: hidden;
+        padding: 12px 10px calc(16px + env(safe-area-inset-bottom));
+      }
+      .container { padding-left: 0; padding-right: 0; }
+      .card.p-4 { padding: 16px !important; border-radius: 16px; }
+
+      /* Dokunma hedefleri + iOS zoom fix */
+      input, select, textarea { min-height: 44px; font-size: 16px; }
+      .btn { min-height: 44px; touch-action: manipulation; }
+
+      /* Arka plan ikonlarını küçült ve soluklaştır */
+      .bg-icon { width: 34px; opacity: 0.10; }
     }
   </style>
 </head>
@@ -3296,11 +3806,14 @@ HTML_WATCH_ADS = """
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Reklam İzle – Bakiye Kazan</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    /* iOS metin ölçek & zoom davranışı */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -3308,7 +3821,12 @@ HTML_WATCH_ADS = """
       background-size: 400% 400%;
       animation: gradientBG 12s ease infinite;
       color: #fff;
+      overflow-x: hidden;
     }
+    @supports (height: 100dvh) {
+      body { min-height: 100dvh; }
+    }
+
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
@@ -3371,6 +3889,7 @@ HTML_WATCH_ADS = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+
     .ad-modern-card {
       max-width: 440px;
       margin: 64px auto;
@@ -3467,16 +3986,27 @@ HTML_WATCH_ADS = """
       border-color: #ffe58f;
       color: #ffecb5;
     }
+
+    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
     @media (max-width: 600px) {
+      body {
+        padding: 12px 10px calc(16px + env(safe-area-inset-bottom));
+      }
       .ad-modern-card {
         max-width: 95vw;
         padding: 20px 4vw;
         margin: 22px auto;
+        border-radius: 16px;
       }
       .ad-modern-video-frame video {
         height: 38vw;
         min-height: 145px;
       }
+      /* Dokunma hedefleri + iOS zoom fix */
+      .ad-modern-btn,
+      .modern-link-btn { min-height: 44px; font-size: 16px; }
+      /* Arka plan ikonlarını küçült ve soluklaştır */
+      .bg-icon { width: 34px; opacity: 0.10; }
     }
   </style>
 </head>
