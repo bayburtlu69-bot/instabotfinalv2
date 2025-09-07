@@ -69,7 +69,7 @@ def detect_platform(*parts: str) -> str:
 
 # --- Çekmek istediğimiz ResellersMM servis ID’leri ---
 
-EXT_SELECTED_IDS = [6896, 6897, 6898, 6899, 6900, 6911, 6901, 6909, 6910, 6904,]  # Seçili servisleri çek
+EXT_SELECTED_IDS = [6896, 6897, 6898, 6899, 6900, 6911, 6901, 6909, 6910, 6904, 6906, 6905,]  # Seçili servisleri çek
   # Örneğin sadece 1 ve 2 no’lu servisleri çek
 
 def fetch_selected_external_services():
