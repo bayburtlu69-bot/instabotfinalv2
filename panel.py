@@ -319,7 +319,11 @@ def _add_wallet_tx(user: User, amount: float, tx_type: str, order: Order | None 
     user.balance = float(user.balance or 0) + float(amount)
 
 def apply_refund(order_id: int, amount: float | None = None) -> bool:
-    """İdempotent refund: aynı order için refund varsa tekrar yazmaz; true=işledi, false=atlandı."""
+    """
+    İdempotent refund: Aynı order için ikinci kez 'refund' yazmaz.
+    amount=None ise sipariş toplamı kadar iade eder.
+    İç statü: 'canceled' (ekranda TR gösterilecek).
+    """
     order = Order.query.get(order_id)
     if not order:
         return False
@@ -327,47 +331,19 @@ def apply_refund(order_id: int, amount: float | None = None) -> bool:
     if not user:
         return False
 
-    # Zaten refund iğnesi var mı?
+    # Zaten refund var mı? (idempotent)
     exists = WalletTransaction.query.filter_by(order_id=order.id, type='refund').first()
     if exists:
-        return False  # idempotent
+        return False
 
-    # Tutar yoksa siparişin toplamını iade et
-    refund_amount = float(amount if amount is not None else order.total_price or 0)
+    refund_amount = float(amount if amount is not None else (order.total_price or 0))
     if refund_amount <= 0:
         return False
 
     _add_wallet_tx(user, refund_amount, 'refund', order=order)
-    order.status = 'refunded'  # iç durum; listede yine 'İptal Edildi' gösterebilirsin
+    order.status = 'canceled'
     db.session.commit()
     return True
-
-with app.app_context():
-    db.create_all()
-    # Admin, Service ve AdVideo başlangıç kayıtları
-    if not User.query.filter_by(username="admin").first():
-        db.session.add(User(
-            username="admin",
-            password_hash=generate_password_hash("6906149Miko"),
-            email="kuzenlertv6996@gmail.com",
-            role="admin",
-            balance=1000,
-            is_verified=True
-        ))
-        db.session.commit()
-    if not Service.query.first():
-        db.session.add(Service(
-            name="Instagram Takipçi",
-            description="Gerçek ve Türk takipçi gönderimi.",
-            price=SABIT_FIYAT,
-            min_amount=1,
-            max_amount=1000,
-            active=True
-        ))
-        db.session.commit()
-    if not AdVideo.query.first():
-        db.session.add(AdVideo(embed_url="https://www.youtube.com/embed/KzJk7e7XF3g"))
-        db.session.commit()
 
 from sqlalchemy import MetaData, text
 
@@ -3059,6 +3035,9 @@ HTML_PANEL = """
           <label class="form-label"><i class="bi bi-info-circle"></i> Açıklama</label>
           <div class="alert alert-secondary" style="white-space: pre-line; display: flex; flex-direction: column; justify-content: center; min-height: 160px;">
             <b>LÜTFEN SİPARİŞ VERMEDEN ÖNCE BU KISMI OKU</b>
+            ☪️ Bu işaret olan servisler TR gönderimi yapıyor.
+            🤖 Bu işaret olan servisler BOT gönderimi yapıyor.
+
             Sistem, gönderilecek takipçi sayısına göre uygun şekilde çalışır.
             Örnek : Takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
             <b>DİKKAT:</b> Takipçi gönderimi organik hesaplardan ve gerçek yapılır. Gizli hesaplara gönderim yapılmaz.
@@ -4506,16 +4485,16 @@ def api_order_status():
 
     # Gelen durumları normalize et
     normalize = {
-        "complete":   "completed",
-        "completed":  "completed",
-        "cancel":     "canceled",
-        "canceled":   "canceled",
-        "cancelled":  "canceled",
-        "pending":    "pending",
-        "started":    "started",
-        "processing": "started",
-        "partial":    "partial",
-        "refunded":   "canceled",  # “refunded” → bizde canceled + refund olarak işlenir
+        "complete":   "Tamamlandı",
+        "completed":  "Tamamlandı",
+        "cancel":     "İade edildi",
+        "canceled":   "İade edildi",
+        "cancelled":  "İade edildi",
+        "pending":    "Sırada",
+        "started":    "Sırada",
+        "processing": "Sırada",
+        "partial":    "İade edildi",
+        "refunded":   "İade edildi",  
     }
     status = normalize.get(status_in)
     if not status:
