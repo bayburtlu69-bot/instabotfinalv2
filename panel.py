@@ -1232,13 +1232,10 @@ HTML_SERVICES_MANAGE = """
 <html lang="tr">
 <head>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Servisleri Yönet</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
-    /* Mobil metin ölçekleme tutarlılığı */
-    html { -webkit-text-size-adjust: 100%; }
-
     body {
       margin: 0;
       min-height: 100vh;
@@ -1249,11 +1246,6 @@ HTML_SERVICES_MANAGE = """
       overflow: hidden;
       position: relative;
     }
-    @supports (height: 100dvh) {
-      /* Mobil toolbar dalgalanmasına dayanıklı */
-      body { min-height: 100dvh; }
-    }
-
     @keyframes gradientBG {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
@@ -1285,17 +1277,25 @@ HTML_SERVICES_MANAGE = """
     .table-dark th, .table-dark td {
       color: #eee;
     }
-    /* Uzun içeriklerin taşmasını engelle */
-    table.table th, table.table td { word-break: break-word; }
-
-    .btn { font-weight: 500; }
-    a { color: #8db4ff; }
-    a:hover { color: #fff; text-decoration: underline; }
-
+    .btn {
+      font-weight: 500;
+    }
+    a {
+      color: #8db4ff;
+    }
+    a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
     input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
-
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
     /* -- Sosyal medya hareketli arka plan -- */
     .animated-social-bg {
       position: fixed;
@@ -1354,42 +1354,6 @@ HTML_SERVICES_MANAGE = """
     @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
     @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
     @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
-
-    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
-    @media (max-width: 575.98px) {
-      /* Scroll aktif + notch güvenli alan */
-      body {
-        overflow-x: hidden;
-        overflow-y: auto;
-        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
-      }
-
-      .container { padding-left: 0; padding-right: 0; }
-      .card { margin-top: 10vh; border-radius: 16px; }
-
-      /* Tabloyu kendi içinde yatay kaydırılabilir yap */
-      .card .table {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        white-space: nowrap; /* sıkışmayı azalt */
-      }
-      .card .table thead th,
-      .card .table tbody td { white-space: nowrap; }
-
-      /* Input’lar ve dokunma hedefleri daha ferah */
-      .form-control-sm { padding: .7rem .9rem; font-size: 1rem; }
-      .btn { min-height: 44px; }
-
-      /* Arka plan ikonlarını küçült */
-      .bg-icon { width: 36px; opacity: 0.12; }
-    }
-
-    /* Kısa ekranlarda üst boşluğu azalt */
-    @media (max-height: 640px) and (orientation: portrait) {
-      .card { margin-top: 24px; }
-    }
   </style>
 </head>
 <body class="text-light">
