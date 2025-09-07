@@ -3013,10 +3013,10 @@ HTML_PANEL = """
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
           <!-- Form gönderiminde değerin gitmesi için hidden -->
-          <input type="hidden" name="category" value="🌐 Tüm Sosyal Medya Servisleri 📱">
+          <input type="hidden" name="category" value="🚀 Dijital Büyüme Servisleri">
           <!-- Kullanıcıya sadece metin göster -->
           <div class="form-control" aria-readonly="true" tabindex="-1" style="pointer-events:none; user-select:text;">
-            🌐 Tüm Sosyal Medya Servisleri 📱
+            🚀 Dijital Büyüme Servisleri
           </div>
         </div>
 
