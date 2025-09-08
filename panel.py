@@ -886,6 +886,7 @@ HTML_LOGIN = """
         <div class="trust-row" aria-label="Güven rozetleri">
           <span class="trust-badge"><span class="trust-dot"></span> 7/24 Otomatik</span>
           <span class="trust-badge"><span class="trust-dot"></span> Şifre İstemeyiz</span>
+          <span class="trust-badge"><span class="trust-dot"></span> 7/24 Canlı Destek</span>
           <span class="trust-badge"><span class="trust-dot"></span> Canlı Destek</span>
         </div>
 
@@ -1166,6 +1167,7 @@ HTML_REGISTER = """
         <div class="trust-row" aria-label="Güven rozetleri">
           <span class="trust-badge"><span class="trust-dot"></span> 7/24 Otomatik</span>
           <span class="trust-badge"><span class="trust-dot"></span> Şifre İstemeyiz</span>
+          <span class="trust-badge"><span class="trust-dot"></span> 7/24 Canlı Destek</span>
           <span class="trust-badge"><span class="trust-dot"></span> Canlı Destek</span>
         </div>
 
