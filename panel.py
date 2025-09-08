@@ -1,86 +1,115 @@
+# -*- coding: utf-8 -*-
 import os
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv()  # Lokal geliştirirken .env yükler; prod'da Render env kullanılır.
 
-# PayTR credentials
-PAYTR_MERCHANT_ID   = os.getenv("PAYTR_MERCHANT_ID", "")
-PAYTR_MERCHANT_KEY  = os.getenv("PAYTR_MERCHANT_KEY", "")
-PAYTR_MERCHANT_SALT = os.getenv("PAYTR_MERCHANT_SALT", "")
-
-import time
-import random
-import smtplib
-import threading
+import time, random, smtplib, threading, json, requests
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from decimal import Decimal
+from functools import wraps
 
-from flask import (
-    Flask, session, request, redirect, render_template_string,
-    abort, url_for, flash, jsonify
-)
+from flask import Flask, session, request, redirect, render_template_string, abort, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, login_required, current_user, login_user, logout_user, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-import requests
 
-# ── Flask App & DB ─────────────────────────────────────────────────────────────
+# --------------------- Helpers ---------------------
+def _first_non_empty(*vals):
+    for v in vals:
+        if v is not None and str(v).strip() != "":
+            return str(v).strip()
+    return None
+
+def _normalize_db_url(raw: str | None) -> str:
+    """Boş/yanlış URL'yi SQLite'a düşür, postgres şemasını normalize et, parse etmeyi dene."""
+    url = (raw or "").strip()
+    if not url:
+        return "sqlite:///app.db"
+
+    # Render bazen postgres:// döndürüyor; SQLAlchemy 2.x'te sürücü adı net olsun
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+
+    # 'true', 'none' gibi saçma değerler gelirse düş
+    if url.lower() in {"true", "false", "none", "null"}:
+        return "sqlite:///app.db"
+
+    try:
+        from sqlalchemy.engine import make_url
+        make_url(url)  # parse check
+        return url
+    except Exception:
+        return "sqlite:///app.db"
+
+# --------------------- Flask & DB ---------------------
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
-# DATABASE_URL varsa onu kullan; yoksa sqlite
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///app.db").replace("postgres://", "postgresql://")
+app.config["SECRET_KEY"] = _first_non_empty(os.getenv("SECRET_KEY"), "dev-secret")
+
+db_url = _normalize_db_url(
+    _first_non_empty(
+        os.getenv("SQLALCHEMY_DATABASE_URI"),
+        os.getenv("DATABASE_URL"),
+        os.getenv("RENDER_DATABASE_URL"),  # olursa dursun
+    )
+)
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+# Render gibi ortamlarda idle sonrası bağlantı ölmesin
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 280,
+}
+
 db = SQLAlchemy(app)
 
-# ── Auth (Flask-Login) ────────────────────────────────────────────────────────
-from flask_login import LoginManager, login_required, current_user, login_user, logout_user, UserMixin
-
+# --------------------- Login ---------------------
 login_manager = LoginManager(app)
-login_manager.login_view = "login"                 # login route adın buysa tamam
+login_manager.login_view = "login"
 login_manager.login_message_category = "warning"
 
-# Not: User modelin dosyanın ilerisinde tanımlı olacak; burada sadece loader’ı bağlıyoruz.
 @login_manager.user_loader
 def load_user(user_id: str):
     try:
-        # User sınıfın dosyada ileride tanımlıysa burada çağrıldığında erişilecek.
+        # User modeli dosyanın ilerilerinde tanımlıysa runtime'da erişilir.
         return User.query.get(int(user_id))
     except Exception:
         return None
 
-TELEGRAM_BOT_TOKEN = "8340662506:AAHwcqKMsGlQ08mlOVTXT2xAUC6vjH3_r20"  # Başında 'bot' yok!
-TELEGRAM_CHAT_ID = "6744917275"
+# --------------------- Secrets / Keys ---------------------
+# PayTR
+PAYTR_MERCHANT_ID   = os.getenv("PAYTR_MERCHANT_ID", "")
+PAYTR_MERCHANT_KEY  = os.getenv("PAYTR_MERCHANT_KEY", "")
+PAYTR_MERCHANT_SALT = os.getenv("PAYTR_MERCHANT_SALT", "")
 
-def telegram_mesaj_gonder(mesaj):
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
-        "text": mesaj,
-        "parse_mode": "HTML"
-    }
+# Telegram
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID", "")
+
+def telegram_mesaj_gonder(mesaj: str) -> bool:
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("⚠️ TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID eksik. Mesaj gönderilmedi.")
+        return False
     try:
-        response = requests.post(url, data=payload)
-        print("Telegram response:", response.text)
-        return response.ok
+        r = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            data={"chat_id": TELEGRAM_CHAT_ID, "text": mesaj, "parse_mode": "HTML"},
+            timeout=10,
+        )
+        print("Telegram response:", r.text)
+        return r.ok
     except Exception as e:
         print("Telegram Hatası:", e)
         return False
 
-import requests  # ← Harici servis için
-import json
-from functools import wraps
+# --------------------- ResellersMM Ayarları ---------------------
+EXTERNAL_API_URL = os.getenv("EXTERNAL_API_URL", "https://resellersmm.com/api/v2/")
+EXTERNAL_API_KEY = os.getenv("EXTERNAL_API_KEY", "")
 
-# --- Harici servis entegrasyonu (ResellersMM) ---
-EXTERNAL_API_URL = "https://resellersmm.com/api/v2/"
-EXTERNAL_API_KEY = "6b0e961c4a42155ba44bfd4384915c27"
-
-# --- Platform algılama & manuel override ---
-PLATFORM_OVERRIDES = {
-    # Ör: 100000 + SAĞLAYICI_SERVIS_ID : "tiktok" / "youtube"
-    # 100000 + 2273: "tiktok",
-    # 100000 + 2111: "tiktok",
-    # 100000 + 922: "youtube",
-    # 100000 + 942: "youtube",
-}
+# Platform algılama & override
+PLATFORM_OVERRIDES = {}  # ör: {100000 + 2273: "tiktok"}
 
 def detect_platform(*parts: str) -> str:
     t = (" ".join([p or "" for p in parts])).lower()
@@ -90,13 +119,10 @@ def detect_platform(*parts: str) -> str:
         return "youtube"
     return "instagram"
 
-# --- Çekmek istediğimiz ResellersMM servis ID’leri ---
-
-EXT_SELECTED_IDS = [6896, 6898, 6899, 6900, 6911, 6901, 6909, 6910, 6904, 6908, 6905,]  # Seçili servisleri çek
-  # Örneğin sadece 1 ve 2 no’lu servisleri çek
+EXT_SELECTED_IDS = [6896, 6898, 6899, 6900, 6911, 6901, 6909, 6910, 6904, 6908, 6905]
 
 def fetch_selected_external_services():
-    """Sadece EXT_SELECTED_IDS’deki ResellersMM servislerini çeker, hem dict hem list olanağı var."""
+    """Sadece EXT_SELECTED_IDS’deki ResellersMM servislerini çeker."""
     try:
         resp = requests.get(
             EXTERNAL_API_URL,
@@ -105,33 +131,25 @@ def fetch_selected_external_services():
         )
         resp.raise_for_status()
         payload = resp.json()
+        data = payload.get("data", []) if isinstance(payload, dict) else payload
 
-        # payload dict ise içindeki 'data'yı, değilse (zaten list ise) kendisini al
-        if isinstance(payload, dict):
-            data = payload.get("data", [])
-        else:
-            data = payload
-
-        # Burada artık data kesinlikle bir list
-        # Filtreleme:
-        filtered = [
-            item for item in data
-            if int(item.get("service", 0)) in EXT_SELECTED_IDS
-        ]
+        filtered = [item for item in data if int(item.get("service", 0)) in EXT_SELECTED_IDS]
 
         services = []
         for item in filtered:
+            # Burada Service modelinin aşağıda tanımlı olması gerekir.
             svc = Service(
                 id=100000 + int(item["service"]),
-                name=item.get("name","İsim yok"),
-                description=item.get("description", item.get("name","")),
-                price=float(item.get("rate", 0)),
-                min_amount=int(item.get("min",1)),
-                max_amount=int(item.get("max",1)),
+                name=item.get("name", "İsim yok"),
+                description=item.get("description", item.get("name", "")),
+                price=float(item.get("rate", 0) or 0),
+                min_amount=int(item.get("min", 1) or 1),
+                max_amount=int(item.get("max", 1) or 1),
                 active=True
             )
-            # platform belirle (override > otomatik tespit)
-            plat = PLATFORM_OVERRIDES.get(svc.id) or detect_platform(item.get("category",""), item.get("name",""))
+            plat = PLATFORM_OVERRIDES.get(svc.id) or detect_platform(
+                item.get("category", ""), item.get("name", "")
+            )
             setattr(svc, "platform", plat)
             services.append(svc)
 
