@@ -1,9 +1,10 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
 # PayTR credentials
-PAYTR_MERCHANT_ID = os.getenv("PAYTR_MERCHANT_ID", "")
-PAYTR_MERCHANT_KEY = os.getenv("PAYTR_MERCHANT_KEY", "")
+PAYTR_MERCHANT_ID   = os.getenv("PAYTR_MERCHANT_ID", "")
+PAYTR_MERCHANT_KEY  = os.getenv("PAYTR_MERCHANT_KEY", "")
 PAYTR_MERCHANT_SALT = os.getenv("PAYTR_MERCHANT_SALT", "")
 
 import time
@@ -12,17 +13,39 @@ import smtplib
 import threading
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
+from decimal import Decimal
 
 from flask import (
-    Flask, session, request, redirect,
-    render_template_string, abort, url_for, flash, jsonify
+    Flask, session, request, redirect, render_template_string,
+    abort, url_for, flash, jsonify
 )
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-
-from flask import Flask, session, redirect, request, render_template_string
-
 import requests
+
+# ── Flask App & DB ─────────────────────────────────────────────────────────────
+app = Flask(__name__)
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
+# DATABASE_URL varsa onu kullan; yoksa sqlite
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///app.db").replace("postgres://", "postgresql://")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
+# ── Auth (Flask-Login) ────────────────────────────────────────────────────────
+from flask_login import LoginManager, login_required, current_user, login_user, logout_user, UserMixin
+
+login_manager = LoginManager(app)
+login_manager.login_view = "login"                 # login route adın buysa tamam
+login_manager.login_message_category = "warning"
+
+# Not: User modelin dosyanın ilerisinde tanımlı olacak; burada sadece loader’ı bağlıyoruz.
+@login_manager.user_loader
+def load_user(user_id: str):
+    try:
+        # User sınıfın dosyada ileride tanımlıysa burada çağrıldığında erişilecek.
+        return User.query.get(int(user_id))
+    except Exception:
+        return None
 
 TELEGRAM_BOT_TOKEN = "8340662506:AAHwcqKMsGlQ08mlOVTXT2xAUC6vjH3_r20"  # Başında 'bot' yok!
 TELEGRAM_CHAT_ID = "6744917275"
@@ -248,6 +271,14 @@ class Payment(db.Model):
     status = db.Column(db.String(32), default='pending')  # pending | success | failed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# models.py (örnek)
+class Category(db.Model):
+    __tablename__ = "category"
+    id   = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False, unique=True)
+    icon = db.Column(db.String(16))
+    order = db.Column(db.Integer, default=0)
+
 class WalletTransaction(db.Model):
     __tablename__ = "wallet_transaction"
     id = db.Column(db.Integer, primary_key=True)
@@ -286,13 +317,25 @@ class BalanceRequest(db.Model):
     user = db.relationship("User")
 
 class Service(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), unique=True, nullable=False)
-    description = db.Column(db.String(512))
-    price = db.Column(db.Float, nullable=False)
-    min_amount = db.Column(db.Integer, default=1)
-    max_amount = db.Column(db.Integer, default=1000)
-    active = db.Column(db.Boolean, default=True)
+    __tablename__ = "service"
+    __table_args__ = (
+        db.UniqueConstraint("name", name="uq_service_name"),  # isme tekillik
+    )
+
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.String(255), nullable=False)   # unique constraint üstte
+    description = db.Column(db.Text)                          # 512 sınırı kalktı, uzun açıklama serbest
+    price       = db.Column(db.Numeric(18, 5), nullable=False)
+    min_amount  = db.Column(db.Integer, nullable=False, default=1)
+    max_amount  = db.Column(db.Integer, nullable=False, default=1000)
+    active      = db.Column(db.Boolean, nullable=False, default=True)
+
+    # kategori entegrasyonu
+    category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True, index=True)
+    category    = db.relationship("Category", backref=db.backref("services", lazy="dynamic"))
+
+    def __repr__(self):
+        return f"<Service id={self.id} name={self.name!r} price={self.price} active={self.active}>"
 
 class Ticket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -1290,13 +1333,13 @@ HTML_SERVICES_MANAGE = """
       z-index: 2;
       position: relative;
     }
-    .form-control, .form-control-sm, .form-select {
+    .form-control, .form-control-sm, .form-select, .form-select-sm {
       background-color: #2e2e2e !important;
       color: #f1f1f1 !important;
       border: 1px solid #444;
       box-shadow: none;
     }
-    .form-control:focus, .form-control-sm:focus, .form-select:focus {
+    .form-control:focus, .form-control-sm:focus, .form-select:focus, .form-select-sm:focus {
       background-color: #2e2e2e !important;
       color: #fff !important;
       border-color: #666;
@@ -1309,25 +1352,13 @@ HTML_SERVICES_MANAGE = """
     .table-dark th, .table-dark td {
       color: #eee;
     }
-    .btn {
-      font-weight: 500;
-    }
-    a {
-      color: #8db4ff;
-    }
-    a:hover {
-      color: #fff;
-      text-decoration: underline;
-    }
+    .btn { font-weight: 500; }
+    a { color: #8db4ff; }
+    a:hover { color: #fff; text-decoration: underline; }
     input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-      appearance: textfield;
-    }
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
     /* -- Sosyal medya hareketli arka plan -- */
     .animated-social-bg {
       position: fixed;
@@ -1349,7 +1380,6 @@ HTML_SERVICES_MANAGE = """
       animation-timing-function: ease-in-out;
       user-select: none;
     }
-    /* 18 farklı pozisyon ve animasyon */
     .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
     .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
     .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
@@ -1411,9 +1441,56 @@ HTML_SERVICES_MANAGE = """
     <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
   </div>
 <div class="container py-4">
-  <div class="card mx-auto" style="max-width:800px;">
+  <div class="card mx-auto" style="max-width:1000px;">
     <div class="card-body">
       <h3>Servisleri Yönet</h3>
+
+      <!-- Kategori Oluştur / Listele -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="mb-3">Yeni Kategori Oluştur</h5>
+              <form method="post" action="{{ url_for('manage_services') }}">
+                <div class="row g-2 align-items-end">
+                  <div class="col-3">
+                    <label class="form-label">İkon/Emoji</label>
+                    <input name="new_cat_icon" maxlength="8" class="form-control" placeholder="📁">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label">Kategori Adı</label>
+                    <input name="new_cat_name" class="form-control" placeholder="Dijital Büyüme">
+                  </div>
+                  <div class="col-3 d-grid">
+                    <button class="btn btn-success" type="submit" name="create_category" value="1">Ekle</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="mb-3">Mevcut Kategoriler</h5>
+              <ul class="list-group">
+                {% for c in categories %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center" style="background:#2e2e2e;color:#fff;border-color:#444;">
+                    <span>{{ c.icon or "📁" }} {{ c.name }}</span>
+                    <form method="post" action="{{ url_for('manage_services') }}" class="m-0">
+                      <button class="btn btn-sm btn-outline-danger" name="delete_category" value="{{ c.id }}" onclick="return confirm('Bu kategoriyi silmek istiyor musun?');">Sil</button>
+                    </form>
+                  </li>
+                {% else %}
+                  <li class="list-group-item" style="background:#2e2e2e;color:#fff;border-color:#444;">Kayıtlı kategori yok.</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <form method="post" action="{{ url_for('manage_services') }}">
         <table class="table table-dark table-striped align-middle">
           <thead>
@@ -1424,6 +1501,7 @@ HTML_SERVICES_MANAGE = """
               <th>Fiyat (TL)</th>
               <th>Min</th>
               <th>Max</th>
+              <th>Kategori</th>
               <th>Kaynak</th>
               <th></th>
             </tr>
@@ -1440,17 +1518,27 @@ HTML_SERVICES_MANAGE = """
                 <input name="desc_{{s.id}}" class="form-control form-control-sm"
                        value="{{ s.description }}" {% if s.id not in local_ids %}readonly{% endif %}>
               </td>
-              <td style="width:100px">
+              <td style="width:120px">
                 <input type="number" step="any" min="0" name="price_{{ s.id }}"
                        class="form-control form-control-sm"
-                       value="{{ '{:.5f}'.format(s.price) if s.price is not none else '' }}"
+                       value="{{ '{:.5f}'.format(s.price) if s.price is not none else '' }}">
               </td>
-              <td>
+              <td style="width:80px">
                 {{ s.min_amount }}
               </td>
-              <td>
+              <td style="width:120px">
                 <input name="max_{{s.id}}" type="number" min="{{ s.min_amount }}" class="form-control form-control-sm"
                        value="{{ s.max_amount }}" {% if s.id not in local_ids %}readonly{% endif %}>
+              </td>
+              <td style="width:220px">
+                <select name="category_{{ s.id }}" class="form-select form-select-sm" {% if s.id not in local_ids %}disabled{% endif %}>
+                  <option value="" {% if not s.category_id %}selected{% endif %}>— Kategori yok —</option>
+                  {% for c in categories %}
+                    <option value="{{ c.id }}" {% if s.category_id == c.id %}selected{% endif %}>
+                      {{ c.icon or "📁" }} {{ c.name }}
+                    </option>
+                  {% endfor %}
+                </select>
               </td>
               <td>
                 {% if s.id in local_ids %}
@@ -1471,9 +1559,10 @@ HTML_SERVICES_MANAGE = """
           </tbody>
         </table>
         <div class="d-grid">
-          <button class="btn btn-success" type="submit">Düzenlemeleri Kaydet</button>
+          <button class="btn btn-success" type="submit" name="save_changes" value="1">Düzenlemeleri Kaydet</button>
         </div>
       </form>
+
       <div class="mt-3">
         <a href="{{ url_for('panel') }}" class="btn btn-secondary w-100">Panele Dön</a>
       </div>
@@ -3197,6 +3286,11 @@ HTML_PANEL = """
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+  select.form-select option {
+    font-family: monospace;
+    white-space: pre;
+  }
+  <style>
     /* Tutarlı mobil metin ölçekleme + iOS zoom fix */
     html { -webkit-text-size-adjust: 100%; }
 
@@ -3443,22 +3537,26 @@ HTML_PANEL = """
       <div id="order-messages-area"></div>
 
       <form id="orderForm" method="post" autocomplete="off">
-        <!-- KATEGORİ: sabit metin, tıklanamaz -->
+        <!-- KATEGORİ: artık seçilebilir; yine de backend uyumu için hidden 'category' korunuyor -->
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-star-fill text-warning"></i> Kategori</label>
-          <!-- Form gönderiminde değerin gitmesi için hidden -->
-          <input type="hidden" name="category" value="🚀 Dijital Büyüme Servisleri">
-          <!-- Kullanıcıya sadece metin göster -->
-          <div class="form-control" aria-readonly="true" tabindex="-1" style="pointer-events:none; user-select:text;">
-            🚀 Dijital Büyüme Servisleri
-          </div>
+          <input type="hidden" name="category" id="category_hidden" value="">
+          <select class="form-select" id="category_id" name="category_id" required>
+            {% for c in categories %}
+              <option value="{{ c.id }}">{{ c.icon or "📁" }} {{ c.name }}</option>
+            {% endfor %}
+          </select>
         </div>
 
         <div class="mb-3">
           <label class="form-label"><i class="bi bi-box-seam"></i> Servis</label>
           <select class="form-select" name="service_id" id="service_id" required>
             {% for s in services %}
-              <option value="{{ s.id }}" data-price="{{ s.price }}" data-min="{{ s.min_amount }}" data-max="{{ s.max_amount }}">
+              <option value="{{ s.id }}"
+                      data-price="{{ s.price }}"
+                      data-min="{{ s.min_amount }}"
+                      data-max="{{ s.max_amount }}"
+                      data-category-id="{{ s.category_id if s.category_id is not none else '' }}">
                 {{ s.name }} – {{ s.price }} TL
               </option>
             {% endfor %}
@@ -3502,7 +3600,7 @@ HTML_PANEL = """
               amt = document.getElementById('amount'),
               tot = document.getElementById('total');
         function updateTotal(){
-          const price = parseFloat(sel.selectedOptions[0].dataset.price)||0,
+          const price = parseFloat(sel.selectedOptions[0]?.dataset.price)||0,
                 num   = parseInt(amt.value)||0;
           tot.value = num>0
             ? (num + " × " + price.toFixed(2) + " TL = " + (num*price).toFixed(2) + " TL")
@@ -3512,6 +3610,30 @@ HTML_PANEL = """
         amt.addEventListener('input', updateTotal);
         document.addEventListener('DOMContentLoaded', updateTotal);
       </script>
+
+      <script>
+        // Kategori seçimine göre servisleri filtrele + hidden category'yi güncelle
+        const cat = document.getElementById('category_id');
+        const hiddenCat = document.getElementById('category_hidden');
+
+        function filterServicesByCategory(){
+          const cid = cat.value || "";
+          hiddenCat.value = (cat.selectedOptions[0]?.textContent || "").trim(); // backend uyumu
+
+          let firstVisible = null;
+          Array.from(sel.options).forEach(o => {
+            const match = (cid === "" || o.dataset.categoryId === cid);
+            o.hidden = !match;
+            if (match && !firstVisible) firstVisible = o;
+          });
+          if (firstVisible) sel.value = firstVisible.value;
+          updateTotal();
+        }
+
+        cat.addEventListener('change', filterServicesByCategory);
+        document.addEventListener('DOMContentLoaded', filterServicesByCategory);
+      </script>
+
       <script>
         // AJAX sonrası form üstünde kutu göster (SADECE SİPARİŞ BAŞARISI)
         document.getElementById('orderForm').addEventListener('submit', function(e){
@@ -3533,6 +3655,7 @@ HTML_PANEL = """
               if(res.success){
                 this.reset(); updateTotal();
                 document.getElementById('balance').innerText = res.new_balance + ' TL';
+                filterServicesByCategory(); // resetten sonra kategori/servis uyumlu kalsın
               }
             })
             .catch(()=>{
@@ -4123,6 +4246,63 @@ def admin_required(f):
     wrapper.__name__ = f.__name__
     return wrapper
 
+# --- SCHEMA SELF-HEAL PATCH (Postgres) ---
+from sqlalchemy import text, inspect
+
+def ensure_schema():
+    with app.app_context():
+        insp = inspect(db.engine)
+
+        # 1) category tablosu yoksa oluştur
+        if not insp.has_table("category"):
+            db.session.execute(text("""
+            CREATE TABLE IF NOT EXISTS category (
+              id SERIAL PRIMARY KEY,
+              name VARCHAR(120) NOT NULL UNIQUE,
+              icon VARCHAR(16),
+              "order" INTEGER DEFAULT 0
+            );
+            """))
+            db.session.commit()
+            print("✅ category tablosu hazır")
+
+        # 2) service.category_id kolonu yoksa ekle
+        service_cols = [c["name"] for c in insp.get_columns("service")]
+        if "category_id" not in service_cols:
+            db.session.execute(text("""
+            ALTER TABLE service
+              ADD COLUMN IF NOT EXISTS category_id INTEGER;
+            """))
+            db.session.commit()
+            print("✅ service.category_id eklendi")
+
+        # 3) FK ve index (idempotent)
+        db.session.execute(text("""
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conname = 'service_category_id_fkey'
+          ) THEN
+            ALTER TABLE service
+              ADD CONSTRAINT service_category_id_fkey
+              FOREIGN KEY (category_id)
+              REFERENCES category(id)
+              ON DELETE SET NULL;
+          END IF;
+        END $$;
+        """))
+        db.session.execute(text("""
+        CREATE INDEX IF NOT EXISTS ix_service_category_id
+        ON service (category_id);
+        """))
+        db.session.commit()
+        print("✅ FK + index hazır")
+
+# ⬇️ modellerden SONRA, app.run'dan ÖNCE çağır
+ensure_schema()
+# --- /SCHEMA PATCH ---
+
 # --- ROUTELAR ---
 
 @app.route("/admin/ads", methods=["GET", "POST"])
@@ -4329,167 +4509,141 @@ def cancel_order(order_id):
 @app.route("/panel", methods=["GET", "POST"])
 @login_required
 def panel():
-    user = User.query.get(session.get("user_id"))
+    # --- Kullanıcıyı çek (flask_login varsa onu kullan; yoksa session fallback)
+    user = current_user if getattr(current_user, "is_authenticated", False) else User.query.get(session.get("user_id"))
+    if not user:
+        return redirect(url_for("login"))
+
     msg, error = "", ""
 
-    # 1) Yerel servisler (DB’deki Service tablosu)
-    local = Service.query.filter_by(active=True).all()
+    # --- Local aktif servisler
+    local = Service.query.filter_by(active=True).order_by(Service.name).all()
     local_ids = {s.id for s in local}
-    # 2) Seçili external servisler (bunlarda min/max da olmalı!)
-    external = fetch_selected_external_services()
-    external = [s for s in external if s.id not in local_ids]
-    # 3) Merge: yerel + sadece local’de olmayan external
+
+    # --- Seçili external servisler (local’de yoksa ekle)
+    try:
+        external = fetch_selected_external_services()
+    except Exception:
+        external = []
+    external = [s for s in external if getattr(s, "id", None) not in local_ids]
+
+    # --- Merge
     services = local + external
-    # Platform alanı yoksa (local servisler) otomatik tahmin et
+
+    # --- Platform tahmini (yoksa)
     for s in services:
-        if not hasattr(s, "platform") or not getattr(s, "platform"):
-            setattr(s, "platform", detect_platform(getattr(s, "name", ""), getattr(s, "description", "")))
-    # Platforma göre grupla
+        if not getattr(s, "platform", None):
+            try:
+                setattr(s, "platform", detect_platform(getattr(s, "name", ""), getattr(s, "description", "")))
+            except Exception:
+                setattr(s, "platform", "instagram")
+
+    # --- Gruplama (panelin başka yerlerinde lazım olabilir)
     grouped_services = {"instagram": [], "tiktok": [], "youtube": []}
     for s in services:
-        grouped_services.get(getattr(s, "platform", "instagram"), grouped_services["instagram"]).append(s)
+        grouped_services.setdefault(getattr(s, "platform", "instagram"), grouped_services["instagram"]).append(s)
 
+    # --- Kategoriler (HTML_PANEL’in yeni kategori select’i için)
+    try:
+        categories = Category.query.order_by(Category.order, Category.name).all()
+    except Exception:
+        categories = []
 
-    # *** SERVISLERIN min/max DEĞERLERİ HER SERVIS İÇİN VAR OLMALI ***
-    # Fiyat referansı sadece ilk servis için:
-    price = services[0].price if services else SABIT_FIYAT
-
+    # --- POST fallback (AJAX kullanmıyorsan da çalışsın)
     if request.method == "POST":
-        target = request.form.get("username","").strip()
-        try:
-            amount = int(request.form.get("amount",""))
-        except:
-            amount = 0
+        target = (request.form.get("username") or "").strip()
+        amount = request.form.get("amount", type=int) or 0
 
-        # *** SERVIS ID'YI DOĞRU ÇEK ***
         service_id = request.form.get("service_id", type=int)
-        service = next((s for s in services if s.id == service_id), None)
+        service = next((s for s in services if getattr(s, "id", None) == service_id), None)
 
-        # Min/max değerini seçili servise göre kontrol et!
         if service:
-            min_amt = getattr(service, "min_amount", 1)
-            max_amt = getattr(service, "max_amount", 1000000)
-            price = service.price
+            min_amt = getattr(service, "min_amount", 1) or 1
+            max_amt = getattr(service, "max_amount", 1000000) or 1000000
+            price   = getattr(service, "price", None)
         else:
-            min_amt, max_amt, price = 1, 1000000, SABIT_FIYAT
+            min_amt, max_amt = 1, 1000000
+            price = globals().get("SABIT_FIYAT", 1)
 
-        total = amount * price
+        # Tutar hesap (Decimal’a uyumlu)
+        try:
+            from decimal import Decimal
+            price_val = price if isinstance(price, Decimal) else Decimal(str(price))
+            total = price_val * Decimal(amount)
+        except Exception:
+            total = float(price or 1) * float(amount)
+
+        # Bakiye yeter mi?
+        balance_val = getattr(user, "balance", 0)
+        try:
+            enough = (Decimal(str(balance_val)) >= (total if isinstance(total, Decimal) else Decimal(str(total))))
+        except Exception:
+            enough = float(balance_val) >= float(total)
 
         if not target or amount <= 0:
             error = "Tüm alanları doğru doldurun!"
         elif amount < min_amt or amount > max_amt:
             error = f"Adet {min_amt}-{max_amt} arası olmalı."
-        elif user.balance < total:
+        elif not enough:
             error = "Yetersiz bakiye!"
         else:
-            # siparişi kaydet…
-            order = Order(username=target, user_id=user.id,
-                          amount=amount, total_price=total,
-                          status="pending", error="")
-            user.balance -= total
-            db.session.add(order); db.session.commit()
+            # Siparişi kaydet
+            order = Order(
+                username=target,
+                user_id=user.id,
+                amount=amount,
+                total_price=total,
+                status="pending",
+                error=""
+            )
+            try:
+                user.balance = (Decimal(str(balance_val)) - (total if isinstance(total, Decimal) else Decimal(str(total))))
+            except Exception:
+                user.balance = float(balance_val) - float(total)
 
-            # BOT’larla gönderimi simüle et
+            db.session.add(order)
+            db.session.commit()
+
+            # Bot gönderimi simülasyon
             status, err = "complete", ""
-            for cl in BOT_CLIENTS[:amount]:
-                try:
-                    follow_user(cl, target)
-                except Exception as e:
-                    status, err = "error", str(e)
-                    break
+            try:
+                for cl in (BOT_CLIENTS or [])[:amount]:
+                    try:
+                        follow_user(cl, target)
+                    except Exception as e:
+                        status, err = "error", str(e)
+                        break
+            except Exception:
+                pass
 
             order.status = status
             order.error = err
             db.session.commit()
 
-            msg = f"{amount} takipçi başarıyla gönderildi." if status=="complete" else f"Hata: {err}"
+            msg = f"{amount} takipçi başarıyla gönderildi." if status == "complete" else f"Hata: {err}"
 
-    # Geçmiş siparişler
-    if user.role=="admin":
-        orders = Order.query.order_by(Order.created_at.desc()).all()
-    else:
-        orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
+    # --- Geçmiş siparişler (admin = hepsi, user = kendi)
+    try:
+        if getattr(user, "role", "") == "admin":
+            orders = Order.query.order_by(Order.created_at.desc()).all()
+        else:
+            orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
+    except Exception:
+        orders = []
 
-    return render_template_string(HTML_PANEL,
+    # --- Render (HTML_PANEL yeni kategori/servis yapısıyla uyumlu)
+    return render_template_string(
+        HTML_PANEL,
         orders=orders,
-        role=user.role,
-        current_user=user.username,
-        balance=round(user.balance,2),
+        role=getattr(user, "role", "user"),
+        current_user=getattr(user, "username", "Misafir"),
+        balance=round(float(getattr(user, "balance", 0)), 2),
         msg=msg,
         error=error,
-        rolu_turkce=rolu_turkce,
+        rolu_turkce=globals().get("rolu_turkce", {}),
         grouped_services=grouped_services,
-        services=services
-    )
-
-@app.route("/services/manage", methods=["GET", "POST"])
-@login_required
-@admin_required
-def manage_services():
-    user = User.query.get(session["user_id"])
-
-    # 1) API'den servisleri çek (external_services)
-    external_services = fetch_selected_external_services()
-    if not external_services or len(external_services) == 0:
-        flash("API'den servis çekilemedi. Lütfen bağlantını ve API'yı kontrol et!", "danger")
-        # Yine de DB'dekileri göster
-        tüm_servisler = Service.query.order_by(Service.id).all()
-        return render_template_string(
-            HTML_SERVICES_MANAGE,
-            services=tüm_servisler,
-            local_ids={s.id for s in tüm_servisler}
-        )
-
-    # 2) Veritabanındaki servisleri çek
-    local_services = Service.query.order_by(Service.id).all()
-    local_ids = {s.id for s in local_services}
-    api_ids = {s.id for s in external_services}
-
-    # 3) API'de olmayan servisleri DB'den sil
-    to_delete = local_ids - api_ids
-    if to_delete:
-        Service.query.filter(Service.id.in_(to_delete)).delete(synchronize_session=False)
-        db.session.commit()
-
-    # 4) API'den gelen ama DB'de olmayan servisleri DB'ye ekle
-    to_add = api_ids - local_ids
-    for s in external_services:
-        if s.id in to_add:
-            db.session.add(Service(
-                id = s.id,
-                name = s.name,
-                description = s.description,
-                price = s.price,
-                min_amount = s.min_amount,
-                max_amount = s.max_amount
-            ))
-    db.session.commit()
-
-    # 5) POST işlemleri (servis güncelleme)
-    if request.method == "POST":
-        for svc in Service.query.order_by(Service.id).all():
-            nk = f"name_{svc.id}"
-            dk = f"desc_{svc.id}"
-            pk = f"price_{svc.id}"
-            if nk in request.form:
-                svc.name        = request.form[nk].strip() or svc.name
-                svc.description = request.form[dk].strip() or svc.description
-                try:
-                    np = float(request.form[pk])
-                    if np > 0:
-                        svc.price = np
-                except:
-                    pass
-        db.session.commit()
-        flash("Servisler başarıyla güncellendi.", "success")
-        return redirect(url_for("manage_services"))
-
-    # 6) Güncel DB'deki servisleri tekrar çek ve ekrana gönder
-    tüm_servisler = Service.query.order_by(Service.id).all()
-    return render_template_string(
-        HTML_SERVICES_MANAGE,
-        services=tüm_servisler,
-        local_ids={s.id for s in tüm_servisler}
+        services=services,
+        categories=categories
     )
 
 from math import ceil
@@ -5291,6 +5445,223 @@ def payment_success():
       <p style="text-align:center;margin-top:40px">Ödeme işlemi tamamlandı, panele yönlendiriliyorsunuz...</p>
     </body></html>
     """
+
+@app.route("/manage_services", methods=["GET", "POST"])
+@app.route("/services/manage", methods=["GET", "POST"])  # eski yol da çalışsın
+@login_required
+@admin_required
+def manage_services():
+    from decimal import Decimal
+
+    # --- Kullanıcı (opsiyonel, ihtiyacın varsa)
+    user = current_user if getattr(current_user, "is_authenticated", False) else User.query.get(session.get("user_id"))
+
+    # --- Kategoriler (template için)
+    try:
+        categories = Category.query.order_by(Category.order, Category.name).all()
+    except Exception:
+        categories = []
+
+    # --- Local servisler (DB)
+    local_services = Service.query.order_by(Service.id).all()
+    local_ids = {s.id for s in local_services}  # template “Local/External” rozeti için referans
+
+    # --- API'den servisleri çek (external_services)
+    try:
+        external_services = fetch_selected_external_services()
+    except Exception:
+        external_services = []
+
+    if not external_services:
+        # API yoksa / hata varsa sadece DB'yi göster, kategorileri de geçir
+        flash("API'den servis çekilemedi. Lütfen bağlantını ve API'yı kontrol et!", "danger")
+        return render_template_string(
+            HTML_SERVICES_MANAGE,
+            services=local_services,
+            local_ids=local_ids,
+            categories=categories
+        )
+
+    # --- API ile DB senkronizasyonu (senin 1. kodundaki mantık)
+    api_ids = {getattr(s, "id", None) for s in external_services if getattr(s, "id", None) is not None}
+
+    # 1) API'de olmayan servisleri DB'den sil
+    to_delete = local_ids - api_ids
+    if to_delete:
+        Service.query.filter(Service.id.in_(to_delete)).delete(synchronize_session=False)
+        db.session.commit()
+        # local listesini güncelle
+        local_services = Service.query.order_by(Service.id).all()
+        local_ids = {s.id for s in local_services}
+
+    # 2) API'den gelen ama DB'de olmayan servisleri DB'ye ekle
+    to_add = api_ids - local_ids
+    if to_add:
+        for s in external_services:
+            sid = getattr(s, "id", None)
+            if sid in to_add:
+                try:
+                    price_val = getattr(s, "price", 0)
+                    price_dec = price_val if isinstance(price_val, Decimal) else Decimal(str(price_val))
+                except Exception:
+                    price_dec = Decimal("0")
+
+                db.session.add(Service(
+                    id         = sid,
+                    name       = getattr(s, "name", f"Ext-{sid}"),
+                    description= getattr(s, "description", "") or "",
+                    price      = price_dec,
+                    min_amount = getattr(s, "min_amount", 1) or 1,
+                    max_amount = getattr(s, "max_amount", 1000) or 1000,
+                    active     = True,
+                    # kategori_id = None  # istersen default kategori ata
+                ))
+        db.session.commit()
+
+    # 3) POST işlemleri
+    if request.method == "POST":
+        # a) Kategori oluştur
+        if "create_category" in request.form:
+            name = (request.form.get("new_cat_name") or "").strip()
+            icon = (request.form.get("new_cat_icon") or "").strip()[:8] or "📁"
+            if name:
+                db.session.add(Category(name=name, icon=icon))
+                db.session.commit()
+                flash("Kategori oluşturuldu.", "success")
+            else:
+                flash("Kategori adı boş olamaz.", "warning")
+            return redirect(url_for("manage_services"))
+
+        # b) Kategori sil (boşsa)
+        if "delete_category" in request.form:
+            try:
+                cid = int(request.form.get("delete_category"))
+            except Exception:
+                cid = None
+            if cid is not None:
+                in_use = Service.query.filter_by(category_id=cid).count()
+                if in_use == 0:
+                    Category.query.filter_by(id=cid).delete()
+                    db.session.commit()
+                    flash("Kategori silindi.", "success")
+                else:
+                    flash("Bu kategoride bağlı servis var, önce onları taşı.", "error")
+            return redirect(url_for("manage_services"))
+
+        # c) External → Local manuel ekleme (template’inde varsa)
+        if "add_external" in request.form:
+            try:
+                ext_id = int(request.form["add_external"])
+            except Exception:
+                ext_id = None
+
+            if ext_id is not None:
+                # Zaten senkron yaptığımız için büyük ihtimalle DB'de vardır; yine de kontrol et
+                exists = Service.query.get(ext_id)
+                if exists:
+                    flash("Servis zaten veritabanında.", "warning")
+                else:
+                    ext = next((e for e in external_services if getattr(e, "id", None) == ext_id), None)
+                    if not ext:
+                        flash("External servis bulunamadı.", "error")
+                    else:
+                        try:
+                            price_val = getattr(ext, "price", 0)
+                            price_dec = price_val if isinstance(price_val, Decimal) else Decimal(str(price_val))
+                        except Exception:
+                            price_dec = Decimal("0")
+
+                        db.session.add(Service(
+                            id         = ext_id,
+                            name       = getattr(ext, "name", f"Ext-{ext_id}"),
+                            description= getattr(ext, "description", "") or "",
+                            price      = price_dec,
+                            min_amount = getattr(ext, "min_amount", 1) or 1,
+                            max_amount = getattr(ext, "max_amount", 1000) or 1000,
+                            active     = True
+                        ))
+                        db.session.commit()
+                        flash("External servis veritabanına eklendi.", "success")
+            return redirect(url_for("manage_services"))
+
+        # d) Servis düzenlemelerini kaydet (senin 2. kodundaki + kategori)
+        if "save_changes" in request.form:
+            # Local servisleri yeniden çek (güncel)
+            locals_now = Service.query.order_by(Service.id).all()
+            local_ids_now = {s.id for s in locals_now}
+            for s in locals_now:
+                # sadece ‘local’ olarak değerlendirdiğin id’ler düzenlenebilir olsun istiyorsan:
+                if s.id in local_ids:  # başlangıçtaki local_ids referansı
+                    # İSİM
+                    new_name = request.form.get(f"name_{s.id}")
+                    if new_name is not None and new_name.strip():
+                        s.name = new_name.strip()
+
+                    # AÇIKLAMA
+                    new_desc = request.form.get(f"desc_{s.id}")
+                    if new_desc is not None:
+                        s.description = new_desc
+
+                    # FİYAT
+                    price_val = request.form.get(f"price_{s.id}")
+                    if price_val not in (None, ""):
+                        try:
+                            s.price = Decimal(str(price_val))
+                        except Exception:
+                            pass
+
+                    # MAX
+                    max_val = request.form.get(f"max_{s.id}")
+                    if max_val not in (None, ""):
+                        try:
+                            s.max_amount = int(max_val)
+                        except Exception:
+                            pass
+
+                    # KATEGORİ
+                    cat_val = request.form.get(f"category_{s.id}")
+                    s.category_id = int(cat_val) if (cat_val and cat_val.isdigit()) else None
+
+            db.session.commit()
+            flash("Düzenlemeler kaydedildi.", "success")
+            return redirect(url_for("manage_services"))
+
+        # e) Eski POST formatın (name_X/desc_X/price_X) – save_changes yoksa
+        #    (1. kodundaki güncelleme döngüsü)
+        updated_any = False
+        for svc in Service.query.order_by(Service.id).all():
+            nk = f"name_{svc.id}"
+            dk = f"desc_{svc.id}"
+            pk = f"price_{svc.id}"
+            if nk in request.form:
+                svc.name        = request.form[nk].strip() or svc.name
+                svc.description = request.form.get(dk, "").strip() or svc.description
+                try:
+                    np = request.form.get(pk)
+                    if np not in (None, ""):
+                        np_f = float(np)
+                        if np_f > 0:
+                            try:
+                                svc.price = Decimal(str(np_f))
+                            except Exception:
+                                svc.price = np_f
+                except Exception:
+                    pass
+                updated_any = True
+
+        if updated_any:
+            db.session.commit()
+            flash("Servisler başarıyla güncellendi.", "success")
+            return redirect(url_for("manage_services"))
+
+    # --- Son durumda güncel DB’yi göster
+    services = Service.query.order_by(Service.id).all()
+    return render_template_string(
+        HTML_SERVICES_MANAGE,
+        services=services,
+        local_ids=local_ids,     # başlangıçta DB’de olanlar; template bunları “Local” diye rozetler
+        categories=categories
+    )
 
 @app.route('/payment_fail')
 def payment_fail():
