@@ -1,3 +1,4 @@
+# =================== panel.py (BAŞI) ===================
 import os
 import time
 import random
@@ -50,13 +51,57 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.secret_key = os.getenv("SECRET_KEY", "cok-gizli-bir-anahtar")  # .env ile değiştir
 
-# Neon/Postgres bağlantın
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-    "DATABASE_URL",
-    "postgresql://neondb_owner:npg_r0Vg1Gospfmt@ep-old-firefly-a23lm21m-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-)
+# ----- DB URL'yi normalize eden helper -----
+def _normalize_db_url(raw: str) -> str:
+    raw = (raw or "").strip()
+    if not raw:
+        return raw
+
+    low = raw.lower()
+
+    # Neon panelinden kopyalanan "psql 'postgresql://...'" formatını ayıkla
+    if low.startswith("psql "):
+        q = "'" if "'" in raw else ('"' if '"' in raw else None)
+        if q:
+            i, j = raw.find(q), raw.rfind(q)
+            if i != -1 and j != -1 and j > i:
+                raw = raw[i + 1 : j].strip()
+        else:
+            # psql'den sonra kalan kısmı dene
+            raw = raw.split(None, 1)[-1].strip()
+
+    # Baş/son tırnakları temizle
+    if (raw.startswith("'") and raw.endswith("'")) or (raw.startswith('"') and raw.endswith('"')):
+        raw = raw[1:-1].strip()
+
+    # Eski şema düzeltmesi
+    if raw.startswith("postgres://"):
+        raw = raw.replace("postgres://", "postgresql+psycopg2://", 1)
+
+    # postgresql:// da geçerli; istersek driver ekleyebiliriz ama zorunlu değil.
+    return raw
+
+# Neon/Postgres bağlantın (ENV + normalize + güvenli fallback)
+_raw_uri = os.getenv("DATABASE_URL") or os.getenv("SQLALCHEMY_DATABASE_URI") or ""
+uri = _normalize_db_url(_raw_uri)
+
+if not uri:
+    # Production'da boş kalmasın diye buradaki fallback'i çalıştırma ihtimali varsa log basalım
+    print("⚠️  DATABASE_URL boş geldi, sqlite fallback'e düşülüyor.", flush=True)
+    uri = "sqlite:///data.db"
+
+# SQLAlchemy ayarları
+app.config["SQLALCHEMY_DATABASE_URI"] = uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True, "pool_recycle": 280}
+
+# Havuz/bağlantı stabilitesi
+engine_opts = {"pool_pre_ping": True, "pool_recycle": 280}
+
+# Eğer URL'de sslmode yoksa ve postgres ise güvenli tarafta kal
+if uri.startswith("postgres") and "sslmode=" not in uri:
+    engine_opts["connect_args"] = {"sslmode": "require"}
+
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_opts
 
 db = SQLAlchemy(app)
 
@@ -275,6 +320,8 @@ def fetch_selected_external_services():
     except Exception as e:
         print("❌ fetch_selected_external_services hata:", e)
         return []
+
+# =================== panel.py (BAŞI SONU) ===================
 
 # --- MODELLER ---
 
