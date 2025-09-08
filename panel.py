@@ -1710,9 +1710,8 @@ HTML_BAKIYE_YUKLE = """
 <!-- İletişim ve adres bilgisi eklendi -->
 <div class="text-center mt-5" style="font-size: 0.9rem; color: #aaa;">
   <hr style="border-color: #333;">
-  <p><strong>İletişim:</strong> kuzenlertv6996@gmail.com – +44 7927 573543</p>
-                            @baybayimofficial
-  <p><strong>Adres:</strong> Mustafa Kemal Paşa Mahallesi, Lale Sokak No:110 D:1</p>
+  <p><strong>İletişim:</strong> 📩 kuzenlertv6996@gmail.com – 📞 +44 7927 573543 - 📸 @baybayimofficial</p>
+    <p><strong>📍 Adres:</strong> Mustafa Kemal Paşa Mahallesi, Lale Sokak No:110
 </div>
 </body>
 </html>
