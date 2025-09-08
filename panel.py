@@ -707,196 +707,95 @@ HTML_LOGIN = """
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Baybayim - Sosyal Medya Hizmetleri</title>
-  <meta name="description" content="Baybayim ile Instagram, TikTok, YouTube gibi tüm platformlara hızlı ve güvenilir sosyal medya hizmetleri. Hemen kaydol, avantajları kaçırma!">
+  <meta name="description" content="Baybayim SMM Panel: Instagram, TikTok, YouTube ve daha fazlasında takipçi, beğeni, izlenme, yorum. Hızlı, otomatik, güvenli.">
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- Open Graph Meta -->
+  <!-- Open Graph -->
   <meta property="og:title" content="Baybayim - Sosyal Medya Hizmetleri">
-  <meta property="og:description" content="Baybayim ile Instagram, TikTok, YouTube gibi tüm platformlara hızlı ve güvenilir sosyal medya hizmetleri. Hemen kaydol, avantajları kaçırma!">
+  <meta property="og:description" content="Instagram, TikTok, YouTube vb. tüm sosyal medya hizmetleri tek panelde.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://baybayim.com/">
-  <meta property="og:image" content="https://baybayim.com/static/logo.png"> <!-- LOGO YOLUNU KENDİNE GÖRE AYARLA -->
+  <meta property="og:image" content="https://baybayim.com/static/logo.png">
   <meta property="og:locale" content="tr_TR">
 
-  <!-- Twitter Card Meta -->
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Baybayim - Sosyal Medya Hizmetleri">
-  <meta name="twitter:description" content="Baybayim ile Instagram, TikTok, YouTube gibi tüm platformlara hızlı ve güvenilir sosyal medya hizmetleri. Hemen kaydol, avantajları kaçırma!">
-  <meta name="twitter:image" content="https://baybayim.com/static/logo.png"> <!-- LOGO YOLUNU KENDİNE GÖRE AYARLA -->
-  <!-- <meta name="twitter:site" content="@baybayim"> -->
+  <meta name="twitter:description" content="SMM Panel: takipçi, beğeni, izlenme, yorum. Hızlı ve güvenli.">
+  <meta name="twitter:image" content="https://baybayim.com/static/logo.png">
+
   <style>
-    /* ----- Mobil iyileştirme: metin ölçeği ----- */
-    html { -webkit-text-size-adjust: 100%; }
+    html{ -webkit-text-size-adjust:100% }
+    body{
+      margin:0;height:100vh;color:#fff;overflow:hidden;position:relative;
+      background:linear-gradient(-45deg,#121212,#1e1e1e,#212121,#000);background-size:400% 400%;
+      animation:gradientBG 12s ease infinite;
+    }
+    @supports(height:100dvh){ body{ min-height:100dvh;height:auto } }
+    @keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
-    body {
-      margin: 0;
-      height: 100vh;
-      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
-      background-size: 400% 400%;
-      animation: gradientBG 12s ease infinite;
-      color: #fff;
-      overflow: hidden;
-      position: relative;
-    }
-    @supports (height: 100dvh) {
-      /* Mobil tarayıcılarda toolbar dalgalanmasına karşı daha sağlam yükseklik */
-      body { min-height: 100dvh; height: auto; }
-    }
+    .card{background:#1b1b1b;border-radius:16px;color:#fff;z-index:2;position:relative;max-width:980px;width:100%}
+    .logo-img{width:62px;height:62px;display:block;margin:0 auto 12px;border-radius:20%;box-shadow:0 4px 16px #0005;object-fit:contain;background:#232323}
+    .modern-title{font-family:'Montserrat','Segoe UI',Arial,sans-serif;font-size:2.4rem;font-weight:900;text-transform:uppercase;letter-spacing:.01em;margin:4px 0 14px;background:linear-gradient(92deg,#58a7ff 10%,#b95cff 65%,#2feea3 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:0 4px 24px #000c}
+    .form-control,.form-control:focus{background:#2c2c2c;color:#f1f1f1;border:1px solid #555}
+    ::placeholder{color:#aaa}
+    .alert-custom{background:#1f1f1f;border-left:4px solid #0d6efd;padding:10px 12px;border-radius:6px;font-size:.95rem;margin-bottom:1rem;text-align:center}
 
-    @keyframes gradientBG {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
-    .form-control,
-    .form-control:focus {
-      background-color: #2c2c2c;
-      color: #f1f1f1;
-      border: 1px solid #555;
-    }
-    ::placeholder {
-      color: #aaa;
-      opacity: 1;
-    }
-    .card {
-      background-color: #1b1b1b;
-      color: #fff;
-      border-radius: 16px;
-      z-index: 2;
-      position: relative;
-    }
-    .logo-img {
-      width: 62px;
-      height: 62px;
-      display: block;
-      margin: 0 auto 12px auto;
-      border-radius: 20%;
-      box-shadow: 0 4px 16px #0005;
-      object-fit: contain;
-      background: #232323;
-    }
-    .modern-title {
-      font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
-      font-size: 2.6rem;
-      font-weight: 900;
-      text-align: center;
-      letter-spacing: 0.01em;
-      margin-bottom: 20px;
-      background: linear-gradient(92deg, #58a7ff 10%, #b95cff 65%, #2feea3 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: 0 4px 24px #000c, 0 2px 2px #1e254430;
-      filter: none;
-      line-height: 1.1;
-      transition: all .25s;
-      padding-bottom: 2px;
-      text-transform: uppercase;
-    }
-    .alert-custom {
-      background-color: #1f1f1f;
-      color: #fff;
-      border-left: 4px solid #0d6efd;
-      padding: 10px 12px;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      margin-bottom: 1rem;
-    }
-    /* -- Sosyal medya hareketli arka plan -- */
-    .animated-social-bg {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-      user-select: none;
-    }
-    .bg-icon {
-      position: absolute;
-      width: 48px;
-      opacity: 0.13;
-      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
-      animation-duration: 18s;
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-in-out;
-      user-select: none;
-    }
-    /* 18 farklı pozisyon ve animasyon */
-    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
-    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
-    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
-    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
-    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
-    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
-    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
-    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
-    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
-    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
-    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
-    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
-    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
-    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
-    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
-    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
-    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
-    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
+    /* Bilgi paneli (görselsiz) */
+    .info{padding:18px 22px;border-left:1px solid #2a2a2a;background:linear-gradient(180deg,#1a1a1a 0%,#171717 100%)}
+    .info h3{font-size:1.28rem;margin-bottom:.6rem}
+    .info p{color:#cfcfcf;margin-bottom:.8rem}
+    .tiny{font-size:.9rem;color:#cfcfcf}
+    .badge-soft{background:#232323;border:1px solid #2f2f2f;border-radius:10px;padding:8px 10px;margin:4px 6px;display:inline-block}
+    .step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
+    .step .num{width:26px;height:26px;border-radius:7px;background:#0d6efd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 
-    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
-    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
-    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
-    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
-    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
-    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
-    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
-    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
-    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
-    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
-    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
-    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
-    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
-    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
-    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
-    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
-    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
-    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+    /* Arka plan ikonları (dokunma) */
+    .animated-social-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden;user-select:none}
+    .bg-icon{position:absolute;width:48px;opacity:.13;filter:blur(.2px) drop-shadow(0 4px 24px #0008);animation:18s ease-in-out infinite}
+    .icon1{left:10vw;top:13vh;animation-name:float1}.icon2{left:72vw;top:22vh;animation-name:float2}.icon3{left:23vw;top:67vh;animation-name:float3}
+    .icon4{left:70vw;top:75vh;animation-name:float4}.icon5{left:48vw;top:45vh;animation-name:float5}.icon6{left:81vw;top:15vh;animation-name:float6}
+    .icon7{left:17vw;top:40vh;animation-name:float7}.icon8{left:61vw;top:55vh;animation-name:float8}.icon9{left:33vw;top:24vh;animation-name:float9}
+    .icon10{left:57vw;top:32vh;animation-name:float10}.icon11{left:80vw;top:80vh;animation-name:float11}.icon12{left:8vw;top:76vh;animation-name:float12}
+    .icon13{left:19vw;top:22vh;animation-name:float13}.icon14{left:38vw;top:18vh;animation-name:float14}.icon15{left:27vw;top:80vh;animation-name:float15}
+    .icon16{left:45vw;top:82vh;animation-name:float16}.icon17{left:88vw;top:55vh;animation-name:float17}.icon18{left:89vw;top:28vh;animation-name:float18}
+    @keyframes float1{0%{transform:translateY(0)}50%{transform:translateY(-34px) scale(1.09)}100%{transform:translateY(0)}}
+    @keyframes float2{0%{transform:translateY(0)}50%{transform:translateY(20px) scale(.97)}100%{transform:translateY(0)}}
+    @keyframes float3{0%{transform:translateY(0)}50%{transform:translateY(-27px) scale(1.05)}100%{transform:translateY(0)}}
+    @keyframes float4{0%{transform:translateY(0)}50%{transform:translateY(-20px) scale(.95)}100%{transform:translateY(0)}}
+    @keyframes float5{0%{transform:translateY(0)}50%{transform:translateY(21px) scale(1.02)}100%{transform:translateY(0)}}
+    @keyframes float6{0%{transform:translateY(0)}50%{transform:translateY(-16px) scale(1.05)}100%{transform:translateY(0)}}
+    @keyframes float7{0%{transform:translateY(0)}50%{transform:translateY(18px) scale(.98)}100%{transform:translateY(0)}}
+    @keyframes float8{0%{transform:translateY(0)}50%{transform:translateY(-14px) scale(1.04)}100%{transform:translateY(0)}}
+    @keyframes float9{0%{transform:translateY(0)}50%{transform:translateY(24px) scale(1.06)}100%{transform:translateY(0)}}
+    @keyframes float10{0%{transform:translateY(0)}50%{transform:translateY(-22px) scale(1.01)}100%{transform:translateY(0)}}
+    @keyframes float11{0%{transform:translateY(0)}50%{transform:translateY(15px) scale(1.06)}100%{transform:translateY(0)}}
+    @keyframes float12{0%{transform:translateY(0)}50%{transform:translateY(-18px) scale(1.03)}100%{transform:translateY(0)}}
+    @keyframes float13{0%{transform:translateY(0)}50%{transform:translateY(24px) scale(1.04)}100%{transform:translateY(0)}}
+    @keyframes float14{0%{transform:translateY(0)}50%{transform:translateY(-20px) scale(1.07)}100%{transform:translateY(0)}}
+    @keyframes float15{0%{transform:translateY(0)}50%{transform:translateY(11px) scale(.94)}100%{transform:translateY(0)}}
+    @keyframes float16{0%{transform:translateY(0)}50%{transform:translateY(-19px) scale(1.03)}100%{transform:translateY(0)}}
+    @keyframes float17{0%{transform:translateY(0)}50%{transform:translateY(16px) scale(1.01)}100%{transform:translateY(0)}}
+    @keyframes float18{0%{transform:translateY(0)}50%{transform:translateY(-25px) scale(1.05)}100%{transform:translateY(0)}}
 
-    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
-    @media (max-width: 575.98px) {
-      /* Taşmayı engelle, güvenli alan ver, klavye açılınca kaydırılsın */
-      body {
-        overflow-x: hidden;
-        overflow-y: auto;
-        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
-      }
-      /* Dikey ortalama yerine yukarıdan başla (klavye çakışmasını azaltır) */
-      body.d-flex { align-items: flex-start !important; }
+    /* Yerleşim: formu/infoyu yan yana ve yer değiştirebilir yap */
+    .form-first .row{flex-direction:row}
+    .info-first .row{flex-direction:row-reverse}
 
-      /* iPhone SE (320px) dahil tüm küçük ekranlarda kartı sığdır */
-      .card {
-        width: 100%;
-        max-width: 420px;
-        min-width: 0 !important; /* inline min-width:340px'i geçersiz kıl */
-        margin: 10vh auto 0;
-      }
-
-      /* Başlık telefonda daha akışkan */
-      .modern-title { font-size: clamp(1.6rem, 8vw, 2.2rem); }
-
-      /* Arka plan ikonları biraz küçülsün */
-      .bg-icon { width: 36px; opacity: 0.12; }
-    }
-
-    /* Çok kısa ekranlarda (küçük yükseklik) üst boşluğu azalt */
-    @media (max-height: 640px) and (orientation: portrait) {
-      .card { margin-top: 24px; }
+    /* Mobil */
+    @media (max-width:575.98px){
+      body{overflow-x:hidden;overflow-y:auto;padding:16px 12px calc(16px + env(safe-area-inset-bottom))}
+      body.d-flex{align-items:flex-start!important}
+      .card{margin:10vh auto 0;max-width:420px}
+      .modern-title{font-size:clamp(1.6rem,8vw,2.2rem)}
+      .bg-icon{width:36px;opacity:.12}
+      .info{border-left:0;border-top:1px solid #2a2a2a;padding:16px}
     }
   </style>
 </head>
-<body class="d-flex justify-content-center align-items-center">
-  <!-- Hareketli Sosyal Medya İkonları Arka Planı -->
+<body class="d-flex justify-content-center align-items-center info-first"> <!-- form-first = form solda, info-first = info solda -->
+  <!-- Arka plan ikonları -->
   <div class="animated-social-bg">
     <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
     <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
@@ -918,31 +817,72 @@ HTML_LOGIN = """
     <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
   </div>
 
-  <div class="card shadow p-4" style="min-width:340px; z-index:2; position:relative;">
-    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-img">
-    <div class="modern-title">BAYBAYİM</div>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="alert-custom text-center">
-          {% for message in messages %}
-            {{ message }}<br>
-          {% endfor %}
+  <div class="card shadow p-0">
+    <div class="row g-0 align-items-stretch">
+      <!-- FORM -->
+      <div class="col-12 col-md-6 p-4">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-img">
+        <div class="modern-title text-center">BAYBAYİM</div>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert-custom">
+              {% for message in messages %}{{ message }}<br>{% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="post">
+          <div class="mb-2">
+            <label class="form-label">Kullanıcı Adı</label>
+            <input name="username" class="form-control" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Şifre</label>
+            <input name="password" type="password" class="form-control" placeholder="">
+          </div>
+          <button class="btn btn-primary w-100">Giriş</button>
+        </form>
+        <div class="text-center mt-2">
+          <a href="/register" class="btn btn-link btn-sm">Kayıt Ol</a>
         </div>
-      {% endif %}
-    {% endwith %}
-    <form method="post">
-      <div class="mb-2">
-        <label class="form-label">Kullanıcı Adı:</label>
-        <input name="username" class="form-control" placeholder="">
       </div>
-      <div class="mb-3">
-        <label class="form-label">Şifre:</label>
-        <input name="password" type="password" class="form-control" placeholder="">
+
+      <!-- BİLGİ PANELİ (GİRİŞ ve KAYIT ile AYNIDIR) -->
+      <div class="col-12 col-md-6 info">
+        <h3>Neye giriş yapıyorsun?</h3>
+        <p>Baybayim; <strong>SMM Panel</strong> altyapısıyla Instagram, TikTok, YouTube, Twitter/X ve daha fazlasında
+          <strong>takipçi</strong>, <strong>beğeni</strong>, <strong>izlenme</strong>, <strong>yorum</strong> gibi
+          hizmetleri <em>hızlı, otomatik ve güvenli</em> şekilde sunar. Panel <strong>7/24</strong> açıktır; siparişler saniyeler içinde işleme alınır.</p>
+
+        <div class="mb-2">
+          <span class="badge-soft">Instagram • Takipçi / Beğeni / Reel izlenme</span>
+          <span class="badge-soft">TikTok • İzlenme / Canlı izleyici</span>
+          <span class="badge-soft">YouTube • İzlenme / Abone / Yorum</span>
+        </div>
+
+        <h3 class="mt-3">Nasıl çalışır?</h3>
+
+        <div class="step"><span class="num">1</span><div><strong>Hesabını oluştur / giriş yap</strong><br><span class="tiny">E-posta doğrulaması ile güvence.</span></div></div>
+        <div class="step"><span class="num">2</span><div><strong>Bakiye ekle</strong><br><span class="tiny">Desteklenen yöntemlerle güvenli ödeme.</span></div></div>
+        <div class="step"><span class="num">3</span><div><strong>Hizmeti seç & linki gir</strong><br><span class="tiny">Siparişin otomatik başlar; hız ve kapsam açıklamada yazar.</span></div></div>
+
+        <h3 class="mt-3">Neden Baybayim?</h3>
+        <ul class="tiny mb-3">
+          <li>⚡ Anında otomatik teslimat & 7/24 panel</li>
+          <li>🛡️ <strong>Şifreni asla istemeyiz</strong>; gizlilik ve sipariş koruması</li>
+          <li>🎯 Yerli/gerçek/karışık gibi kalite seçenekleri</li>
+          <li>💬 Canlı destek ve detaylı sipariş takibi</li>
+        </ul>
+
+        <h3 class="mt-3">Önemli notlar</h3>
+        <ul class="tiny">
+          <li>Kullanıcı adı veya içerik bağlantısı yeterlidir; şifre paylaşılmaz.</li>
+          <li>Düşüşlerde telafi sunulan servislerde otomatik telafi işler.</li>
+        </ul>
+
+        <p class="tiny mt-3">Yeni misin? <a href="/register" class="link-light text-decoration-underline">30 sn’de hesap aç</a> ve ilk sipariş bonusunu kap 🚀</p>
       </div>
-      <button class="btn btn-primary w-100">Giriş</button>
-    </form>
-    <div class="text-center mt-2">
-      <a href="/register" class="btn btn-link btn-sm">Kayıt Ol</a>
     </div>
   </div>
 </body>
@@ -953,209 +893,79 @@ HTML_REGISTER = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Kayıt Ol</title>
+  <title>Kayıt Ol - Baybayim</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    /* Mobil metin ölçekleme */
-    html { -webkit-text-size-adjust: 100%; }
+    html{ -webkit-text-size-adjust:100% }
+    body{
+      margin:0;height:100vh;color:#fff;overflow:hidden;position:relative;
+      background:linear-gradient(-45deg,#121212,#1e1e1e,#212121,#000);background-size:400% 400%;
+      animation:gradientBG 12s ease infinite;
+    }
+    @supports(height:100dvh){ body{min-height:100dvh;height:auto} }
+    @keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
-    body {
-      margin: 0;
-      height: 100vh;
-      background: linear-gradient(-45deg, #121212, #1e1e1e, #212121, #000000);
-      background-size: 400% 400%;
-      animation: gradientBG 12s ease infinite;
-      color: #fff;
-      overflow: hidden;
-      position: relative;
-    }
-    @supports (height: 100dvh) {
-      /* Mobil toolbar dalgalanmasına dayanıklı yükseklik */
-      body { min-height: 100dvh; height: auto; }
-    }
+    .card{background:#1b1b1b;border-radius:16px;color:#fff;z-index:2;position:relative;max-width:980px;width:100%}
+    .logo-img{width:62px;height:62px;display:block;margin:0 auto 12px;border-radius:20%;box-shadow:0 4px 16px #0005;object-fit:contain;background:#232323}
+    .modern-title{font-family:'Montserrat','Segoe UI',Arial,sans-serif;font-size:2.4rem;font-weight:900;text-transform:uppercase;background:linear-gradient(92deg,#58a7ff 10%,#b95cff 65%,#2feea3 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:0 4px 24px #000c}
+    .modern-title-register{font-family:'Montserrat','Segoe UI',Arial,sans-serif;font-size:2.4rem;font-weight:900;text-transform:uppercase;background:linear-gradient(90deg,#14fff1 0%,#4294ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:0 2px 10px #00485a55}
 
-    @keyframes gradientBG {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
-    .form-control,
-    .form-control:focus {
-      background-color: #2c2c2c;
-      color: #f1f1f1;
-      border: 1px solid #555;
-    }
-    ::placeholder {
-      color: #aaa;
-      opacity: 1;
-    }
-    .card {
-      background-color: #1b1b1b;
-      color: #fff;
-      border-radius: 16px;
-      z-index: 2;
-      position: relative;
-    }
-    .logo-img {
-      width: 62px;
-      height: 62px;
-      display: block;
-      margin: 0 auto 12px auto;
-      border-radius: 20%;
-      box-shadow: 0 4px 16px #0005;
-      object-fit: contain;
-      background: #232323;
-    }
-    .modern-title-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 8px;
-      margin-top: 3px;
-    }
-    .modern-title,
-    .modern-title-register {
-      font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
-      font-size: 2.6rem;
-      font-weight: 900;
-      letter-spacing: 0.01em;
-      text-transform: uppercase;
-      line-height: 1.13;
-      background: linear-gradient(92deg, #58a7ff 10%, #b95cff 65%, #2feea3 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: 0 4px 24px #000c, 0 2px 2px #1e254430;
-      filter: none;
-      transition: all .25s;
-      display: inline-block;
-      padding: 0 2px;
-    }
-    .modern-title-register {
-      background: linear-gradient(90deg, #14fff1 0%, #4294ff 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: 0 2px 10px #00485a55;
-      margin-left: 2px;
-      padding: 0 2px;
-      font-size: 2.6rem;
-    }
-    .spaced-link {
-      display: block;
-      margin-top: 10px;
-    }
-    .custom-alert {
-      background-color: #292929;
-      border-left: 5px solid #4da3ff;
-      padding: 12px 15px;
-      border-radius: 6px;
-      color: #fff;
-      font-size: 0.92rem;
-      margin-bottom: 18px;
-      text-align: center;
-    }
-    .text-danger.btn-link {
-      margin-top: 8px;
-    }
-    /* -- Sosyal medya hareketli arka plan -- */
-    .animated-social-bg {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-      user-select: none;
-    }
-    .bg-icon {
-      position: absolute;
-      width: 48px;
-      opacity: 0.13;
-      filter: blur(0.2px) drop-shadow(0 4px 24px #0008);
-      animation-duration: 18s;
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-in-out;
-      user-select: none;
-    }
-    /* 18 farklı pozisyon ve animasyon */
-    .icon1  { left: 10vw;  top: 13vh; animation-name: float1; }
-    .icon2  { left: 72vw;  top: 22vh; animation-name: float2; }
-    .icon3  { left: 23vw;  top: 67vh; animation-name: float3; }
-    .icon4  { left: 70vw;  top: 75vh; animation-name: float4; }
-    .icon5  { left: 48vw;  top: 45vh; animation-name: float5; }
-    .icon6  { left: 81vw;  top: 15vh; animation-name: float6; }
-    .icon7  { left: 17vw;  top: 40vh; animation-name: float7;}
-    .icon8  { left: 61vw;  top: 55vh; animation-name: float8;}
-    .icon9  { left: 33vw;  top: 24vh; animation-name: float9;}
-    .icon10 { left: 57vw; top: 32vh; animation-name: float10;}
-    .icon11 { left: 80vw; top: 80vh; animation-name: float11;}
-    .icon12 { left: 8vw;  top: 76vh; animation-name: float12;}
-    .icon13 { left: 19vw;  top: 22vh; animation-name: float13;}
-    .icon14 { left: 38vw;  top: 18vh; animation-name: float14;}
-    .icon15 { left: 27vw;  top: 80vh; animation-name: float15;}
-    .icon16 { left: 45vw;  top: 82vh; animation-name: float16;}
-    .icon17 { left: 88vw;  top: 55vh; animation-name: float17;}
-    .icon18 { left: 89vw;  top: 28vh; animation-name: float18;}
-    @keyframes float1  { 0%{transform:translateY(0);} 50%{transform:translateY(-34px) scale(1.09);} 100%{transform:translateY(0);} }
-    @keyframes float2  { 0%{transform:translateY(0);} 50%{transform:translateY(20px) scale(0.97);} 100%{transform:translateY(0);} }
-    @keyframes float3  { 0%{transform:translateY(0);} 50%{transform:translateY(-27px) scale(1.05);} 100%{transform:translateY(0);} }
-    @keyframes float4  { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(0.95);} 100%{transform:translateY(0);} }
-    @keyframes float5  { 0%{transform:translateY(0);} 50%{transform:translateY(21px) scale(1.02);} 100%{transform:translateY(0);} }
-    @keyframes float6  { 0%{transform:translateY(0);} 50%{transform:translateY(-16px) scale(1.05);} 100%{transform:translateY(0);} }
-    @keyframes float7  { 0%{transform:translateY(0);} 50%{transform:translateY(18px) scale(0.98);} 100%{transform:translateY(0);} }
-    @keyframes float8  { 0%{transform:translateY(0);} 50%{transform:translateY(-14px) scale(1.04);} 100%{transform:translateY(0);} }
-    @keyframes float9  { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.06);} 100%{transform:translateY(0);} }
-    @keyframes float10 { 0%{transform:translateY(0);} 50%{transform:translateY(-22px) scale(1.01);} 100%{transform:translateY(0);} }
-    @keyframes float11 { 0%{transform:translateY(0);} 50%{transform:translateY(15px) scale(1.06);} 100%{transform:translateY(0);} }
-    @keyframes float12 { 0%{transform:translateY(0);} 50%{transform:translateY(-18px) scale(1.03);} 100%{transform:translateY(0);} }
-    @keyframes float13 { 0%{transform:translateY(0);} 50%{transform:translateY(24px) scale(1.04);} 100%{transform:translateY(0);} }
-    @keyframes float14 { 0%{transform:translateY(0);} 50%{transform:translateY(-20px) scale(1.07);} 100%{transform:translateY(0);} }
-    @keyframes float15 { 0%{transform:translateY(0);} 50%{transform:translateY(11px) scale(0.94);} 100%{transform:translateY(0);} }
-    @keyframes float16 { 0%{transform:translateY(0);} 50%{transform:translateY(-19px) scale(1.03);} 100%{transform:translateY(0);} }
-    @keyframes float17 { 0%{transform:translateY(0);} 50%{transform:translateY(16px) scale(1.01);} 100%{transform:translateY(0);} }
-    @keyframes float18 { 0%{transform:translateY(0);} 50%{transform:translateY(-25px) scale(1.05);} 100%{transform:translateY(0);} }
+    .form-control,.form-control:focus{background:#2c2c2c;color:#f1f1f1;border:1px solid #555}
+    .custom-alert{background:#292929;border-left:5px solid #4da3ff;padding:12px 15px;border-radius:6px;color:#fff;font-size:.92rem;margin-bottom:18px;text-align:center}
 
-    /* ===== SADECE MOBİL DOKUNUŞLAR ===== */
-    @media (max-width: 575.98px) {
-      /* Taşma önle + güvenli alan */
-      body {
-        overflow-x: hidden;
-        overflow-y: auto;
-        padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
-      }
-      /* Klavye açılınca üstten başlasın, çakışma olmasın */
-      body.d-flex { align-items: flex-start !important; }
+    .info{padding:18px 22px;border-left:1px solid #2a2a2a;background:linear-gradient(180deg,#1a1a1a 0%,#171717 100%)}
+    .info h3{font-size:1.28rem;margin-bottom:.6rem}
+    .info p{color:#cfcfcf;margin-bottom:.8rem}
+    .tiny{font-size:.9rem;color:#cfcfcf}
+    .badge-soft{background:#232323;border:1px solid #2f2f2f;border-radius:10px;padding:8px 10px;margin:4px 6px;display:inline-block}
+    .step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
+    .step .num{width:26px;height:26px;border-radius:7px;background:#0d6efd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 
-      /* Kart küçük ekranlara sığsın (min-width inline override) */
-      .card {
-        width: 100%;
-        max-width: 420px;
-        min-width: 0 !important;
-        margin: 8vh auto 0;
-      }
+    .animated-social-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden;user-select:none}
+    .bg-icon{position:absolute;width:48px;opacity:.13;filter:blur(.2px) drop-shadow(0 4px 24px #0008);animation:18s ease-in-out infinite}
+    .icon1{left:10vw;top:13vh;animation-name:float1}.icon2{left:72vw;top:22vh;animation-name:float2}.icon3{left:23vw;top:67vh;animation-name:float3}
+    .icon4{left:70vw;top:75vh;animation-name:float4}.icon5{left:48vw;top:45vh;animation-name:float5}.icon6{left:81vw;top:15vh;animation-name:float6}
+    .icon7{left:17vw;top:40vh;animation-name:float7}.icon8{left:61vw;top:55vh;animation-name:float8}.icon9{left:33vw;top:24vh;animation-name:float9}
+    .icon10{left:57vw;top:32vh;animation-name:float10}.icon11{left:80vw;top:80vh;animation-name:float11}.icon12{left:8vw;top:76vh;animation-name:float12}
+    .icon13{left:19vw;top:22vh;animation-name:float13}.icon14{left:38vw;top:18vh;animation-name:float14}.icon15{left:27vw;top:80vh;animation-name:float15}
+    .icon16{left:45vw;top:82vh;animation-name:float16}.icon17{left:88vw;top:55vh;animation-name:float17}.icon18{left:89vw;top:28vh;animation-name:float18}
+    @keyframes float1{0%{transform:translateY(0)}50%{transform:translateY(-34px) scale(1.09)}100%{transform:translateY(0)}}
+    @keyframes float2{0%{transform:translateY(0)}50%{transform:translateY(20px) scale(.97)}100%{transform:translateY(0)}}
+    @keyframes float3{0%{transform:translateY(0)}50%{transform:translateY(-27px) scale(1.05)}100%{transform:translateY(0)}}
+    @keyframes float4{0%{transform:translateY(0)}50%{transform:translateY(-20px) scale(.95)}100%{transform:translateY(0)}}
+    @keyframes float5{0%{transform:translateY(0)}50%{transform:translateY(21px) scale(1.02)}100%{transform:translateY(0)}}
+    @keyframes float6{0%{transform:translateY(0)}50%{transform:translateY(-16px) scale(1.05)}100%{transform:translateY(0)}}
+    @keyframes float7{0%{transform:translateY(0)}50%{transform:translateY(18px) scale(.98)}100%{transform:translateY(0)}}
+    @keyframes float8{0%{transform:translateY(0)}50%{transform:translateY(-14px) scale(1.04)}100%{transform:translateY(0)}}
+    @keyframes float9{0%{transform:translateY(0)}50%{transform:translateY(24px) scale(1.06)}100%{transform:translateY(0)}}
+    @keyframes float10{0%{transform:translateY(0)}50%{transform:translateY(-22px) scale(1.01)}100%{transform:translateY(0)}}
+    @keyframes float11{0%{transform:translateY(0)}50%{transform:translateY(15px) scale(1.06)}100%{transform:translateY(0)}}
+    @keyframes float12{0%{transform:translateY(0)}50%{transform:translateY(-18px) scale(1.03)}100%{transform:translateY(0)}}
+    @keyframes float13{0%{transform:translateY(0)}50%{transform:translateY(24px) scale(1.04)}100%{transform:translateY(0)}}
+    @keyframes float14{0%{transform:translateY(0)}50%{transform:translateY(-20px) scale(1.07)}100%{transform:translateY(0)}}
+    @keyframes float15{0%{transform:translateY(0)}50%{transform:translateY(11px) scale(.94)}100%{transform:translateY(0)}}
+    @keyframes float16{0%{transform:translateY(0)}50%{transform:translateY(-19px) scale(1.03)}100%{transform:translateY(0)}}
+    @keyframes float17{0%{transform:translateY(0)}50%{transform:translateY(16px) scale(1.01)}100%{transform:translateY(0)}}
+    @keyframes float18{0%{transform:translateY(0)}50%{transform:translateY(-25px) scale(1.05)}100%{transform:translateY(0)}}
 
-      /* Başlıklar telefonda akışkan boyut */
-      .modern-title,
-      .modern-title-register { font-size: clamp(1.6rem, 8vw, 2.2rem); }
+    .form-first .row{flex-direction:row}
+    .info-first .row{flex-direction:row-reverse}
 
-      /* Arka plan ikonlarını küçült */
-      .bg-icon { width: 36px; opacity: 0.12; }
-    }
-
-    /* Çok kısa ekranlarda üst boşluğu kıs */
-    @media (max-height: 640px) and (orientation: portrait) {
-      .card { margin-top: 24px; }
+    @media (max-width:575.98px){
+      body{overflow-x:hidden;overflow-y:auto;padding:16px 12px calc(16px + env(safe-area-inset-bottom))}
+      body.d-flex{align-items:flex-start!important}
+      .card{margin:8vh auto 0;max-width:420px}
+      .modern-title,.modern-title-register{font-size:clamp(1.6rem,8vw,2.2rem)}
+      .bg-icon{width:36px;opacity:.12}
+      .info{border-left:0;border-top:1px solid #2a2a2a;padding:16px}
     }
   </style>
 </head>
-<body class="d-flex justify-content-center align-items-center">
-  <!-- Hareketli Sosyal Medya İkonları Arka Planı -->
+<body class="d-flex justify-content-center align-items-center form-first"> <!-- form-first = form solda, info-first = info solda -->
+  <!-- Arka plan ikonları -->
   <div class="animated-social-bg">
     <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
     <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
@@ -1176,51 +986,93 @@ HTML_REGISTER = """
     <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
     <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
   </div>
-  <div class="card shadow p-4" style="min-width:370px;">
-    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-img">
-    <div class="modern-title-row">
-      <span class="modern-title">BAYBAYİM</span>
-      <span class="modern-title-register">KAYIT</span>
-    </div>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        {% for message in messages %}
-          <div class="custom-alert">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    {% if not sent %}
-      <form method="post">
+
+  <div class="card shadow p-0">
+    <div class="row g-0 align-items-stretch">
+      <!-- FORM -->
+      <div class="col-12 col-md-6 p-4">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-img">
+        <div class="text-center">
+          <span class="modern-title">BAYBAYİM</span>
+          <span class="modern-title-register">KAYIT</span>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="custom-alert">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% if not sent %}
+          <form method="post">
+            <div class="mb-2">
+              <label class="form-label">Kullanıcı Adı</label>
+              <input name="username" class="form-control" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Şifre</label>
+              <input name="password" type="password" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">E-Posta</label>
+              <input name="email" type="email" class="form-control" required>
+            </div>
+            <button class="btn btn-success w-100 mb-2">Kayıt Ol</button>
+          </form>
+        {% else %}
+          <form method="post">
+            <div class="mb-3">
+              <label class="form-label">E-postana gelen kod</label>
+              <input name="verify_code" class="form-control" required>
+            </div>
+            <button class="btn btn-primary w-100 mb-2">Kodu Doğrula</button>
+          </form>
+          <form method="post" action="/reset-registration" class="text-center">
+            <button type="submit" class="btn btn-link btn-sm text-decoration-none text-danger">Kayıt İşleminden Vazgeç</button>
+          </form>
+        {% endif %}
+        <div class="text-center mt-2">
+          <a href="/" class="btn btn-link btn-sm text-decoration-none">Giriş Yap</a>
+        </div>
+      </div>
+
+      <!-- BİLGİ PANELİ (GİRİŞ ile AYNIDIR) -->
+      <div class="col-12 col-md-6 info">
+        <h3>Neye giriş yapıyorsun?</h3>
+        <p>Baybayim; <strong>SMM Panel</strong> altyapısıyla Instagram, TikTok, YouTube, Twitter/X ve daha fazlasında
+          <strong>takipçi</strong>, <strong>beğeni</strong>, <strong>izlenme</strong>, <strong>yorum</strong> gibi
+          hizmetleri <em>hızlı, otomatik ve güvenli</em> şekilde sunar. Panel <strong>7/24</strong> açıktır; siparişler saniyeler içinde işleme alınır.</p>
+
         <div class="mb-2">
-          <label class="form-label">Kullanıcı Adı:</label>
-          <input name="username" class="form-control" placeholder="" required>
+          <span class="badge-soft">Instagram • Takipçi / Beğeni / Reel izlenme</span>
+          <span class="badge-soft">TikTok • İzlenme / Canlı izleyici</span>
+          <span class="badge-soft">YouTube • İzlenme / Abone / Yorum</span>
         </div>
-        <div class="mb-2">
-          <label class="form-label">Şifre:</label>
-          <input name="password" type="password" class="form-control" placeholder="" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">E-Posta:</label>
-          <input name="email" type="email" class="form-control" placeholder="" required>
-        </div>
-        <button class="btn btn-success w-100 mb-2">Kayıt Ol</button>
-      </form>
-    {% else %}
-      <form method="post">
-        <div class="mb-3">
-          <label class="form-label">E-Posta Adresinize Gönderilen Kod:</label>
-          <input name="verify_code" class="form-control" placeholder="" required>
-        </div>
-        <button class="btn btn-primary w-100 mb-2">Kodu Doğrula</button>
-      </form>
-      <form method="post" action="/reset-registration" class="text-center">
-        <button type="submit" class="btn btn-link btn-sm text-decoration-none text-danger">Kayıt İşleminden Vazgeç</button>
-      </form>
-    {% endif %}
-    <div class="text-center mt-2">
-      <a href="/" class="btn btn-link btn-sm text-decoration-none spaced-link">Giriş Yap</a>
+
+        <h3 class="mt-3">Nasıl çalışır?</h3>
+
+        <div class="step"><span class="num">1</span><div><strong>Hesabını oluştur / giriş yap</strong><br><span class="tiny">E-posta doğrulaması ile güvence.</span></div></div>
+        <div class="step"><span class="num">2</span><div><strong>Bakiye ekle</strong><br><span class="tiny">Desteklenen yöntemlerle güvenli ödeme.</span></div></div>
+        <div class="step"><span class="num">3</span><div><strong>Hizmeti seç & linki gir</strong><br><span class="tiny">Siparişin otomatik başlar; hız ve kapsam açıklamada yazar.</span></div></div>
+
+        <h3 class="mt-3">Neden Baybayim?</h3>
+        <ul class="tiny mb-3">
+          <li>⚡ Anında otomatik teslimat & 7/24 panel</li>
+          <li>🛡️ <strong>Şifreni asla istemeyiz</strong>; gizlilik ve sipariş koruması</li>
+          <li>🎯 Yerli/gerçek/karışık gibi kalite seçenekleri</li>
+          <li>💬 Canlı destek ve detaylı sipariş takibi</li>
+        </ul>
+
+        <h3 class="mt-3">Önemli notlar</h3>
+        <ul class="tiny">
+          <li>Kullanıcı adı veya içerik bağlantısı yeterlidir; şifre paylaşılmaz.</li>
+          <li>Düşüşlerde telafi sunulan servislerde otomatik telafi işler.</li>
+        </ul>
+
+        <p class="tiny mt-3">Hesabın varsa <a href="/" class="link-light text-decoration-underline">giriş yap</a>, yoksa 30 sn’de kaydol ve bonusunu kap 🚀</p>
+      </div>
     </div>
   </div>
 </body>
