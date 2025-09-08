@@ -742,7 +742,7 @@ HTML_LOGIN = """
     ::placeholder{color:#aaa}
     .alert-custom{background:#1f1f1f;border-left:4px solid #0d6efd;padding:10px 12px;border-radius:6px;font-size:.95rem;margin-bottom:1rem;text-align:center}
 
-    /* Bilgi paneli (görselsiz) */
+    /* Bilgi paneli */
     .info{padding:18px 22px;border-left:1px solid #2a2a2a;background:linear-gradient(180deg,#1a1a1a 0%,#171717 100%)}
     .info h3{font-size:1.28rem;margin-bottom:.6rem}
     .info p{color:#cfcfcf;margin-bottom:.8rem}
@@ -751,7 +751,20 @@ HTML_LOGIN = """
     .step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
     .step .num{width:26px;height:26px;border-radius:7px;background:#0d6efd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 
-    /* Arka plan ikonları (dokunma) */
+    /* Form altı: Sayaç + Güven + SSS */
+    .divider{height:1px;background:#2a2a2a;margin:14px 0}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+    .stat-card{background:#232323;border:1px solid #2d2d2d;border-radius:12px;padding:12px;text-align:center}
+    .stat-label{font-size:.76rem;color:#bdbdbd}
+    .stat-val{font-weight:800;font-size:1.35rem;line-height:1.1;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .trust-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .trust-badge{background:#232323;border:1px solid #2f2f2f;border-radius:999px;padding:6px 10px;font-size:.85rem;display:inline-flex;align-items:center;gap:6px}
+    .trust-dot{width:8px;height:8px;border-radius:50%;background:#2feea3;display:inline-block;box-shadow:0 0 8px #2feea399}
+    .accordion-button{background:#212121;color:#eaeaea}
+    .accordion-button:not(.collapsed){background:#262626;color:#fff;box-shadow:none}
+    .accordion-body{background:#1f1f1f;color:#cfcfcf;border-top:1px solid #2a2a2a}
+
+    /* Arka plan ikonları */
     .animated-social-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden;user-select:none}
     .bg-icon{position:absolute;width:48px;opacity:.13;filter:blur(.2px) drop-shadow(0 4px 24px #0008);animation:18s ease-in-out infinite}
     .icon1{left:10vw;top:13vh;animation-name:float1}.icon2{left:72vw;top:22vh;animation-name:float2}.icon3{left:23vw;top:67vh;animation-name:float3}
@@ -791,30 +804,31 @@ HTML_LOGIN = """
       .modern-title{font-size:clamp(1.6rem,8vw,2.2rem)}
       .bg-icon{width:36px;opacity:.12}
       .info{border-left:0;border-top:1px solid #2a2a2a;padding:16px}
+      .stat-grid{grid-template-columns:repeat(2,1fr)}
     }
   </style>
 </head>
 <body class="d-flex justify-content-center align-items-center info-first"> <!-- form-first = form solda, info-first = info solda -->
   <!-- Arka plan ikonları -->
   <div class="animated-social-bg">
-    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
-    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
-    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
-    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
-    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
-    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
-    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
-    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
-    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
-    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
-    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
-    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
-    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
-    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
-    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
-    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
-    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
-    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1" alt="">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2" alt="">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3" alt="">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4" alt="">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5" alt="">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6" alt="">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7" alt="">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8" alt="">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9" alt="">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10" alt="">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11" alt="">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12" alt="">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13" alt="">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14" alt="">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15" alt="">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16" alt="">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17" alt="">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18" alt="">
   </div>
 
   <div class="card shadow p-0">
@@ -822,7 +836,7 @@ HTML_LOGIN = """
       <!-- FORM -->
       <div class="col-12 col-md-6 p-4">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-img">
-        <div class="modern-title text-center">BAYBAYİM</div>
+        <div class="modern-title text-center">BAYBAYİM GİRİŞ</div>
 
         {% with messages = get_flashed_messages() %}
           {% if messages %}
@@ -846,6 +860,50 @@ HTML_LOGIN = """
         <div class="text-center mt-2">
           <a href="/register" class="btn btn-link btn-sm">Kayıt Ol</a>
         </div>
+
+        <!-- === FORM ALTI: Sayaç + Güven + SSS (Login/Register aynı) === -->
+        <div class="divider"></div>
+
+        <div class="stat-grid" aria-label="Panel istatistikleri">
+          <div class="stat-card">
+            <div class="stat-label">Son 24 saatte sipariş</div>
+            <div class="stat-val" data-count="12438"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Ortalama başlangıç</div>
+            <div class="stat-val" data-count="45" data-suffix=" sn"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Aktif Çalışan Servis</div>
+            <div class="stat-val" data-count="11"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Refill başarı oranı</div>
+            <div class="stat-val" data-count="98" data-suffix="%"></div>
+          </div>
+        </div>
+
+        <div class="trust-row" aria-label="Güven rozetleri">
+          <span class="trust-badge"><span class="trust-dot"></span> 7/24 Otomatik</span>
+          <span class="trust-badge"><span class="trust-dot"></span> Şifre İstemeyiz</span>
+          <span class="trust-badge"><span class="trust-dot"></span> Canlı Destek</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="accordion accordion-flush" id="faqAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="q1">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a1" aria-expanded="false" aria-controls="a1">
+                Düşüş olursa ne oluyor?
+              </button>
+            </h2>
+            <div id="a1" class="accordion-collapse collapse" aria-labelledby="q1" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">Refill aktif servislerde otomatik telafi çalışır; eksik kalanlar bakiyeye iade ya da telafiyle tamamlanır.</div>
+            </div>
+          </div>
+        </div>
+        <!-- === /FORM ALTI === -->
       </div>
 
       <!-- BİLGİ PANELİ (GİRİŞ ve KAYIT ile AYNIDIR) -->
@@ -885,6 +943,38 @@ HTML_LOGIN = """
       </div>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Basit sayaç animasyonu (görününce başlar)
+    (function(){
+      const els = document.querySelectorAll('.stat-val');
+      if(!('IntersectionObserver' in window)){ els.forEach(e=>animate(e)); return; }
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(ent=>{
+          if(ent.isIntersecting && !ent.target.dataset.done){
+            animate(ent.target); ent.target.dataset.done = '1';
+          }
+        });
+      },{threshold:0.6});
+      els.forEach(el=>io.observe(el));
+
+      function animate(el){
+        const target = parseFloat(el.dataset.count||'0');
+        const suffix = el.dataset.suffix || '';
+        const duration = 1400;
+        let start;
+        function step(ts){
+          if(!start) start = ts;
+          const p = Math.min((ts-start)/duration,1);
+          const val = Math.floor(target*p);
+          el.textContent = val.toLocaleString('tr-TR') + suffix;
+          if(p<1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+    })();
+  </script>
 </body>
 </html>
 """
@@ -924,6 +1014,19 @@ HTML_REGISTER = """
     .step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
     .step .num{width:26px;height:26px;border-radius:7px;background:#0d6efd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 
+    /* Form altı: Sayaç + Güven + SSS (Login ile aynı) */
+    .divider{height:1px;background:#2a2a2a;margin:14px 0}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+    .stat-card{background:#232323;border:1px solid #2d2d2d;border-radius:12px;padding:12px;text-align:center}
+    .stat-label{font-size:.76rem;color:#bdbdbd}
+    .stat-val{font-weight:800;font-size:1.35rem;line-height:1.1;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .trust-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .trust-badge{background:#232323;border:1px solid #2f2f2f;border-radius:999px;padding:6px 10px;font-size:.85rem;display:inline-flex;align-items:center;gap:6px}
+    .trust-dot{width:8px;height:8px;border-radius:50%;background:#2feea3;display:inline-block;box-shadow:0 0 8px #2feea399}
+    .accordion-button{background:#212121;color:#eaeaea}
+    .accordion-button:not(.collapsed){background:#262626;color:#fff;box-shadow:none}
+    .accordion-body{background:#1f1f1f;color:#cfcfcf;border-top:1px solid #2a2a2a}
+
     .animated-social-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden;user-select:none}
     .bg-icon{position:absolute;width:48px;opacity:.13;filter:blur(.2px) drop-shadow(0 4px 24px #0008);animation:18s ease-in-out infinite}
     .icon1{left:10vw;top:13vh;animation-name:float1}.icon2{left:72vw;top:22vh;animation-name:float2}.icon3{left:23vw;top:67vh;animation-name:float3}
@@ -961,30 +1064,31 @@ HTML_REGISTER = """
       .modern-title,.modern-title-register{font-size:clamp(1.6rem,8vw,2.2rem)}
       .bg-icon{width:36px;opacity:.12}
       .info{border-left:0;border-top:1px solid #2a2a2a;padding:16px}
+      .stat-grid{grid-template-columns:repeat(2,1fr)}
     }
   </style>
 </head>
 <body class="d-flex justify-content-center align-items-center form-first"> <!-- form-first = form solda, info-first = info solda -->
   <!-- Arka plan ikonları -->
   <div class="animated-social-bg">
-    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1">
-    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2">
-    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3">
-    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4">
-    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5">
-    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6">
-    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7">
-    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8">
-    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9">
-    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10">
-    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11">
-    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12">
-    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13">
-    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14">
-    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15">
-    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16">
-    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17">
-    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18">
+    <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1" alt="">
+    <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2" alt="">
+    <img src="{{ url_for('static', filename='twitter.png') }}" class="bg-icon icon3" alt="">
+    <img src="{{ url_for('static', filename='9gag.png') }}" class="bg-icon icon4" alt="">
+    <img src="{{ url_for('static', filename='imo.png') }}" class="bg-icon icon5" alt="">
+    <img src="{{ url_for('static', filename='discord.png') }}" class="bg-icon icon6" alt="">
+    <img src="{{ url_for('static', filename='goodreads.png') }}" class="bg-icon icon7" alt="">
+    <img src="{{ url_for('static', filename='twitch.png') }}" class="bg-icon icon8" alt="">
+    <img src="{{ url_for('static', filename='wechat.png') }}" class="bg-icon icon9" alt="">
+    <img src="{{ url_for('static', filename='swift.png') }}" class="bg-icon icon10" alt="">
+    <img src="{{ url_for('static', filename='vkontakte.png') }}" class="bg-icon icon11" alt="">
+    <img src="{{ url_for('static', filename='envato.png') }}" class="bg-icon icon12" alt="">
+    <img src="{{ url_for('static', filename='reddit.png') }}" class="bg-icon icon13" alt="">
+    <img src="{{ url_for('static', filename='facebook.png') }}" class="bg-icon icon14" alt="">
+    <img src="{{ url_for('static', filename='instagram.png') }}" class="bg-icon icon15" alt="">
+    <img src="{{ url_for('static', filename='foursquare.png') }}" class="bg-icon icon16" alt="">
+    <img src="{{ url_for('static', filename='whatsapp.png') }}" class="bg-icon icon17" alt="">
+    <img src="{{ url_for('static', filename='klout.png') }}" class="bg-icon icon18" alt="">
   </div>
 
   <div class="card shadow p-0">
@@ -1036,6 +1140,50 @@ HTML_REGISTER = """
         <div class="text-center mt-2">
           <a href="/" class="btn btn-link btn-sm text-decoration-none">Giriş Yap</a>
         </div>
+
+        <!-- === FORM ALTI: Sayaç + Güven + SSS (Login/Register aynı) === -->
+        <div class="divider"></div>
+
+        <div class="stat-grid" aria-label="Panel istatistikleri">
+          <div class="stat-card">
+            <div class="stat-label">Son 24 saatte sipariş</div>
+            <div class="stat-val" data-count="12438"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Ortalama başlangıç</div>
+            <div class="stat-val" data-count="45" data-suffix=" sn"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Aktif Çalışan Servis</div>
+            <div class="stat-val" data-count="11"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Refill başarı oranı</div>
+            <div class="stat-val" data-count="98" data-suffix="%"></div>
+          </div>
+        </div>
+
+        <div class="trust-row" aria-label="Güven rozetleri">
+          <span class="trust-badge"><span class="trust-dot"></span> 7/24 Otomatik</span>
+          <span class="trust-badge"><span class="trust-dot"></span> Şifre İstemeyiz</span>
+          <span class="trust-badge"><span class="trust-dot"></span> Canlı Destek</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="accordion accordion-flush" id="faqAccordionReg">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="rq1">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ra1" aria-expanded="false" aria-controls="ra1">
+                Whatsapp İle İrtabata geçin !
+              </button>
+            </h2>
+            <div id="ra1" class="accordion-collapse collapse" aria-labelledby="rq1" data-bs-parent="#faqAccordionReg">
+              <div class="accordion-body">7/24 Canlı desteğimiz var anlık yazabilirsiniz.</div>
+            </div>
+          </div>
+        </div>
+        <!-- === /FORM ALTI === -->
       </div>
 
       <!-- BİLGİ PANELİ (GİRİŞ ile AYNIDIR) -->
@@ -1075,6 +1223,38 @@ HTML_REGISTER = """
       </div>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Basit sayaç animasyonu (görününce başlar) – Login ile aynı
+    (function(){
+      const els = document.querySelectorAll('.stat-val');
+      if(!('IntersectionObserver' in window)){ els.forEach(e=>animate(e)); return; }
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(ent=>{
+          if(ent.isIntersecting && !ent.target.dataset.done){
+            animate(ent.target); ent.target.dataset.done = '1';
+          }
+        });
+      },{threshold:0.6});
+      els.forEach(el=>io.observe(el));
+
+      function animate(el){
+        const target = parseFloat(el.dataset.count||'0');
+        const suffix = el.dataset.suffix || '';
+        const duration = 1400;
+        let start;
+        function step(ts){
+          if(!start) start = ts;
+          const p = Math.min((ts-start)/duration,1);
+          const val = Math.floor(target*p);
+          el.textContent = val.toLocaleString('tr-TR') + suffix;
+          if(p<1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+    })();
+  </script>
 </body>
 </html>
 """
