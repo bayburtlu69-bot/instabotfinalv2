@@ -871,7 +871,7 @@ HTML_LOGIN = """
           </div>
           <div class="stat-card">
             <div class="stat-label">Ortalama başlangıç</div>
-            <div class="stat-val" data-count="45" data-suffix=" sn"></div>
+            <div class="stat-val" data-count="10" data-suffix=" DK"></div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Aktif Çalışan Servis</div>
@@ -886,7 +886,6 @@ HTML_LOGIN = """
         <div class="trust-row" aria-label="Güven rozetleri">
           <span class="trust-badge"><span class="trust-dot"></span> 7/24 Otomatik</span>
           <span class="trust-badge"><span class="trust-dot"></span> Şifre İstemeyiz</span>
-          <span class="trust-badge"><span class="trust-dot"></span> 7/24 Canlı Destek</span>
           <span class="trust-badge"><span class="trust-dot"></span> Canlı Destek</span>
         </div>
 
@@ -1152,7 +1151,7 @@ HTML_REGISTER = """
           </div>
           <div class="stat-card">
             <div class="stat-label">Ortalama başlangıç</div>
-            <div class="stat-val" data-count="45" data-suffix=" sn"></div>
+            <div class="stat-val" data-count="10" data-suffix=" DK"></div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Aktif Çalışan Servis</div>
@@ -1167,7 +1166,6 @@ HTML_REGISTER = """
         <div class="trust-row" aria-label="Güven rozetleri">
           <span class="trust-badge"><span class="trust-dot"></span> 7/24 Otomatik</span>
           <span class="trust-badge"><span class="trust-dot"></span> Şifre İstemeyiz</span>
-          <span class="trust-badge"><span class="trust-dot"></span> 7/24 Canlı Destek</span>
           <span class="trust-badge"><span class="trust-dot"></span> Canlı Destek</span>
         </div>
 
