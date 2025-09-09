@@ -865,16 +865,13 @@ HTML_LOGIN = """
     ::placeholder{color:#bdbdbd}
     .alert-custom{background:#1f1f1f;border-left:4px solid #0d6efd;padding:10px 12px;border-radius:6px;font-size:1rem;margin-bottom:1rem;text-align:center;color:#eaeaea}
 
-    /* Bilgi paneli */
     .info{padding:18px 22px;border-left:1px solid #2a2a2a;background:linear-gradient(180deg,#1a1a1a 0%,#171717 100%)}
     .info h3{font-size:1.28rem;margin-bottom:.6rem}
     .info p{color:#e4e4e4;line-height:1.6;letter-spacing:.2px}
     .tiny{font-size:1rem;color:#e0e0e0;line-height:1.6}
-    .badge-soft{background:#232323;border:1px solid #2f2f2f;border-radius:10px;padding:8px 10px;margin:4px 6px;display:inline-block}
     .step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
     .step .num{width:26px;height:26px;border-radius:7px;background:#0d6efd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 
-    /* Form altı: Sayaç + Güven + SSS */
     .divider{height:1px;background:#2a2a2a;margin:14px 0}
     .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
     .stat-card{background:#232323;border:1px solid #2d2d2d;border-radius:12px;padding:12px;text-align:center}
@@ -887,7 +884,6 @@ HTML_LOGIN = """
     .accordion-button:not(.collapsed){background:#262626;color:#fff;box-shadow:none}
     .accordion-body{background:#1f1f1f;color:#e6e6e6;border-top:1px solid #2a2a2a;line-height:1.6}
 
-    /* Arka plan ikonları */
     .animated-social-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden;user-select:none}
     .bg-icon{position:absolute;width:48px;opacity:.13;filter:blur(.2px) drop-shadow(0 4px 24px #0008);animation:18s ease-in-out infinite}
     .icon1{left:10vw;top:13vh;animation-name:float1}.icon2{left:72vw;top:22vh;animation-name:float2}.icon3{left:23vw;top:67vh;animation-name:float3}
@@ -915,13 +911,11 @@ HTML_LOGIN = """
     @keyframes float17{0%{transform:translateY(0)}50%{transform:translateY(16px) scale(1.01)}100%{transform:translateY(0)}}
     @keyframes float18{0%{transform:translateY(0)}50%{transform:translateY(-25px) scale(1.05)}100%{transform:translateY(0)}}
 
-    /* Yerleşim */
     .form-first .row{flex-direction:row}
     .info-first .row{flex-direction:row-reverse}
 
-    /* PRICING */
     .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:10px 0 6px}
-    .price-card{background:linear-gradient(180deg,#1b1b1b 0%,#171717 100%);border:1px solid #2a2a2a;border-radius:14px;padding:14px;position:relative}
+    .price-card{background:linear-gradient(180deg,#1b1b1b 0%,#171717 100%);border:1px solid #2a2a2a;border-radius:14px;padding:14px}
     .price-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
     .price-title{font-weight:800;font-size:1rem}
     .price-amount{font-weight:900;font-size:1.1rem;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -940,7 +934,6 @@ HTML_LOGIN = """
     .login-bubble .btn-outline-light{border:1px solid #2f2f2f;color:#eaeaea;background:transparent}
     .login-bubble .close-x{position:absolute;top:8px;right:10px;background:transparent;border:0;color:#aaa;font-size:1.2rem}
 
-    /* Mobil */
     @media (max-width:575.98px){
       body{padding:16px 12px calc(16px + env(safe-area-inset-bottom))}
       body.d-flex{align-items:flex-start!important}
@@ -953,7 +946,7 @@ HTML_LOGIN = """
   </style>
 </head>
 <body class="d-flex justify-content-center align-items-center info-first">
-  <!-- Arka plan ikonları -->
+  <!-- arka plan ikonları -->
   <div class="animated-social-bg">
     <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1" alt="">
     <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2" alt="">
@@ -1005,7 +998,6 @@ HTML_LOGIN = """
           <a href="/register" class="btn btn-link btn-sm">Kayıt Ol</a>
         </div>
 
-        <!-- Sayaç + Güven + SSS -->
         <div class="divider"></div>
         <div class="stat-grid" aria-label="Panel istatistikleri">
           <div class="stat-card"><div class="stat-label">Son 24 saatte sipariş</div><div class="stat-val" data-count="12438"></div></div>
@@ -1172,7 +1164,6 @@ HTML_REGISTER = """
     .info h3{font-size:1.28rem;margin-bottom:.6rem}
     .info p{color:#e4e4e4;line-height:1.6;letter-spacing:.2px}
     .tiny{font-size:1rem;color:#e0e0e0;line-height:1.6}
-    .badge-soft{background:#232323;border:1px solid #2f2f2f;border-radius:10px;padding:8px 10px;margin:4px 6px;display:inline-block}
     .step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
     .step .num{width:26px;height:26px;border-radius:7px;background:#0d6efd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 
@@ -1218,15 +1209,24 @@ HTML_REGISTER = """
     .form-first .row{flex-direction:row}
     .info-first .row{flex-direction:row-reverse}
 
-    /* PRICING */
     .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:10px 0 6px}
-    .price-card{background:linear-gradient(180deg,#1b1b1b 0%,#171717 100%);border:1px solid #2a2a2a;border-radius:14px;padding:14px;position:relative}
+    .price-card{background:linear-gradient(180deg,#1b1b1b 0%,#171717 100%);border:1px solid #2a2a2a;border-radius:14px;padding:14px}
     .price-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
     .price-title{font-weight:800;font-size:1rem}
     .price-amount{font-weight:900;font-size:1.1rem;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
     .price-actions{display:flex;gap:6px;margin-top:10px}
     .btn-buy{border-radius:10px;padding:8px 10px;font-weight:800;background:linear-gradient(92deg,#5aa8ff 0%,#b95cff 60%,#2feea3 100%);color:#0f1012;border:0}
     .btn-buy:hover{filter:brightness(1.1)}
+
+    /* Register sayfasında da baloncuk stilleri */
+    .login-bubble{position:fixed;right:18px;bottom:18px;max-width:360px;background:#191919;border:1px solid #2a2a2a;border-radius:14px;box-shadow:0 10px 40px #0008;padding:12px 14px;z-index:9999;transform:translateY(20px);opacity:0;pointer-events:none;transition:transform .25s ease,opacity .25s ease}
+    .login-bubble.show{opacity:1;transform:translateY(0);pointer-events:auto}
+    .login-bubble .title{font-weight:900;margin-bottom:4px}
+    .login-bubble .msg{color:#e4e4e4;font-size:1rem;line-height:1.6}
+    .login-bubble .actions{display:flex;gap:8px;margin-top:10px}
+    .login-bubble .btn{border-radius:10px;padding:8px 10px;font-weight:800}
+    .login-bubble .btn-outline-light{border:1px solid #2f2f2f;color:#eaeaea;background:transparent}
+    .login-bubble .close-x{position:absolute;top:8px;right:10px;background:transparent;border:0;color:#aaa;font-size:1.2rem}
 
     @media (max-width:575.98px){
       body{padding:16px 12px calc(16px + env(safe-area-inset-bottom))}
@@ -1240,7 +1240,7 @@ HTML_REGISTER = """
   </style>
 </head>
 <body class="d-flex justify-content-center align-items-center form-first">
-  <!-- Arka plan ikonları -->
+  <!-- arka plan ikonları -->
   <div class="animated-social-bg">
     <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1" alt="">
     <img src="{{ url_for('static', filename='youtube.png') }}" class="bg-icon icon2" alt="">
@@ -1298,7 +1298,6 @@ HTML_REGISTER = """
         {% endif %}
         <div class="text-center mt-2"><a href="/" class="btn btn-link btn-sm text-decoration-none">Giriş Yap</a></div>
 
-        <!-- Sayaç + Güven + SSS -->
         <div class="divider"></div>
         <div class="stat-grid" aria-label="Panel istatistikleri">
           <div class="stat-card"><div class="stat-label">Son 24 saatte sipariş</div><div class="stat-val" data-count="12438"></div></div>
@@ -1368,6 +1367,7 @@ HTML_REGISTER = """
     </div>
   </div>
 
+  <!-- Baloncuk: sadece 'Satın Al' tıklanınca açılır -->
   <div id="loginBubble" class="login-bubble" role="alert" aria-live="polite" aria-atomic="true">
     <button class="close-x" aria-label="Kapat">&times;</button>
     <div class="title">Önce giriş yap 🎯</div>
@@ -1381,20 +1381,10 @@ HTML_REGISTER = """
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     (function(){
-      function qs(k){ return new URLSearchParams(location.search).get(k); }
       const bubble = document.getElementById('loginBubble');
-      function showBubble(){
-        bubble.classList.add('show');
-        if(bubble._timer) clearTimeout(bubble._timer);
-        bubble._timer = setTimeout(()=>bubble.classList.remove('show'), 8000);
-      }
-      if(qs('need_login') === '1'){ setTimeout(showBubble, 400); }
+      function show(){ bubble.classList.add('show'); if(bubble._t) clearTimeout(bubble._t); bubble._t=setTimeout(()=>bubble.classList.remove('show'),8000); }
       document.querySelectorAll('.btn-buy').forEach(btn=>{
-        btn.addEventListener('click', function(ev){
-          ev.preventDefault();
-          showBubble();
-          window.scrollTo({top:0, behavior:'smooth'});
-        });
+        btn.addEventListener('click', (e)=>{ e.preventDefault(); show(); window.scrollTo({top:0,behavior:'smooth'}); });
       });
       bubble?.querySelector('.close-x')?.addEventListener('click', ()=>bubble.classList.remove('show'));
     })();
