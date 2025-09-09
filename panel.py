@@ -1139,7 +1139,7 @@ HTML_LOGIN = """
 </html>
 """
 
-HTML_REGİSTER = """
+HTML_REGISTER = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
