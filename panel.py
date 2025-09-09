@@ -849,25 +849,27 @@ HTML_LOGIN = """
   <style>
     html{ -webkit-text-size-adjust:100% }
     body{
-      margin:0;height:100vh;color:#fff;overflow:hidden;position:relative;
+      margin:0;min-height:100vh;height:auto;color:#fff;position:relative;
+      overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
       background:linear-gradient(-45deg,#121212,#1e1e1e,#212121,#000);background-size:400% 400%;
       animation:gradientBG 12s ease infinite;
+      text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;
     }
-    @supports(height:100dvh){ body{ min-height:100dvh;height:auto } }
+    @supports(height:100dvh){ body{ min-height:100dvh } }
     @keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
     .card{background:#1b1b1b;border-radius:16px;color:#fff;z-index:2;position:relative;max-width:980px;width:100%}
     .logo-img{width:62px;height:62px;display:block;margin:0 auto 12px;border-radius:20%;box-shadow:0 4px 16px #0005;object-fit:contain;background:#232323}
     .modern-title{font-family:'Montserrat','Segoe UI',Arial,sans-serif;font-size:2.4rem;font-weight:900;text-transform:uppercase;letter-spacing:.01em;margin:4px 0 14px;background:linear-gradient(92deg,#58a7ff 10%,#b95cff 65%,#2feea3 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:0 4px 24px #000c}
     .form-control,.form-control:focus{background:#2c2c2c;color:#f1f1f1;border:1px solid #555}
-    ::placeholder{color:#aaa}
-    .alert-custom{background:#1f1f1f;border-left:4px solid #0d6efd;padding:10px 12px;border-radius:6px;font-size:.95rem;margin-bottom:1rem;text-align:center}
+    ::placeholder{color:#bdbdbd}
+    .alert-custom{background:#1f1f1f;border-left:4px solid #0d6efd;padding:10px 12px;border-radius:6px;font-size:1rem;margin-bottom:1rem;text-align:center;color:#eaeaea}
 
     /* Bilgi paneli */
     .info{padding:18px 22px;border-left:1px solid #2a2a2a;background:linear-gradient(180deg,#1a1a1a 0%,#171717 100%)}
     .info h3{font-size:1.28rem;margin-bottom:.6rem}
-    .info p{color:#cfcfcf;margin-bottom:.8rem}
-    .tiny{font-size:.9rem;color:#cfcfcf}
+    .info p{color:#e4e4e4;line-height:1.6;letter-spacing:.2px}
+    .tiny{font-size:1rem;color:#e0e0e0;line-height:1.6}
     .badge-soft{background:#232323;border:1px solid #2f2f2f;border-radius:10px;padding:8px 10px;margin:4px 6px;display:inline-block}
     .step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
     .step .num{width:26px;height:26px;border-radius:7px;background:#0d6efd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
@@ -876,14 +878,14 @@ HTML_LOGIN = """
     .divider{height:1px;background:#2a2a2a;margin:14px 0}
     .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
     .stat-card{background:#232323;border:1px solid #2d2d2d;border-radius:12px;padding:12px;text-align:center}
-    .stat-label{font-size:.76rem;color:#bdbdbd}
-    .stat-val{font-weight:800;font-size:1.35rem;line-height:1.1;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .stat-label{font-size:.86rem;color:#d8d8d8}
+    .stat-val{font-weight:800;font-size:1.4rem;line-height:1.1;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
     .trust-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .trust-badge{background:#232323;border:1px solid #2f2f2f;border-radius:999px;padding:6px 10px;font-size:.85rem;display:inline-flex;align-items:center;gap:6px}
+    .trust-badge{background:#232323;border:1px solid #2f2f2f;border-radius:999px;padding:8px 12px;font-size:.95rem;display:inline-flex;align-items:center;gap:6px;color:#e8e8e8}
     .trust-dot{width:8px;height:8px;border-radius:50%;background:#2feea3;display:inline-block;box-shadow:0 0 8px #2feea399}
-    .accordion-button{background:#212121;color:#eaeaea}
+    .accordion-button{background:#212121;color:#f0f0f0}
     .accordion-button:not(.collapsed){background:#262626;color:#fff;box-shadow:none}
-    .accordion-body{background:#1f1f1f;color:#cfcfcf;border-top:1px solid #2a2a2a}
+    .accordion-body{background:#1f1f1f;color:#e6e6e6;border-top:1px solid #2a2a2a;line-height:1.6}
 
     /* Arka plan ikonları */
     .animated-social-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden;user-select:none}
@@ -913,13 +915,34 @@ HTML_LOGIN = """
     @keyframes float17{0%{transform:translateY(0)}50%{transform:translateY(16px) scale(1.01)}100%{transform:translateY(0)}}
     @keyframes float18{0%{transform:translateY(0)}50%{transform:translateY(-25px) scale(1.05)}100%{transform:translateY(0)}}
 
-    /* Yerleşim: formu/infoyu yan yana ve yer değiştirebilir yap */
+    /* Yerleşim */
     .form-first .row{flex-direction:row}
     .info-first .row{flex-direction:row-reverse}
 
+    /* PRICING */
+    .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:10px 0 6px}
+    .price-card{background:linear-gradient(180deg,#1b1b1b 0%,#171717 100%);border:1px solid #2a2a2a;border-radius:14px;padding:14px;position:relative}
+    .price-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .price-title{font-weight:800;font-size:1rem}
+    .price-amount{font-weight:900;font-size:1.1rem;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .price-actions{display:flex;gap:6px;margin-top:10px}
+    .btn-buy{border-radius:10px;padding:8px 10px;font-weight:800;background:linear-gradient(92deg,#5aa8ff 0%,#b95cff 60%,#2feea3 100%);color:#0f1012;border:0}
+    .btn-buy:hover{filter:brightness(1.1)}
+
+    /* Login baloncuğu */
+    .login-bubble{position:fixed;right:18px;bottom:18px;max-width:360px;background:#191919;border:1px solid #2a2a2a;border-radius:14px;box-shadow:0 10px 40px #0008;padding:12px 14px;z-index:9999;transform:translateY(20px);opacity:0;pointer-events:none;transition:transform .25s ease,opacity .25s ease}
+    .login-bubble.show{opacity:1;transform:translateY(0);pointer-events:auto}
+    .login-bubble .title{font-weight:900;margin-bottom:4px}
+    .login-bubble .msg{color:#e4e4e4;font-size:1rem;line-height:1.6}
+    .login-bubble .actions{display:flex;gap:8px;margin-top:10px}
+    .login-bubble .btn{border-radius:10px;padding:8px 10px;font-weight:800}
+    .login-bubble .btn-primary{background:#0d6efd;border:0;color:#fff}
+    .login-bubble .btn-outline-light{border:1px solid #2f2f2f;color:#eaeaea;background:transparent}
+    .login-bubble .close-x{position:absolute;top:8px;right:10px;background:transparent;border:0;color:#aaa;font-size:1.2rem}
+
     /* Mobil */
     @media (max-width:575.98px){
-      body{overflow-x:hidden;overflow-y:auto;padding:16px 12px calc(16px + env(safe-area-inset-bottom))}
+      body{padding:16px 12px calc(16px + env(safe-area-inset-bottom))}
       body.d-flex{align-items:flex-start!important}
       .card{margin:10vh auto 0;max-width:420px}
       .modern-title{font-size:clamp(1.6rem,8vw,2.2rem)}
@@ -929,7 +952,7 @@ HTML_LOGIN = """
     }
   </style>
 </head>
-<body class="d-flex justify-content-center align-items-center info-first"> <!-- form-first = form solda, info-first = info solda -->
+<body class="d-flex justify-content-center align-items-center info-first">
   <!-- Arka plan ikonları -->
   <div class="animated-social-bg">
     <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1" alt="">
@@ -982,26 +1005,13 @@ HTML_LOGIN = """
           <a href="/register" class="btn btn-link btn-sm">Kayıt Ol</a>
         </div>
 
-        <!-- === FORM ALTI: Sayaç + Güven + SSS (Login/Register aynı) === -->
+        <!-- Sayaç + Güven + SSS -->
         <div class="divider"></div>
-
         <div class="stat-grid" aria-label="Panel istatistikleri">
-          <div class="stat-card">
-            <div class="stat-label">Son 24 saatte sipariş</div>
-            <div class="stat-val" data-count="12438"></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Ortalama başlangıç</div>
-            <div class="stat-val" data-count="10" data-suffix=" DK"></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Aktif Çalışan Servis</div>
-            <div class="stat-val" data-count="11"></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Refill başarı oranı</div>
-            <div class="stat-val" data-count="98" data-suffix="%"></div>
-          </div>
+          <div class="stat-card"><div class="stat-label">Son 24 saatte sipariş</div><div class="stat-val" data-count="12438"></div></div>
+          <div class="stat-card"><div class="stat-label">Ortalama başlangıç</div><div class="stat-val" data-count="10" data-suffix=" DK"></div></div>
+          <div class="stat-card"><div class="stat-label">Aktif Çalışan Servis</div><div class="stat-val" data-count="11"></div></div>
+          <div class="stat-card"><div class="stat-label">Refill başarı oranı</div><div class="stat-val" data-count="98" data-suffix="%"></div></div>
         </div>
 
         <div class="trust-row" aria-label="Güven rozetleri">
@@ -1024,24 +1034,24 @@ HTML_LOGIN = """
             </div>
           </div>
         </div>
-        <!-- === /FORM ALTI === -->
       </div>
 
-      <!-- BİLGİ PANELİ (GİRİŞ ve KAYIT ile AYNIDIR) -->
+      <!-- BİLGİ PANELİ -->
       <div class="col-12 col-md-6 info">
         <h3>Neye giriş yapıyorsun?</h3>
         <p>Baybayim; <strong>SMM Panel</strong> altyapısıyla Instagram, TikTok, YouTube, Twitter/X ve daha fazlasında
           <strong>takipçi</strong>, <strong>beğeni</strong>, <strong>izlenme</strong>, <strong>yorum</strong> gibi
           hizmetleri <em>hızlı, otomatik ve güvenli</em> şekilde sunar. Panel <strong>7/24</strong> açıktır; siparişler saniyeler içinde işleme alınır.</p>
 
-        <div class="mb-2">
-          <span class="badge-soft">Instagram • Takipçi / Beğeni / Reel izlenme</span>
-          <span class="badge-soft">TikTok • İzlenme / Canlı izleyici</span>
-          <span class="badge-soft">YouTube • İzlenme / Abone / Yorum</span>
+        <!-- FİYAT KARTLARI -->
+        <div class="pricing-grid">
+          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Türk Takipçi</div><div class="price-amount">300 ₺</div></div><div class="tiny">Yerli, stabil ve hızlı başlangıç.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm" data-service="Instagram Türk Takipçi">Satın Al</a></div></div>
+          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Bot Takipçi</div><div class="price-amount">200 ₺</div></div><div class="tiny">Uygun fiyatlı, otomatik teslim.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm" data-service="Instagram Bot Takipçi">Satın Al</a></div></div>
+          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Türk Beğeni</div><div class="price-amount">60 ₺</div></div><div class="tiny">Gerçek etkileşim opsiyonları.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm" data-service="Instagram Türk Beğeni">Satın Al</a></div></div>
+          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Bot Beğeni</div><div class="price-amount">30 ₺</div></div><div class="tiny">Hızlı, ekonomik, otomatik.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm" data-service="Instagram Bot Beğeni">Satın Al</a></div></div>
         </div>
 
         <h3 class="mt-3">Nasıl çalışır?</h3>
-
         <div class="step"><span class="num">1</span><div><strong>Hesabını oluştur / giriş yap</strong><br><span class="tiny">E-posta doğrulaması ile güvence.</span></div></div>
         <div class="step"><span class="num">2</span><div><strong>Bakiye ekle</strong><br><span class="tiny">Desteklenen yöntemlerle güvenli ödeme.</span></div></div>
         <div class="step"><span class="num">3</span><div><strong>Hizmeti seç & linki gir</strong><br><span class="tiny">Siparişin otomatik başlar; hız ve kapsam açıklamada yazar.</span></div></div>
@@ -1065,9 +1075,39 @@ HTML_LOGIN = """
     </div>
   </div>
 
+  <!-- Login gerekli baloncuğu -->
+  <div id="loginBubble" class="login-bubble" role="alert" aria-live="polite" aria-atomic="true">
+    <button class="close-x" aria-label="Kapat">&times;</button>
+    <div class="title">Hemen giriş yap 💫</div>
+    <div class="msg">Sipariş verebilmen için önce giriş yapman gerekiyor. Kayıtlı değilsen <a href="/register" class="link-light text-decoration-underline">30 sn’de kaydol</a>, sonra satın al! 🚀</div>
+    <div class="actions">
+      <a href="/" class="btn btn-primary btn-sm">Giriş Yap</a>
+      <a href="/register" class="btn btn-outline-light btn-sm">Kayıt Ol</a>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Basit sayaç animasyonu (görününce başlar)
+    (function(){
+      function qs(k){ return new URLSearchParams(location.search).get(k); }
+      const bubble = document.getElementById('loginBubble');
+      function showBubble(){
+        bubble.classList.add('show');
+        if(bubble._timer) clearTimeout(bubble._timer);
+        bubble._timer = setTimeout(()=>bubble.classList.remove('show'), 8000);
+      }
+      if(qs('need_login') === '1'){ setTimeout(showBubble, 400); }
+      document.querySelectorAll('.btn-buy').forEach(btn=>{
+        btn.addEventListener('click', function(ev){
+          ev.preventDefault();
+          showBubble();
+          window.scrollTo({top:0, behavior:'smooth'});
+        });
+      });
+      bubble?.querySelector('.close-x')?.addEventListener('click', ()=>bubble.classList.remove('show'));
+    })();
+  </script>
+  <script>
     (function(){
       const els = document.querySelectorAll('.stat-val');
       if(!('IntersectionObserver' in window)){ els.forEach(e=>animate(e)); return; }
@@ -1079,7 +1119,6 @@ HTML_LOGIN = """
         });
       },{threshold:0.6});
       els.forEach(el=>io.observe(el));
-
       function animate(el){
         const target = parseFloat(el.dataset.count||'0');
         const suffix = el.dataset.suffix || '';
@@ -1100,7 +1139,7 @@ HTML_LOGIN = """
 </html>
 """
 
-HTML_REGISTER = """
+HTML_REGİSTER = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -1112,11 +1151,13 @@ HTML_REGISTER = """
   <style>
     html{ -webkit-text-size-adjust:100% }
     body{
-      margin:0;height:100vh;color:#fff;overflow:hidden;position:relative;
+      margin:0;min-height:100vh;height:auto;color:#fff;position:relative;
+      overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
       background:linear-gradient(-45deg,#121212,#1e1e1e,#212121,#000);background-size:400% 400%;
       animation:gradientBG 12s ease infinite;
+      text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;
     }
-    @supports(height:100dvh){ body{min-height:100dvh;height:auto} }
+    @supports(height:100dvh){ body{min-height:100dvh} }
     @keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
     .card{background:#1b1b1b;border-radius:16px;color:#fff;z-index:2;position:relative;max-width:980px;width:100%}
@@ -1125,28 +1166,27 @@ HTML_REGISTER = """
     .modern-title-register{font-family:'Montserrat','Segoe UI',Arial,sans-serif;font-size:2.4rem;font-weight:900;text-transform:uppercase;background:linear-gradient(90deg,#14fff1 0%,#4294ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:0 2px 10px #00485a55}
 
     .form-control,.form-control:focus{background:#2c2c2c;color:#f1f1f1;border:1px solid #555}
-    .custom-alert{background:#292929;border-left:5px solid #4da3ff;padding:12px 15px;border-radius:6px;color:#fff;font-size:.92rem;margin-bottom:18px;text-align:center}
+    .custom-alert{background:#292929;border-left:5px solid #4da3ff;padding:12px 15px;border-radius:6px;color:#fff;font-size:1rem;margin-bottom:18px;text-align:center}
 
     .info{padding:18px 22px;border-left:1px solid #2a2a2a;background:linear-gradient(180deg,#1a1a1a 0%,#171717 100%)}
     .info h3{font-size:1.28rem;margin-bottom:.6rem}
-    .info p{color:#cfcfcf;margin-bottom:.8rem}
-    .tiny{font-size:.9rem;color:#cfcfcf}
+    .info p{color:#e4e4e4;line-height:1.6;letter-spacing:.2px}
+    .tiny{font-size:1rem;color:#e0e0e0;line-height:1.6}
     .badge-soft{background:#232323;border:1px solid #2f2f2f;border-radius:10px;padding:8px 10px;margin:4px 6px;display:inline-block}
     .step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
     .step .num{width:26px;height:26px;border-radius:7px;background:#0d6efd;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 
-    /* Form altı: Sayaç + Güven + SSS (Login ile aynı) */
     .divider{height:1px;background:#2a2a2a;margin:14px 0}
     .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
     .stat-card{background:#232323;border:1px solid #2d2d2d;border-radius:12px;padding:12px;text-align:center}
-    .stat-label{font-size:.76rem;color:#bdbdbd}
-    .stat-val{font-weight:800;font-size:1.35rem;line-height:1.1;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .stat-label{font-size:.86rem;color:#d8d8d8}
+    .stat-val{font-weight:800;font-size:1.4rem;line-height:1.1;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
     .trust-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .trust-badge{background:#232323;border:1px solid #2f2f2f;border-radius:999px;padding:6px 10px;font-size:.85rem;display:inline-flex;align-items:center;gap:6px}
+    .trust-badge{background:#232323;border:1px solid #2f2f2f;border-radius:999px;padding:8px 12px;font-size:.95rem;display:inline-flex;align-items:center;gap:6px;color:#e8e8e8}
     .trust-dot{width:8px;height:8px;border-radius:50%;background:#2feea3;display:inline-block;box-shadow:0 0 8px #2feea399}
-    .accordion-button{background:#212121;color:#eaeaea}
+    .accordion-button{background:#212121;color:#f0f0f0}
     .accordion-button:not(.collapsed){background:#262626;color:#fff;box-shadow:none}
-    .accordion-body{background:#1f1f1f;color:#cfcfcf;border-top:1px solid #2a2a2a}
+    .accordion-body{background:#1f1f1f;color:#e6e6e6;border-top:1px solid #2a2a2a;line-height:1.6}
 
     .animated-social-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden;user-select:none}
     .bg-icon{position:absolute;width:48px;opacity:.13;filter:blur(.2px) drop-shadow(0 4px 24px #0008);animation:18s ease-in-out infinite}
@@ -1178,8 +1218,18 @@ HTML_REGISTER = """
     .form-first .row{flex-direction:row}
     .info-first .row{flex-direction:row-reverse}
 
+    /* PRICING */
+    .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:10px 0 6px}
+    .price-card{background:linear-gradient(180deg,#1b1b1b 0%,#171717 100%);border:1px solid #2a2a2a;border-radius:14px;padding:14px;position:relative}
+    .price-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .price-title{font-weight:800;font-size:1rem}
+    .price-amount{font-weight:900;font-size:1.1rem;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .price-actions{display:flex;gap:6px;margin-top:10px}
+    .btn-buy{border-radius:10px;padding:8px 10px;font-weight:800;background:linear-gradient(92deg,#5aa8ff 0%,#b95cff 60%,#2feea3 100%);color:#0f1012;border:0}
+    .btn-buy:hover{filter:brightness(1.1)}
+
     @media (max-width:575.98px){
-      body{overflow-x:hidden;overflow-y:auto;padding:16px 12px calc(16px + env(safe-area-inset-bottom))}
+      body{padding:16px 12px calc(16px + env(safe-area-inset-bottom))}
       body.d-flex{align-items:flex-start!important}
       .card{margin:8vh auto 0;max-width:420px}
       .modern-title,.modern-title-register{font-size:clamp(1.6rem,8vw,2.2rem)}
@@ -1189,7 +1239,7 @@ HTML_REGISTER = """
     }
   </style>
 </head>
-<body class="d-flex justify-content-center align-items-center form-first"> <!-- form-first = form solda, info-first = info solda -->
+<body class="d-flex justify-content-center align-items-center form-first">
   <!-- Arka plan ikonları -->
   <div class="animated-social-bg">
     <img src="{{ url_for('static', filename='linkedin.png') }}" class="bg-icon icon1" alt="">
@@ -1232,56 +1282,29 @@ HTML_REGISTER = """
 
         {% if not sent %}
           <form method="post">
-            <div class="mb-2">
-              <label class="form-label">Kullanıcı Adı</label>
-              <input name="username" class="form-control" required>
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Şifre</label>
-              <input name="password" type="password" class="form-control" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">E-Posta</label>
-              <input name="email" type="email" class="form-control" required>
-            </div>
+            <div class="mb-2"><label class="form-label">Kullanıcı Adı</label><input name="username" class="form-control" required></div>
+            <div class="mb-2"><label class="form-label">Şifre</label><input name="password" type="password" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label">E-Posta</label><input name="email" type="email" class="form-control" required></div>
             <button class="btn btn-success w-100 mb-2">Kayıt Ol</button>
           </form>
         {% else %}
           <form method="post">
-            <div class="mb-3">
-              <label class="form-label">E-postana gelen kod</label>
-              <input name="verify_code" class="form-control" required>
-            </div>
+            <div class="mb-3"><label class="form-label">E-postana gelen kod</label><input name="verify_code" class="form-control" required></div>
             <button class="btn btn-primary w-100 mb-2">Kodu Doğrula</button>
           </form>
           <form method="post" action="/reset-registration" class="text-center">
             <button type="submit" class="btn btn-link btn-sm text-decoration-none text-danger">Kayıt İşleminden Vazgeç</button>
           </form>
         {% endif %}
-        <div class="text-center mt-2">
-          <a href="/" class="btn btn-link btn-sm text-decoration-none">Giriş Yap</a>
-        </div>
+        <div class="text-center mt-2"><a href="/" class="btn btn-link btn-sm text-decoration-none">Giriş Yap</a></div>
 
-        <!-- === FORM ALTI: Sayaç + Güven + SSS (Login/Register aynı) === -->
+        <!-- Sayaç + Güven + SSS -->
         <div class="divider"></div>
-
         <div class="stat-grid" aria-label="Panel istatistikleri">
-          <div class="stat-card">
-            <div class="stat-label">Son 24 saatte sipariş</div>
-            <div class="stat-val" data-count="12438"></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Ortalama başlangıç</div>
-            <div class="stat-val" data-count="10" data-suffix=" DK"></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Aktif Çalışan Servis</div>
-            <div class="stat-val" data-count="11"></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Refill başarı oranı</div>
-            <div class="stat-val" data-count="98" data-suffix="%"></div>
-          </div>
+          <div class="stat-card"><div class="stat-label">Son 24 saatte sipariş</div><div class="stat-val" data-count="12438"></div></div>
+          <div class="stat-card"><div class="stat-label">Ortalama başlangıç</div><div class="stat-val" data-count="10" data-suffix=" DK"></div></div>
+          <div class="stat-card"><div class="stat-label">Aktif Çalışan Servis</div><div class="stat-val" data-count="11"></div></div>
+          <div class="stat-card"><div class="stat-label">Refill başarı oranı</div><div class="stat-val" data-count="98" data-suffix="%"></div></div>
         </div>
 
         <div class="trust-row" aria-label="Güven rozetleri">
@@ -1304,24 +1327,24 @@ HTML_REGISTER = """
             </div>
           </div>
         </div>
-        <!-- === /FORM ALTI === -->
       </div>
 
-      <!-- BİLGİ PANELİ (GİRİŞ ile AYNIDIR) -->
+      <!-- BİLGİ PANELİ -->
       <div class="col-12 col-md-6 info">
         <h3>Neye giriş yapıyorsun?</h3>
         <p>Baybayim; <strong>SMM Panel</strong> altyapısıyla Instagram, TikTok, YouTube, Twitter/X ve daha fazlasında
           <strong>takipçi</strong>, <strong>beğeni</strong>, <strong>izlenme</strong>, <strong>yorum</strong> gibi
           hizmetleri <em>hızlı, otomatik ve güvenli</em> şekilde sunar. Panel <strong>7/24</strong> açıktır; siparişler saniyeler içinde işleme alınır.</p>
 
-        <div class="mb-2">
-          <span class="badge-soft">Instagram • Takipçi / Beğeni / Reel izlenme</span>
-          <span class="badge-soft">TikTok • İzlenme / Canlı izleyici</span>
-          <span class="badge-soft">YouTube • İzlenme / Abone / Yorum</span>
+        <!-- FİYAT KARTLARI -->
+        <div class="pricing-grid">
+          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Türk Takipçi</div><div class="price-amount">300 ₺</div></div><div class="tiny">Yerli, stabil ve hızlı başlangıç.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm">Satın Al</a></div></div>
+          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Bot Takipçi</div><div class="price-amount">200 ₺</div></div><div class="tiny">Uygun fiyatlı, otomatik teslim.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm">Satın Al</a></div></div>
+          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Türk Beğeni</div><div class="price-amount">60 ₺</div></div><div class="tiny">Gerçek etkileşim opsiyonları.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm">Satın Al</a></div></div>
+          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Bot Beğeni</div><div class="price-amount">30 ₺</div></div><div class="tiny">Hızlı, ekonomik, otomatik.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm">Satın Al</a></div></div>
         </div>
 
         <h3 class="mt-3">Nasıl çalışır?</h3>
-
         <div class="step"><span class="num">1</span><div><strong>Hesabını oluştur / giriş yap</strong><br><span class="tiny">E-posta doğrulaması ile güvence.</span></div></div>
         <div class="step"><span class="num">2</span><div><strong>Bakiye ekle</strong><br><span class="tiny">Desteklenen yöntemlerle güvenli ödeme.</span></div></div>
         <div class="step"><span class="num">3</span><div><strong>Hizmeti seç & linki gir</strong><br><span class="tiny">Siparişin otomatik başlar; hız ve kapsam açıklamada yazar.</span></div></div>
@@ -1345,9 +1368,38 @@ HTML_REGISTER = """
     </div>
   </div>
 
+  <div id="loginBubble" class="login-bubble" role="alert" aria-live="polite" aria-atomic="true">
+    <button class="close-x" aria-label="Kapat">&times;</button>
+    <div class="title">Önce giriş yap 🎯</div>
+    <div class="msg">Satın alma için hesabın olmalı. <a href="/register" class="link-light text-decoration-underline">Kayıt ol</a> ve giriş yaptıktan sonra anında sipariş ver! 💥</div>
+    <div class="actions">
+      <a href="/" class="btn btn-primary btn-sm">Giriş Yap</a>
+      <a href="/register" class="btn btn-outline-light btn-sm">Kayıt Ol</a>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Basit sayaç animasyonu (görününce başlar) – Login ile aynı
+    (function(){
+      function qs(k){ return new URLSearchParams(location.search).get(k); }
+      const bubble = document.getElementById('loginBubble');
+      function showBubble(){
+        bubble.classList.add('show');
+        if(bubble._timer) clearTimeout(bubble._timer);
+        bubble._timer = setTimeout(()=>bubble.classList.remove('show'), 8000);
+      }
+      if(qs('need_login') === '1'){ setTimeout(showBubble, 400); }
+      document.querySelectorAll('.btn-buy').forEach(btn=>{
+        btn.addEventListener('click', function(ev){
+          ev.preventDefault();
+          showBubble();
+          window.scrollTo({top:0, behavior:'smooth'});
+        });
+      });
+      bubble?.querySelector('.close-x')?.addEventListener('click', ()=>bubble.classList.remove('show'));
+    })();
+  </script>
+  <script>
     (function(){
       const els = document.querySelectorAll('.stat-val');
       if(!('IntersectionObserver' in window)){ els.forEach(e=>animate(e)); return; }
@@ -1359,7 +1411,6 @@ HTML_REGISTER = """
         });
       },{threshold:0.6});
       els.forEach(el=>io.observe(el));
-
       function animate(el){
         const target = parseFloat(el.dataset.count||'0');
         const suffix = el.dataset.suffix || '';
