@@ -207,13 +207,14 @@ def durum_turkce(status: str) -> str:
     s = (status or "").lower().strip()
     mapping = {
         "completed": "Tamamlandı",
-        "pending": "Sırada",
+        "pending": "İşlemde",
         "started": "Başladı",
-        "in progress": "Devam Ediyor",
-        "processing": "Devam Ediyor",
+        "in progress": "İşlemde",
+        "processing": "Sırada",
         "canceled": "İptal Edildi",
         "cancelled": "İptal Edildi",
-        "partial": "Kısmen Tamamlandı",
+        "partial": "Kısmi Tamamlandı",
+        "fail": "Sırada",
     }
     return mapping.get(s, status)
 
@@ -5285,11 +5286,13 @@ def api_order_status():
         "cancel":     "İade edildi",
         "canceled":   "İade edildi",
         "cancelled":  "İade edildi",
-        "pending":    "Sırada",
+        "in progress": "İşlemde",
+        "pending":    "İşlemde",
         "started":    "Sırada",
         "processing": "Sırada",
-        "partial":    "İade edildi",
-        "refunded":   "İade edildi",  
+        "partial":    "Kısmi Tamamlandı",
+        "refunded":   "İade edildi",
+        "fail": "Sırada",  
     }
     status = normalize.get(status_in)
     if not status:
