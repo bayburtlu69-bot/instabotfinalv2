@@ -3551,15 +3551,14 @@ HTML_PANEL = """
     .form-total-custom { background: #23272b !important; border: 1.5px solid #323740 !important; color: #4fe9ff !important; border-radius: 8px !important; font-size: 1.21em !important; font-weight: 800 !important; letter-spacing: .01em; padding-left: 14px !important; padding-right: 14px !important; transition: border .16s, box-shadow .15s; box-shadow: none; min-height: 44px; text-align: left; }
     .form-total-custom:disabled { background: #23272b !important; color: #4fe9ff !important; opacity: 1; }
     @media (max-width: 575px) { .welcome-card { flex-direction: column; align-items: flex-start; gap: 12px; } .welcome-balance { text-align: left; } .order-title-center { font-size: 1.05rem; gap: 6px; min-height: 27px; } .form-total-custom { font-size: 1.06em !important; } }
-    .flash-info-box { margin-bottom: 15px; border-radius: 8px; font-weight: 600; font-size: 1.04em; padding: 10px 20px; border-left: 5px solid #00e1ff; background: #18242d; color: #51f5ff; box-shadow: 0 2px 10px 0 #00e1ff33; animation: fadeinflash .5s; }
-    .flash-info-box.error { border-left: 5px solid #ff6363; background: #2a1818; color: #ffc7c7; box-shadow: 0 2px 10px 0 #ff636633; }
+    .flash-info-box { margin-bottom: 15px; border-radius: 8px; font-weight: 600; font-size: 1.04em; padding: 10px 20px; border-left: 5px solid #00e1ff; background: #18242d; color: #51f5ff; box-shadow: 0 2px 10px 0 #00e1ff33; }
+    .flash-info-box.error { border-left: 5px solid #ff6363; background: #2a1818; color: #ffc7c7; }
     @keyframes fadeinflash { from { opacity: 0; transform: translateY(-18px);} to   { opacity: 1; transform: translateY(0);} }
     /* Modern WhatsApp Butonu */
     #whatsapp-float { position: fixed; right: 32px; bottom: 42px; width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(135deg, #25D366 80%, #075E54 100%); box-shadow: 0 6px 32px 0 #25d36648, 0 1.5px 10px 0 #00000020; color: #fff; display: flex; align-items: center; justify-content: center; z-index: 11000; cursor: pointer; transition: transform .19s cubic-bezier(.27,1.4,.62,.97), box-shadow .22s; border: none; animation: whatsapp-float-pop .7s cubic-bezier(.21,1.4,.72,1) 1; overflow: hidden; }
     #whatsapp-float:hover { transform: scale(1.08) translateY(-3px); box-shadow: 0 12px 48px 0 #25d36684, 0 3px 16px 0 #00000020; color: #fff; background: linear-gradient(135deg, #24ff7d 70%, #128C7E 100%); text-decoration: none; }
     #whatsapp-float .bi-whatsapp { font-size: 2.2em; filter: drop-shadow(0 1px 7px #13f85d66); }
     #whatsapp-float-text { position: absolute; right: 74px; bottom: 0px; font-size: 1.08em; background: #25d366; color: #0b3e1b; border-radius: 14px 0 0 14px; padding: 10px 20px 10px 18px; white-space: nowrap; box-shadow: 0 4px 20px 0 #25d36626; opacity: 0; pointer-events: none; font-weight: 800; letter-spacing: 0.02em; transition: opacity 0.23s; }
-    #whatsapp-float:hover #whatsapp-float-text, #whatsapp-float:focus #whatsapp-float-text { opacity: 1; }
     @media (max-width:600px){ #whatsapp-float { right: 14px; bottom: 18px; width: 48px; height: 48px; } #whatsapp-float .bi-whatsapp { font-size: 1.34em; } #whatsapp-float-text { display: none; } }
     @keyframes whatsapp-float-pop { 0% {transform:scale(0.75) translateY(60px);} 70% {transform:scale(1.13) translateY(-12px);} 100% {transform:scale(1) translateY(0);} }
 
@@ -3736,21 +3735,38 @@ HTML_PANEL = """
       </script>
 
       <script>
-        // Kategori seçimine göre servisleri filtrele + hidden category'yi güncelle
+        // Kategori seçimine göre servisleri filtrele (MOBİL UYUMLU: seçenekleri yeniden kurar)
         const cat = document.getElementById('category_id');
         const hiddenCat = document.getElementById('category_hidden');
 
+        // Orijinal servis seçeneklerini RAM'e al (klon referansı, her kullanımda yeniden klonlayacağız)
+        let ORIGINAL_SERVICE_OPTIONS = [];
+        document.addEventListener('DOMContentLoaded', () => {
+          ORIGINAL_SERVICE_OPTIONS = Array.from(sel.options).map(o => o.cloneNode(true));
+        });
+
         function filterServicesByCategory(){
           const cid = cat.value || "";
-          hiddenCat.value = (cat.selectedOptions[0]?.textContent || "").trim(); // backend uyumu
+          // backend uyumu için kategori adını gizli input'a yaz
+          hiddenCat.value = (cat.selectedOptions[0]?.textContent || "").trim();
 
-          let firstVisible = null;
-          Array.from(sel.options).forEach(o => {
-            const match = (cid === "" || o.dataset.categoryId === cid);
-            o.hidden = !match;
-            if (match && !firstVisible) firstVisible = o;
+          // Seçenekleri baştan kur (iOS Safari dahil tüm mobilde çalışır)
+          const buffer = document.createDocumentFragment();
+          ORIGINAL_SERVICE_OPTIONS.forEach(o => {
+            const oCid = o.dataset.categoryId || "";
+            if (cid === "" || oCid === cid) {
+              buffer.appendChild(o.cloneNode(true)); // her seferinde taze klon
+            }
           });
-          if (firstVisible) sel.value = firstVisible.value;
+
+          // Eski seçenekleri temizle ve yenilerini ekle
+          sel.innerHTML = "";
+          sel.appendChild(buffer);
+
+          // Varsayılan olarak ilk görünen seçilsin
+          if (sel.options.length > 0) sel.selectedIndex = 0;
+
+          // Fiyatı güncelle
           updateTotal();
         }
 
