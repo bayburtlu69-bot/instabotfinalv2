@@ -3731,8 +3731,6 @@ HTML_PANEL = """
           <label class="form-label"><i class="bi bi-info-circle"></i> Açıklama</label>
           <div class="alert alert-secondary" style="white-space: pre-line; display: flex; flex-direction: column; justify-content: center; min-height: 160px;">
             <b>LÜTFEN SİPARİŞ VERMEDEN ÖNCE BU KISMI OKU</b>
-            ☪️ Bu işaret olan servisler TÜRK gönderimi yapıyor.
-            🤖 Bu işaret olan servisler BOT gönderimi yapıyor.
 
             Sistem, gönderilecek takipçi sayısına göre uygun şekilde çalışır.
             Örnek : Takipçi siparişiniz ortalama 3-6 saat arasında tamamlanır.
