@@ -574,8 +574,8 @@ SMTP_PORT = 587
 SMTP_ADDR = "kuzenlertv6996@gmail.com"
 SMTP_PASS = "nurkqldoqcaefqwk"
 def send_verification_mail(email, code):
-    subject = "Kayıt Doğrulama Kodunuz"
-    body = f"Merhaba,\n\nKayıt işlemini tamamlamak için doğrulama kodunuz: {code}\n\nbaybayim.com Ekibi"
+    subject = "Baybayim Kayıt Doğrulama 🚀"
+    body = f"Merhabalar Efendim !,\n\nKayıt işlemindeki gerekli doğrulama kodunuz ➡️ : {code}\n\nbaybayim.com Ekibi olarak teşekkür ederiz 🙏🏻"
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
     msg["From"] = SMTP_ADDR
