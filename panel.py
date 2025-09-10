@@ -821,7 +821,7 @@ HTML_USERS = """
 </html>
 """
 
-HTML_LOGIN = """
+HTML_LOGIN = r"""
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -914,14 +914,34 @@ HTML_LOGIN = """
     .form-first .row{flex-direction:row}
     .info-first .row{flex-direction:row-reverse}
 
-    .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:10px 0 6px}
-    .price-card{background:linear-gradient(180deg,#1b1b1b 0%,#171717 100%);border:1px solid #2a2a2a;border-radius:14px;padding:14px}
-    .price-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-    .price-title{font-weight:800;font-size:1rem}
-    .price-amount{font-weight:900;font-size:1.1rem;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    .price-actions{display:flex;gap:6px;margin-top:10px}
-    .btn-buy{border-radius:10px;padding:8px 10px;font-weight:800;background:linear-gradient(92deg,#5aa8ff 0%,#b95cff 60%,#2feea3 100%);color:#0f1012;border:0}
-    .btn-buy:hover{filter:brightness(1.1)}
+    /* ESKİ fiyat kartları durabilir ama artık KULLANMIYORUZ */
+    .pricing-grid{display:none}
+
+    /* YENİ: Kompakt chip-style fiyat listesi */
+    .mini-price-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin:8px 0 6px}
+    .mini-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid #2a2a2a;border-radius:12px;background:linear-gradient(180deg,#1b1b1b 0%,#171717 100%)}
+    .mini-left{min-width:0}
+    .mp-title{font-weight:800;font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mp-note{font-size:.88rem;color:#cfcfcf;opacity:.9;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mini-right{display:flex;align-items:center;gap:8px}
+    .mp-amount{font-weight:900;font-size:1rem;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .btn-buy-compact{border-radius:10px;padding:6px 10px;font-weight:800;background:linear-gradient(92deg,#5aa8ff 0%,#b95cff 60%,#2feea3 100%);color:#0f1012;border:0;white-space:nowrap}
+
+    /* Emoji bandı + mini referans slider */
+    .ref-section{margin-top:18px}
+    .emoji-belt{position:relative;overflow:hidden;height:38px;background:#181818;border:1px solid #2a2a2a;border-radius:12px}
+    .emoji-track{position:absolute;white-space:nowrap;will-change:transform;animation:beltMove 20s linear infinite}
+    .emoji-track span{display:inline-block;padding:0 10px;font-size:22px;filter:drop-shadow(0 2px 6px #0007)}
+    @keyframes beltMove{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    .t-wrap{max-width:680px;margin:16px auto 0}
+    .t-slider{position:relative;overflow:hidden;border:1px solid #2a2a2a;border-radius:14px;background:#171717}
+    .t-slides{display:flex;transition:transform .5s ease}
+    .t-card{min-width:100%;padding:18px;text-align:center}
+    .t-stars{font-size:18px;margin-bottom:6px}
+    .t-name{opacity:.9;font-weight:700}
+    .t-dots{display:flex;gap:6px;justify-content:center;margin-top:10px}
+    .t-dot{width:8px;height:8px;border-radius:999px;background:#3a3a3a}
+    .t-dot.active{background:#2feea3;box-shadow:0 0 8px #2feea399}
 
     /* Login baloncuğu */
     .login-bubble{position:fixed;right:18px;bottom:18px;max-width:360px;background:#191919;border:1px solid #2a2a2a;border-radius:14px;box-shadow:0 10px 40px #0008;padding:12px 14px;z-index:9999;transform:translateY(20px);opacity:0;pointer-events:none;transition:transform .25s ease,opacity .25s ease}
@@ -942,6 +962,7 @@ HTML_LOGIN = """
       .bg-icon{width:36px;opacity:.12}
       .info{border-left:0;border-top:1px solid #2a2a2a;padding:16px}
       .stat-grid{grid-template-columns:repeat(2,1fr)}
+      .mini-price-list{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -1026,6 +1047,45 @@ HTML_LOGIN = """
             </div>
           </div>
         </div>
+
+        <!-- Emoji bandı + mini referans slider -->
+        <div class="ref-section" aria-label="Kullanıcı yorumları">
+          <div class="emoji-belt mt-3" aria-hidden="true">
+            <div class="emoji-track">
+              <span>🚀</span><span>💬</span><span>📈</span><span>❤️</span><span>⚡</span><span>🔒</span><span>🌐</span><span>⭐</span>
+              <span>🚀</span><span>💬</span><span>📈</span><span>❤️</span><span>⚡</span><span>🔒</span><span>🌐</span><span>⭐</span>
+            </div>
+          </div>
+
+          <div class="t-wrap">
+            <div class="t-slider" id="testiLogin">
+              <div class="t-slides">
+                <div class="t-card">
+                  <div class="t-stars">★★★★★</div>
+                  <p class="mb-1">“Sipariş 10 dk içinde başladı, tam gaz ilerliyor.”</p>
+                  <div class="t-name">— Ayşe K.</div>
+                </div>
+                <div class="t-card">
+                  <div class="t-stars">★★★★★</div>
+                  <p class="mb-1">“Destek 7/24 aktif. Şifre istememeleri büyük artı.”</p>
+                  <div class="t-name">— Mehmet T.</div>
+                </div>
+                <div class="t-card">
+                  <div class="t-stars">★★★★★</div>
+                  <p class="mb-1">“Fiyat/performans efsane. Düşüşte telafi de çalıştı.”</p>
+                  <div class="t-name">— Selin D.</div>
+                </div>
+                <div class="t-card">
+                  <div class="t-stars">★★★★★</div>
+                  <p class="mb-1">“TikTok + IG paketleriyle organik gibi akıyor.”</p>
+                  <div class="t-name">— Burak A.</div>
+                </div>
+              </div>
+            </div>
+            <div class="t-dots" id="dotsLogin" aria-hidden="true"></div>
+          </div>
+        </div>
+        <!-- /Emoji + Slider -->
       </div>
 
       <!-- BİLGİ PANELİ -->
@@ -1035,13 +1095,53 @@ HTML_LOGIN = """
           <strong>takipçi</strong>, <strong>beğeni</strong>, <strong>izlenme</strong>, <strong>yorum</strong> gibi
           hizmetleri <em>hızlı, otomatik ve güvenli</em> şekilde sunar. Panel <strong>7/24</strong> açıktır; siparişler saniyeler içinde işleme alınır.</p>
 
-        <!-- FİYAT KARTLARI -->
-        <div class="pricing-grid">
-          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Türk Takipçi</div><div class="price-amount">300 ₺</div></div><div class="tiny">Yerli, stabil ve hızlı başlangıç.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm" data-service="Instagram Türk Takipçi">Satın Al</a></div></div>
-          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Bot Takipçi</div><div class="price-amount">200 ₺</div></div><div class="tiny">Uygun fiyatlı, otomatik teslim.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm" data-service="Instagram Bot Takipçi">Satın Al</a></div></div>
-          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Türk Beğeni</div><div class="price-amount">60 ₺</div></div><div class="tiny">Gerçek etkileşim opsiyonları.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm" data-service="Instagram Türk Beğeni">Satın Al</a></div></div>
-          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Bot Beğeni</div><div class="price-amount">30 ₺</div></div><div class="tiny">Hızlı, ekonomik, otomatik.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm" data-service="Instagram Bot Beğeni">Satın Al</a></div></div>
+        <!-- YENİ: Kompakt fiyat listesi -->
+        <div class="mini-price-list">
+          <div class="mini-item">
+            <div class="mini-left">
+              <div class="mp-title">Instagram Türk Takipçi</div>
+              <div class="mp-note">Yerli, stabil ve hızlı başlangıç</div>
+            </div>
+            <div class="mini-right">
+              <div class="mp-amount">300 ₺</div>
+              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm" data-service="Instagram Türk Takipçi">Satın Al</a>
+            </div>
+          </div>
+
+          <div class="mini-item">
+            <div class="mini-left">
+              <div class="mp-title">Instagram Bot Takipçi</div>
+              <div class="mp-note">Uygun fiyat, otomatik teslim</div>
+            </div>
+            <div class="mini-right">
+              <div class="mp-amount">200 ₺</div>
+              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm" data-service="Instagram Bot Takipçi">Satın Al</a>
+            </div>
+          </div>
+
+          <div class="mini-item">
+            <div class="mini-left">
+              <div class="mp-title">Instagram Türk Beğeni</div>
+              <div class="mp-note">Gerçek etkileşim opsiyonları</div>
+            </div>
+            <div class="mini-right">
+              <div class="mp-amount">60 ₺</div>
+              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm" data-service="Instagram Türk Beğeni">Satın Al</a>
+            </div>
+          </div>
+
+          <div class="mini-item">
+            <div class="mini-left">
+              <div class="mp-title">Instagram Bot Beğeni</div>
+              <div class="mp-note">Hızlı, ekonomik, otomatik</div>
+            </div>
+            <div class="mini-right">
+              <div class="mp-amount">30 ₺</div>
+              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm" data-service="Instagram Bot Beğeni">Satın Al</a>
+            </div>
+          </div>
         </div>
+        <!-- /Kompakt fiyat listesi -->
 
         <h3 class="mt-3">Nasıl çalışır?</h3>
         <div class="step"><span class="num">1</span><div><strong>Hesabını oluştur / giriş yap</strong><br><span class="tiny">E-posta doğrulaması ile güvence.</span></div></div>
@@ -1089,7 +1189,7 @@ HTML_LOGIN = """
         bubble._timer = setTimeout(()=>bubble.classList.remove('show'), 8000);
       }
       if(qs('need_login') === '1'){ setTimeout(showBubble, 400); }
-      document.querySelectorAll('.btn-buy').forEach(btn=>{
+      document.querySelectorAll('.btn-buy, .btn-buy-compact').forEach(btn=>{
         btn.addEventListener('click', function(ev){
           ev.preventDefault();
           showBubble();
@@ -1127,11 +1227,33 @@ HTML_LOGIN = """
       }
     })();
   </script>
+
+  <!-- Mini referans slider scripti -->
+  <script>
+    (function(){
+      function initSlider(rootId,dotsId){
+        const root=document.getElementById(rootId); if(!root) return;
+        const track=root.querySelector('.t-slides');
+        const slides=root.querySelectorAll('.t-card');
+        const dotsWrap=document.getElementById(dotsId);
+        let i=0, n=slides.length;
+        for(let k=0;k<n;k++){ const d=document.createElement('div'); d.className='t-dot'+(k===0?' active':''); dotsWrap.appendChild(d); }
+        const dots=[...dotsWrap.querySelectorAll('.t-dot')];
+        function go(idx){
+          i=idx%n; track.style.transform=`translateX(-${i*100}%)`;
+          dots.forEach((d,di)=>d.classList.toggle('active', di===i));
+        }
+        setInterval(()=>go(i+1), 4000);
+        dots.forEach((d,di)=>d.addEventListener('click',()=>go(di)));
+      }
+      initSlider('testiLogin','dotsLogin');
+    })();
+  </script>
 </body>
 </html>
 """
 
-HTML_REGISTER = """
+HTML_REGISTER = r"""
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -1204,21 +1326,40 @@ HTML_REGISTER = """
     @keyframes float15{0%{transform:translateY(0)}50%{transform:translateY(11px) scale(.94)}100%{transform:translateY(0)}}
     @keyframes float16{0%{transform:translateY(0)}50%{transform:translateY(-19px) scale(1.03)}100%{transform:translateY(0)}}
     @keyframes float17{0%{transform:translateY(0)}50%{transform:translateY(16px) scale(1.01)}100%{transform:translateY(0)}}
-    @keyframes float18{0%{transform:translateY(0)}50%{transform:translateY(-25px) scale(1.05)}100%{transform:translateY(0)}}
 
     .form-first .row{flex-direction:row}
     .info-first .row{flex-direction:row-reverse}
 
-    .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:10px 0 6px}
-    .price-card{background:linear-gradient(180deg,#1b1b1b 0%,#171717 100%);border:1px solid #2a2a2a;border-radius:14px;padding:14px}
-    .price-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-    .price-title{font-weight:800;font-size:1rem}
-    .price-amount{font-weight:900;font-size:1.1rem;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    .price-actions{display:flex;gap:6px;margin-top:10px}
-    .btn-buy{border-radius:10px;padding:8px 10px;font-weight:800;background:linear-gradient(92deg,#5aa8ff 0%,#b95cff 60%,#2feea3 100%);color:#0f1012;border:0}
-    .btn-buy:hover{filter:brightness(1.1)}
+    /* Eski pricing kartlarını gizledik */
+    .pricing-grid{display:none}
 
-    /* Register sayfasında da baloncuk stilleri */
+    /* Kompakt fiyat listesi (aynı stiller) */
+    .mini-price-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin:8px 0 6px}
+    .mini-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid #2a2a2a;border-radius:12px;background:linear-gradient(180deg,#1b1b1b 0%,#171717 100%)}
+    .mini-left{min-width:0}
+    .mp-title{font-weight:800;font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mp-note{font-size:.88rem;color:#cfcfcf;opacity:.9;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mini-right{display:flex;align-items:center;gap:8px}
+    .mp-amount{font-weight:900;font-size:1rem;background:linear-gradient(92deg,#58a7ff,#b95cff,#2feea3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .btn-buy-compact{border-radius:10px;padding:6px 10px;font-weight:800;background:linear-gradient(92deg,#5aa8ff 0%,#b95cff 60%,#2feea3 100%);color:#0f1012;border:0;white-space:nowrap}
+
+    /* Emoji bandı + mini referans slider */
+    .ref-section{margin-top:18px}
+    .emoji-belt{position:relative;overflow:hidden;height:38px;background:#181818;border:1px solid #2a2a2a;border-radius:12px}
+    .emoji-track{position:absolute;white-space:nowrap;will-change:transform;animation:beltMove 20s linear infinite}
+    .emoji-track span{display:inline-block;padding:0 10px;font-size:22px;filter:drop-shadow(0 2px 6px #0007)}
+    @keyframes beltMove{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    .t-wrap{max-width:680px;margin:16px auto 0}
+    .t-slider{position:relative;overflow:hidden;border:1px solid #2a2a2a;border-radius:14px;background:#171717}
+    .t-slides{display:flex;transition:transform .5s ease}
+    .t-card{min-width:100%;padding:18px;text-align:center}
+    .t-stars{font-size:18px;margin-bottom:6px}
+    .t-name{opacity:.9;font-weight:700}
+    .t-dots{display:flex;gap:6px;justify-content:center;margin-top:10px}
+    .t-dot{width:8px;height:8px;border-radius:999px;background:#3a3a3a}
+    .t-dot.active{background:#2feea3;box-shadow:0 0 8px #2feea399}
+
+    /* Baloncuk stilleri */
     .login-bubble{position:fixed;right:18px;bottom:18px;max-width:360px;background:#191919;border:1px solid #2a2a2a;border-radius:14px;box-shadow:0 10px 40px #0008;padding:12px 14px;z-index:9999;transform:translateY(20px);opacity:0;pointer-events:none;transition:transform .25s ease,opacity .25s ease}
     .login-bubble.show{opacity:1;transform:translateY(0);pointer-events:auto}
     .login-bubble .title{font-weight:900;margin-bottom:4px}
@@ -1236,6 +1377,7 @@ HTML_REGISTER = """
       .bg-icon{width:36px;opacity:.12}
       .info{border-left:0;border-top:1px solid #2a2a2a;padding:16px}
       .stat-grid{grid-template-columns:repeat(2,1fr)}
+      .mini-price-list{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -1326,6 +1468,45 @@ HTML_REGISTER = """
             </div>
           </div>
         </div>
+
+        <!-- Emoji + mini referans slider -->
+        <div class="ref-section" aria-label="Kullanıcı yorumları">
+          <div class="emoji-belt mt-3" aria-hidden="true">
+            <div class="emoji-track">
+              <span>🚀</span><span>💬</span><span>📈</span><span>❤️</span><span>⚡</span><span>🔒</span><span>🌐</span><span>⭐</span>
+              <span>🚀</span><span>💬</span><span>📈</span><span>❤️</span><span>⚡</span><span>🔒</span><span>🌐</span><span>⭐</span>
+            </div>
+          </div>
+
+          <div class="t-wrap">
+            <div class="t-slider" id="testiRegister">
+              <div class="t-slides">
+                <div class="t-card">
+                  <div class="t-stars">★★★★★</div>
+                  <p class="mb-1">“Kayıt 30 sn sürdü, ilk siparişim hemen başladı.”</p>
+                  <div class="t-name">— Ceren Y.</div>
+                </div>
+                <div class="t-card">
+                  <div class="t-stars">★★★★★</div>
+                  <p class="mb-1">“IG + TikTok hizmetleri hızlı ve stabil.”</p>
+                  <div class="t-name">— Emir A.</div>
+                </div>
+                <div class="t-card">
+                  <div class="t-stars">★★★★★</div>
+                  <p class="mb-1">“Düşüşte telafi geldi, içim rahat.”</p>
+                  <div class="t-name">— Gözde K.</div>
+                </div>
+                <div class="t-card">
+                  <div class="t-stars">★★★★★</div>
+                  <p class="mb-1">“Şifre istemeden ilerlemek güven veriyor.”</p>
+                  <div class="t-name">— Onur S.</div>
+                </div>
+              </div>
+            </div>
+            <div class="t-dots" id="dotsRegister" aria-hidden="true"></div>
+          </div>
+        </div>
+        <!-- /Emoji + Slider -->
       </div>
 
       <!-- BİLGİ PANELİ -->
@@ -1335,13 +1516,53 @@ HTML_REGISTER = """
           <strong>takipçi</strong>, <strong>beğeni</strong>, <strong>izlenme</strong>, <strong>yorum</strong> gibi
           hizmetleri <em>hızlı, otomatik ve güvenli</em> şekilde sunar. Panel <strong>7/24</strong> açıktır; siparişler saniyeler içinde işleme alınır.</p>
 
-        <!-- FİYAT KARTLARI -->
-        <div class="pricing-grid">
-          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Türk Takipçi</div><div class="price-amount">300 ₺</div></div><div class="tiny">Yerli, stabil ve hızlı başlangıç.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm">Satın Al</a></div></div>
-          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Bot Takipçi</div><div class="price-amount">200 ₺</div></div><div class="tiny">Uygun fiyatlı, otomatik teslim.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm">Satın Al</a></div></div>
-          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Türk Beğeni</div><div class="price-amount">60 ₺</div></div><div class="tiny">Gerçek etkileşim opsiyonları.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm">Satın Al</a></div></div>
-          <div class="price-card"><div class="price-top"><div class="price-title">Instagram Bot Beğeni</div><div class="price-amount">30 ₺</div></div><div class="tiny">Hızlı, ekonomik, otomatik.</div><div class="price-actions"><a href="/?need_login=1" class="btn btn-buy btn-sm">Satın Al</a></div></div>
+        <!-- YENİ: Kompakt fiyat listesi -->
+        <div class="mini-price-list">
+          <div class="mini-item">
+            <div class="mini-left">
+              <div class="mp-title">Instagram Türk Takipçi</div>
+              <div class="mp-note">Yerli, stabil ve hızlı başlangıç</div>
+            </div>
+            <div class="mini-right">
+              <div class="mp-amount">300 ₺</div>
+              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm">Satın Al</a>
+            </div>
+          </div>
+
+          <div class="mini-item">
+            <div class="mini-left">
+              <div class="mp-title">Instagram Bot Takipçi</div>
+              <div class="mp-note">Uygun fiyat, otomatik teslim</div>
+            </div>
+            <div class="mini-right">
+              <div class="mp-amount">200 ₺</div>
+              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm">Satın Al</a>
+            </div>
+          </div>
+
+          <div class="mini-item">
+            <div class="mini-left">
+              <div class="mp-title">Instagram Türk Beğeni</div>
+              <div class="mp-note">Gerçek etkileşim opsiyonları</div>
+            </div>
+            <div class="mini-right">
+              <div class="mp-amount">60 ₺</div>
+              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm">Satın Al</a>
+            </div>
+          </div>
+
+          <div class="mini-item">
+            <div class="mini-left">
+              <div class="mp-title">Instagram Bot Beğeni</div>
+              <div class="mp-note">Hızlı, ekonomik, otomatik</div>
+            </div>
+            <div class="mini-right">
+              <div class="mp-amount">30 ₺</div>
+              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm">Satın Al</a>
+            </div>
+          </div>
         </div>
+        <!-- /Kompakt fiyat listesi -->
 
         <h3 class="mt-3">Nasıl çalışır?</h3>
         <div class="step"><span class="num">1</span><div><strong>Hesabını oluştur / giriş yap</strong><br><span class="tiny">E-posta doğrulaması ile güvence.</span></div></div>
@@ -1367,7 +1588,7 @@ HTML_REGISTER = """
     </div>
   </div>
 
-  <!-- Baloncuk: sadece 'Satın Al' tıklanınca açılır -->
+  <!-- Baloncuk -->
   <div id="loginBubble" class="login-bubble" role="alert" aria-live="polite" aria-atomic="true">
     <button class="close-x" aria-label="Kapat">&times;</button>
     <div class="title">Önce giriş yap 🎯</div>
@@ -1383,7 +1604,7 @@ HTML_REGISTER = """
     (function(){
       const bubble = document.getElementById('loginBubble');
       function show(){ bubble.classList.add('show'); if(bubble._t) clearTimeout(bubble._t); bubble._t=setTimeout(()=>bubble.classList.remove('show'),8000); }
-      document.querySelectorAll('.btn-buy').forEach(btn=>{
+      document.querySelectorAll('.btn-buy, .btn-buy-compact').forEach(btn=>{
         btn.addEventListener('click', (e)=>{ e.preventDefault(); show(); window.scrollTo({top:0,behavior:'smooth'}); });
       });
       bubble?.querySelector('.close-x')?.addEventListener('click', ()=>bubble.classList.remove('show'));
@@ -1415,6 +1636,28 @@ HTML_REGISTER = """
         }
         requestAnimationFrame(step);
       }
+    })();
+  </script>
+
+  <!-- Mini referans slider scripti -->
+  <script>
+    (function(){
+      function initSlider(rootId,dotsId){
+        const root=document.getElementById(rootId); if(!root) return;
+        const track=root.querySelector('.t-slides');
+        const slides=root.querySelectorAll('.t-card');
+        const dotsWrap=document.getElementById(dotsId);
+        let i=0, n=slides.length;
+        for(let k=0;k<n;k++){ const d=document.createElement('div'); d.className='t-dot'+(k===0?' active':''); dotsWrap.appendChild(d); }
+        const dots=[...dotsWrap.querySelectorAll('.t-dot')];
+        function go(idx){
+          i=idx%n; track.style.transform=`translateX(-${i*100}%)`;
+          dots.forEach((d,di)=>d.classList.toggle('active', di===i));
+        }
+        setInterval(()=>go(i+1), 4000);
+        dots.forEach((d,di)=>d.addEventListener('click',()=>go(di)));
+      }
+      initSlider('testiRegister','dotsRegister');
     })();
   </script>
 </body>
