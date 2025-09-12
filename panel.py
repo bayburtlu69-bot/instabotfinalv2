@@ -108,7 +108,7 @@ db = SQLAlchemy(app)
 # ------------------ Sabitler ------------------
 SABIT_FIYAT = 0.5
 EXT_SELECTION_FILE = "ext_selection.json"
-EXT_SELECTED_IDS = [6896, 6898, 6899, 6900, 6911, 6901, 6909, 6910, 6904, 6908, 6905]
+EXT_SELECTED_IDS = [6896, 6898, 6899, 6900, 6911, 6901, 6909, 6910, 6904, 6908, 6905 ,5227]
 
 # Platform override (istersen doldur)
 PLATFORM_OVERRIDES = {
