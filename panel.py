@@ -1095,54 +1095,6 @@ HTML_LOGIN = r"""
           <strong>takipçi</strong>, <strong>beğeni</strong>, <strong>izlenme</strong>, <strong>yorum</strong> gibi
           hizmetleri <em>hızlı, otomatik ve güvenli</em> şekilde sunar. Panel <strong>7/24</strong> açıktır; siparişler saniyeler içinde işleme alınır.</p>
 
-        <!-- YENİ: Kompakt fiyat listesi -->
-        <div class="mini-price-list">
-          <div class="mini-item">
-            <div class="mini-left">
-              <div class="mp-title">Instagram Türk Takipçi</div>
-              <div class="mp-note">Yerli, stabil ve hızlı başlangıç</div>
-            </div>
-            <div class="mini-right">
-              <div class="mp-amount">300 ₺</div>
-              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm" data-service="Instagram Türk Takipçi">Satın Al</a>
-            </div>
-          </div>
-
-          <div class="mini-item">
-            <div class="mini-left">
-              <div class="mp-title">Instagram Bot Takipçi</div>
-              <div class="mp-note">Uygun fiyat, otomatik teslim</div>
-            </div>
-            <div class="mini-right">
-              <div class="mp-amount">200 ₺</div>
-              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm" data-service="Instagram Bot Takipçi">Satın Al</a>
-            </div>
-          </div>
-
-          <div class="mini-item">
-            <div class="mini-left">
-              <div class="mp-title">Instagram Türk Beğeni</div>
-              <div class="mp-note">Gerçek etkileşim opsiyonları</div>
-            </div>
-            <div class="mini-right">
-              <div class="mp-amount">60 ₺</div>
-              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm" data-service="Instagram Türk Beğeni">Satın Al</a>
-            </div>
-          </div>
-
-          <div class="mini-item">
-            <div class="mini-left">
-              <div class="mp-title">Instagram Bot Beğeni</div>
-              <div class="mp-note">Hızlı, ekonomik, otomatik</div>
-            </div>
-            <div class="mini-right">
-              <div class="mp-amount">30 ₺</div>
-              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm" data-service="Instagram Bot Beğeni">Satın Al</a>
-            </div>
-          </div>
-        </div>
-        <!-- /Kompakt fiyat listesi -->
-
         <h3 class="mt-3">Nasıl çalışır?</h3>
         <div class="step"><span class="num">1</span><div><strong>Hesabını oluştur / giriş yap</strong><br><span class="tiny">E-posta doğrulaması ile güvence.</span></div></div>
         <div class="step"><span class="num">2</span><div><strong>Bakiye ekle</strong><br><span class="tiny">Desteklenen yöntemlerle güvenli ödeme.</span></div></div>
@@ -1515,54 +1467,6 @@ HTML_REGISTER = r"""
         <p>Baybayim; <strong>SMM Panel</strong> altyapısıyla Instagram, TikTok, YouTube, Twitter/X ve daha fazlasında
           <strong>takipçi</strong>, <strong>beğeni</strong>, <strong>izlenme</strong>, <strong>yorum</strong> gibi
           hizmetleri <em>hızlı, otomatik ve güvenli</em> şekilde sunar. Panel <strong>7/24</strong> açıktır; siparişler saniyeler içinde işleme alınır.</p>
-
-        <!-- YENİ: Kompakt fiyat listesi -->
-        <div class="mini-price-list">
-          <div class="mini-item">
-            <div class="mini-left">
-              <div class="mp-title">Instagram Türk Takipçi</div>
-              <div class="mp-note">Yerli, stabil ve hızlı başlangıç</div>
-            </div>
-            <div class="mini-right">
-              <div class="mp-amount">300 ₺</div>
-              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm">Satın Al</a>
-            </div>
-          </div>
-
-          <div class="mini-item">
-            <div class="mini-left">
-              <div class="mp-title">Instagram Bot Takipçi</div>
-              <div class="mp-note">Uygun fiyat, otomatik teslim</div>
-            </div>
-            <div class="mini-right">
-              <div class="mp-amount">200 ₺</div>
-              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm">Satın Al</a>
-            </div>
-          </div>
-
-          <div class="mini-item">
-            <div class="mini-left">
-              <div class="mp-title">Instagram Türk Beğeni</div>
-              <div class="mp-note">Gerçek etkileşim opsiyonları</div>
-            </div>
-            <div class="mini-right">
-              <div class="mp-amount">60 ₺</div>
-              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm">Satın Al</a>
-            </div>
-          </div>
-
-          <div class="mini-item">
-            <div class="mini-left">
-              <div class="mp-title">Instagram Bot Beğeni</div>
-              <div class="mp-note">Hızlı, ekonomik, otomatik</div>
-            </div>
-            <div class="mini-right">
-              <div class="mp-amount">30 ₺</div>
-              <a href="/?need_login=1" class="btn-buy-compact btn btn-sm">Satın Al</a>
-            </div>
-          </div>
-        </div>
-        <!-- /Kompakt fiyat listesi -->
 
         <h3 class="mt-3">Nasıl çalışır?</h3>
         <div class="step"><span class="num">1</span><div><strong>Hesabını oluştur / giriş yap</strong><br><span class="tiny">E-posta doğrulaması ile güvence.</span></div></div>
@@ -2244,7 +2148,7 @@ HTML_BAKIYE_YUKLE = """
 <!-- İletişim ve adres bilgisi eklendi -->
 <div class="text-center mt-5" style="font-size: 0.9rem; color: #aaa;">
   <hr style="border-color: #333;">
-  <p><strong>İletişim:</strong> 📩 kuzenlertv6996@gmail.com – 📞 +44 7927 573543 - 📸 @baybayimofficial</p>
+  <p><strong>İletişim:</strong> 📩 kuzenlertv6996@gmail.com – 📞 +90 5301900969 - 📸 @baybayimofficial</p>
     <p><strong>📍 Adres:</strong> Mustafa Kemal Paşa Mahallesi, Lale Sokak No:110
 </div>
 </body>
@@ -4100,7 +4004,7 @@ HTML_PANEL = """
   </div>
 
   <!-- WhatsApp Sohbet Butonu BAŞLANGIÇ -->
-  <a href="https://wa.me/447927573543" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
+  <a href="https://wa.me/905301900969" target="_blank" id="whatsapp-float" title="WhatsApp ile Sohbet Et">
     <span id="whatsapp-float-text">WhatsApp ile Destek!</span>
     <i class="bi bi-whatsapp"></i>
   </a>
@@ -4108,7 +4012,7 @@ HTML_PANEL = """
 
   <div class="text-center mt-5" style="font-size: 0.9rem; color: #aaa;">
     <hr style="border-color: #333;">
-    <p><strong>İletişim:</strong> 📩 kuzenlertv6996@gmail.com – 📞 +44 7927 573543 - 📸 @baybayimofficial</p>
+    <p><strong>İletişim:</strong> 📩 kuzenlertv6996@gmail.com – 📞 +90 5301900969 - 📸 @baybayimofficial</p>
     <p><strong>📍 Adres:</strong> Mustafa Kemal Paşa Mahallesi, Lale Sokak No:110 D:1</p>
   </div>
 </body>
